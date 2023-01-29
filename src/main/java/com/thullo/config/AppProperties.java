@@ -2,6 +2,7 @@ package com.thullo.config;
 
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -11,6 +12,7 @@ import java.util.List;
  */
 @ConfigurationProperties(prefix = "app")
 @Data
+@Service
 public class AppProperties {
     private final Auth auth = new Auth();
     private final OAuth2 oAuth2 = new OAuth2();

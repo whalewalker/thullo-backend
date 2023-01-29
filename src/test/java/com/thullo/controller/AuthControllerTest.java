@@ -5,15 +5,19 @@ import com.thullo.data.model.User;
 import com.thullo.data.repository.UserRepository;
 import com.thullo.security.CustomUserDetailService;
 import com.thullo.service.AuthService;
+import com.thullo.service.AuthServiceImpl;
 import com.thullo.web.controller.AuthController;
 import com.thullo.web.payload.request.UserRequest;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.json.AutoConfigureJsonTesters;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.json.JacksonTester;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
@@ -23,6 +27,7 @@ import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.web.context.WebApplicationContext;
 
 import java.util.UUID;
 
@@ -32,20 +37,20 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 
+//@ExtendWith(SpringExtension.class)
+//@AutoConfigureJsonTesters
+//@WebMvcTest(AuthController.class)
+//@Import({CustomUserDetailService.class, UserRepository.class })
+
+@SpringBootTest
 @ExtendWith(SpringExtension.class)
-@AutoConfigureJsonTesters
-@WebMvcTest(AuthController.class)
-@Import({CustomUserDetailService.class, UserRepository.class })
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class AuthControllerTest {
     @MockBean
-    private AuthService authService;
+    private AuthServiceImpl authService;
 
-    MockMvc mockMvc;
+    private MockMvc mockMvc;
 
-    @InjectMocks
-    AuthController authController;
-
-    @Autowired
     private JacksonTester<UserRequest> userRequestJson;
 
     User user;
@@ -54,10 +59,18 @@ class AuthControllerTest {
 
     Token token;
     String randomToken = UUID.randomUUID().toString();
+    @Autowired
+    private WebApplicationContext applicationContext;
+    @BeforeAll
+    public void init(){
+        this.mockMvc = MockMvcBuilders
+                .webAppContextSetup(applicationContext)
+                .build();
+    }
 
     @BeforeEach
     void setUp() {
-        mockMvc = MockMvcBuilders.standaloneSetup(authController).build();
+
         user = new User();
         user.setId(1L);
         user.setEmail("test@gmail.com");
@@ -76,7 +89,6 @@ class AuthControllerTest {
     void registerUserWithValidData() throws Exception {
         given(authService.registerNewUserAccount(eq(userRequest)))
                 .willReturn(user);
-
         given(authService.createVerificationToken(eq(user), eq(randomToken), VERIFICATION.name()))
                 .willReturn(token);
 

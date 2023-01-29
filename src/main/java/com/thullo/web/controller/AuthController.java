@@ -14,7 +14,6 @@ import com.thullo.web.payload.request.UserRequest;
 import com.thullo.web.payload.response.ApiResponse;
 import com.thullo.web.payload.response.JwtTokenResponse;
 import com.thullo.web.payload.response.TokenResponse;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.hateoas.Link;
@@ -23,6 +22,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.validation.Valid;
 import java.io.UnsupportedEncodingException;
 import java.util.UUID;
 

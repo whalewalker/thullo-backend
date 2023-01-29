@@ -2,6 +2,7 @@ package com.thullo.controller;
 
 
 import com.thullo.service.UserService;
+import com.thullo.service.UserServiceImpl;
 import com.thullo.web.controller.UserController;
 import com.thullo.web.payload.response.UserProfileResponse;
 import org.junit.jupiter.api.BeforeEach;
@@ -29,7 +30,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 class UserControllerTest {
 
     @MockBean
-    private UserService userService;
+    private UserServiceImpl userService;
     @Autowired
     private MockMvc mockMvc;
     @Autowired
