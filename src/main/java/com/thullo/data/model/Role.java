@@ -1,0 +1,31 @@
+package com.thullo.data.model;
+
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import org.hibernate.annotations.NaturalId;
+
+import javax.persistence.*;
+import java.util.Collection;
+
+@Entity
+@Setter
+@Getter
+@NoArgsConstructor
+public class Role {
+
+  @Id
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  private Long roleId;
+
+  @NaturalId
+  @Column(length = 60)
+  private String name;
+
+  @ManyToMany(mappedBy = "roles")
+  private Collection<User> Users;
+
+  public Role(String name) {
+    this.name = name;
+  }
+}
