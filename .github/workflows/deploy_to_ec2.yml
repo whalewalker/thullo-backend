@@ -68,7 +68,7 @@ jobs:
           # scp from local to remote # optional
           scp: |-
             "./Dockerfile" => "thullo_backend"
-            "./build/libs/thullo_backend*.jar" => "thullo_backend"
+            "./build/libs/thullo*.jar" => "thullo_backend"
           #./Dockerfile => access-service/Dockerfile
           #build/libs/access-service-0.0.1-SNAPSHOT.jar root@194.163.131.85:
           # execute post-commands after scp
