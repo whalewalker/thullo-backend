@@ -5,7 +5,7 @@ FROM openjdk:11-jdk-alpine
 WORKDIR /app
 
 # Copy the jar file to the working directory
-COPY target/your-spring-boot-app.jar .
+COPY target/thullo-0.0.1-SNAPSHOT.jar thullo.jar
 
 # Set the entrypoint to run the jar file
-ENTRYPOINT ["java", "-jar", "your-spring-boot-app.jar"]
+ENTRYPOINT ["java", "-jar", "/thullo.jar"]
