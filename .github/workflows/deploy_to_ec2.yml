@@ -1,0 +1,49 @@
+# This workflow uses actions that are not certified by GitHub.
+# They are provided by a third-party and are governed by
+# separate terms of service, privacy policy, and support
+# documentation.
+# This workflow will build a Java project with Gradle and cache/restore any dependencies to improve the workflow execution time
+# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-java-with-gradle
+
+name: Deploy to EC2
+
+on:
+  push:
+    branches:
+      - main
+
+env:
+  AWS_REGION: us-west-2
+  AWS_ECR_REPOSITORY: my-spring-boot-app
+
+jobs:
+  deploy:
+    runs-on: [ubuntu-latest, windows-latest, macOS-latest]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Build Docker image
+        uses: docker/build-push-action@v2
+        with:
+          context: .
+          push: true
+          tags: "$AWS_REGION.dkr.ecr.$AWS_REGION.amazonaws.com/$AWS_ECR_REPOSITORY:${{ env.GITHUB_SHA }}"
+
+      - name: Deploy to EC2
+        uses: aws-actions/ec2-instance-actions@v1
+        with:
+          region: "$AWS_REGION"
+          command: run-command
+          instance-ids: i-0123456789abcdef0
+          run-command-document-content: |
+            #!/bin/bash
+            sudo docker stop thullo || true
+            sudo docker rm thullo || true
+            sudo docker run -d --name thullo -p 8080:8080 "$AWS_REGION.dkr.ecr.$AWS_REGION.amazonaws.com/$AWS_ECR_REPOSITORY:${{ env.GITHUB_SHA }}"
+        env:
+          AWS_REGION: "$AWS_REGION"
+          AWS_REGISTRY_ID: "$AWS_REGISTRY_ID"
+          AWS_ACCESS_KEY_ID: "${{ secrets.AWS_ACCESS_KEY_ID }}"
+          AWS_SECRET_ACCESS_KEY: "${{ secrets.AWS_SECRET_ACCESS_KEY }}"
