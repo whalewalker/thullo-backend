@@ -56,7 +56,8 @@ jobs:
           # optional, default is 22
           # ssh remote user
           user: ubuntu
-          key: -----BEGIN RSA PRIVATE KEY-----
+          key: |
+              -----BEGIN RSA PRIVATE KEY-----
               MIIEpAIBAAKCAQEA0cxHgqQK+Fgh7BFCVQNIFuNSfFIWgxHt0oPKSXKOsa70AkC3
               bQj0O8N1q6EQFoa5d/s60FZ3XvwOTjlxtRNjqggjuinIiSuxeW14c8CTl2Ui7MlY
               KANgCK9e8rBcUtrzWrBp05JbovvEX+xKVdjZyX8dpjKMBOAWUcC9BFCygYz3dqpg
