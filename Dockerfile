@@ -1,11 +1,6 @@
-# Use an openjdk image as the base image
-FROM openjdk:11-jdk-alpine
-
-# Set the working directory
+FROM amazoncorretto:17.0.5-alpine3.16
+MAINTAINER "Abel Michael"
 WORKDIR /
-
-# Copy the jar file to the working directory
-COPY target/thullo-0.0.1-SNAPSHOT.jar thullo.jar
-
-# Set the entrypoint to run the jar file
-ENTRYPOINT ["java", "-jar", "/thullo.jar"]
+ADD thullo*.jar app.jar
+EXPOSE 8080
+ENTRYPOINT ["java","-jar","/app.jar"]
