@@ -1,6 +1,7 @@
 package com.thullo.service;
 
 
+import com.thullo.web.payload.request.UserProfileRequest;
 import com.thullo.web.payload.response.UserProfileResponse;
 
 /**
@@ -14,4 +15,11 @@ public interface UserService {
      * @return UserProfileResponse object that encapsulates various details such as name, email, address, and any other relevant information related to the user.
      */
     UserProfileResponse getUserDetails(String email);
+
+    /**
+     Updates the user details for a given email.
+     @param userRequest - An object containing the updated information for the user profile
+     @param email - The email of the user whose profile needs to be updated
+     */
+    void updateUserDetails(UserProfileRequest userRequest, String email);
 }

@@ -4,6 +4,7 @@ import com.thullo.data.model.Role;
 import com.thullo.data.model.Token;
 import com.thullo.data.model.User;
 import com.thullo.data.repository.UserRepository;
+import com.thullo.web.payload.request.UserProfileRequest;
 import com.thullo.web.payload.response.UserProfileResponse;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -20,8 +21,7 @@ import java.util.UUID;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class UserServiceImplTest {
@@ -37,6 +37,7 @@ class UserServiceImplTest {
     private User mockedUser;
 
     private UserProfileResponse mockedUserResponse;
+    private UserProfileRequest mockedUserRequest;
 
     private Role role;
     private Token token;
@@ -58,6 +59,10 @@ class UserServiceImplTest {
         mockedUserResponse = new UserProfileResponse();
         mockedUserResponse.setName(mockedUser.getName());
         mockedUserResponse.setEmail(mockedUser.getEmail());
+
+        mockedUserRequest = new UserProfileRequest();
+        mockedUserRequest.setName(mockedUser.getName());
+        mockedUserRequest.setEmail(mockedUser.getEmail());
     }
 
     @AfterEach
@@ -80,4 +85,26 @@ class UserServiceImplTest {
             assertEquals(mockedUser.getName(), userDetails.getName());
         });
     }
+
+
+    @Test
+    void canUpdateLoggedInUserDetails() {
+        when(userRepository.findByEmail(anyString()))
+                .thenReturn(Optional.of(mockedUser));
+
+        doAnswer((invocation) -> {
+            UserProfileRequest request = invocation.getArgument(0);
+            User user = invocation.getArgument(1);
+            // mock the mapping logic here
+            return null;
+        }).when(mapper).map(mockedUserRequest, mockedUser);
+
+        doNothing().when(userRepository).save(any(User.class));
+
+        userService.updateUserDetails(mockedUserRequest, mockedUser.getEmail());
+
+        verify(userRepository).findByEmail(mockedUser.getEmail());
+        verify(userRepository).save(any());
+    }
+
 }

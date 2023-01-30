@@ -7,7 +7,7 @@ spring:
   # JPA CONFIG
   jpa:
     hibernate:
-      ddl-auto: create-drop
+      ddl-auto: create
 
   # OAUTH2 CONFIG
   security:

@@ -30,7 +30,11 @@ public class User extends RepresentationModel<User> {
     @Column(nullable = false)
     private String email;
 
+    private String phoneNumber;
+
     private String imageUrl;
+
+    private String bio;
 
     @Column(nullable = false)
     private Boolean emailVerified = false;
