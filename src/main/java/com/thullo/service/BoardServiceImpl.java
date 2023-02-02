@@ -27,7 +27,7 @@ public class BoardServiceImpl implements BoardService {
     @Override
     public BoardResponse createBoard(BoardRequest boardRequest) {
         Board board = mapper.map(boardRequest, Board.class);
-        String imageUrl = fileService.uploadFile(boardRequest.getFile());
+        String imageUrl = fileService.uploadFile(boardRequest.getFile(), "");
         board.setImageUrl(imageUrl);
         Board saveBoard = boardRepository.save(board);
         return mapper.map(saveBoard, BoardResponse.class);

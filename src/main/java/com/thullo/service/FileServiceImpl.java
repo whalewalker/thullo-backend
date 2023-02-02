@@ -4,6 +4,7 @@ import com.thullo.data.model.Files;
 import com.thullo.data.model.UUIDWrapper;
 import com.thullo.data.repository.FilesRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MaxUploadSizeExceededException;
@@ -15,6 +16,9 @@ import java.util.UUID;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
+import static java.lang.String.format;
+
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class FileServiceImpl implements FileService {
@@ -22,12 +26,12 @@ public class FileServiceImpl implements FileService {
     private final UUIDWrapper uuidWrapper;
 
     @Override
-    public String uploadFile(MultipartFile file) {
+    public String uploadFile(MultipartFile file, String url) {
         try {
             byte[] compressedFile = compressFile(file.getBytes());
             String fileId = uuidWrapper.getUUID();
-            String fileUrl = "http://localhost:8080/api/v1/thullo/files/" + fileId;
-
+            String baseUrl = url.substring(0, url.lastIndexOf("/"));
+            String fileUrl = format("%s/files/%s", baseUrl, fileId);
             InputStream is = new ByteArrayInputStream(compressedFile);
             filesRepository.save(new Files(fileId, file.getOriginalFilename(), is.readAllBytes()));
 

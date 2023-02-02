@@ -82,7 +82,7 @@ class BoardServiceImplTest {
         when(mapper.map(boardRequest, Board.class))
                 .thenReturn(board);
 
-        when(fileService.uploadFile(multipartFile))
+        when(fileService.uploadFile(multipartFile, ""))
                 .thenReturn(imageUrl);
 
         when(boardRepository.save(board)).thenReturn(board);
@@ -96,7 +96,7 @@ class BoardServiceImplTest {
 
         verify(mapper).map(boardRequest, Board.class);
         verify(boardRepository).save(board);
-        verify(fileService).uploadFile(multipartFile);
+        verify(fileService).uploadFile(multipartFile, "");
         assertEquals(boardName, actualResponse.getName());
         assertEquals(imageUrl, actualResponse.getImageUrl());
     }

@@ -11,6 +11,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.servlet.http.HttpServletRequest;
+
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("api/v1/thullo")
@@ -37,8 +39,9 @@ public class FileController {
 
 
     @PostMapping(value = "/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public String uploadFile(@RequestParam("file") MultipartFile file) {
-        return fileService.uploadFile(file);
+    public String uploadFile(@RequestParam("file") MultipartFile file, HttpServletRequest request) {
+        String url = request.getRequestURL().toString();
+        return fileService.uploadFile(file, url);
     }
 
 }
