@@ -4,6 +4,7 @@ import com.thullo.data.model.Role;
 import com.thullo.data.model.Token;
 import com.thullo.data.model.User;
 import com.thullo.data.repository.UserRepository;
+import com.thullo.web.exception.UserException;
 import com.thullo.web.payload.request.UserProfileRequest;
 import com.thullo.web.payload.response.UserProfileResponse;
 import org.junit.jupiter.api.AfterEach;
@@ -70,7 +71,7 @@ class UserServiceImplTest {
     }
 
     @Test
-    void canRetrieveLoggedInUserDetails() {
+    void canRetrieveLoggedInUserDetails() throws UserException {
         when(userRepository.findByEmail(anyString()))
                 .thenReturn(Optional.of(mockedUser));
 
@@ -88,7 +89,7 @@ class UserServiceImplTest {
 
 
     @Test
-    void canUpdateLoggedInUserDetails() {
+    void canUpdateLoggedInUserDetails() throws UserException {
         when(userRepository.findByEmail(anyString()))
                 .thenReturn(Optional.of(mockedUser));
 

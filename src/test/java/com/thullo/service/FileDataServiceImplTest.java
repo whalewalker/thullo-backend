@@ -1,7 +1,7 @@
 package com.thullo.service;
 
 import com.thullo.data.model.UUIDWrapper;
-import com.thullo.data.model.Files;
+import com.thullo.data.model.FileData;
 import com.thullo.data.repository.FilesRepository;
 import org.apache.commons.io.IOUtils;
 import org.junit.jupiter.api.Test;
@@ -23,7 +23,7 @@ import static org.mockito.Mockito.when;
 
 
 @ExtendWith(MockitoExtension.class)
-class FilesServiceImplTest {
+class FileDataServiceImplTest {
     @Mock
     private UUIDWrapper uuidWrapper;
 
@@ -37,7 +37,7 @@ class FilesServiceImplTest {
     @Test
     void testUploadFile_withValidFile_thenGeneratedUrl() throws IOException {
         when(uuidWrapper.getUUID()).thenReturn("123e4567-e89b-12d3-a456-426655440000");
-        when(filesRepository.save(any())).thenReturn(new Files());
+        when(filesRepository.save(any())).thenReturn(new FileData());
         MultipartFile multipartFile = getMultipartFile("src/main/resources/static/code.png");
         // mock the call to UUIDWrapper.getUUID() to return the mocked UUID
         String imageUrl = fileService.uploadFile(multipartFile, "http://localhost:8080/api/v1/thullo/upload");

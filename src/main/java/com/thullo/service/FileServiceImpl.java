@@ -1,18 +1,16 @@
 package com.thullo.service;
 
-import com.thullo.data.model.Files;
+import com.thullo.data.model.FileData;
 import com.thullo.data.model.UUIDWrapper;
 import com.thullo.data.repository.FilesRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MaxUploadSizeExceededException;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.*;
-import java.nio.file.Paths;
-import java.util.UUID;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
@@ -27,13 +25,18 @@ public class FileServiceImpl implements FileService {
 
     @Override
     public String uploadFile(MultipartFile file, String url) {
+
         try {
+            String originalFileName = file.getOriginalFilename();
+            assert originalFileName != null;
+            String fileType = originalFileName.substring(originalFileName.lastIndexOf(".") + 1);
+
             byte[] compressedFile = compressFile(file.getBytes());
             String fileId = uuidWrapper.getUUID();
-            String baseUrl = url.substring(0, url.lastIndexOf("/"));
-            String fileUrl = format("%s/files/%s", baseUrl, fileId);
+            String baseUrl = url.substring(0, url.lastIndexOf("thullo"));
+            String fileUrl = format("%sthullo/files/%s", baseUrl, fileId, fileType);
             InputStream is = new ByteArrayInputStream(compressedFile);
-            filesRepository.save(new Files(fileId, file.getOriginalFilename(), is.readAllBytes()));
+            filesRepository.save(new FileData(fileId, originalFileName, fileType, is.readAllBytes()));
 
             return fileUrl;
         } catch (Exception e) {
@@ -49,12 +52,13 @@ public class FileServiceImpl implements FileService {
     }
 
     @Override
-    public Files getFIle(String fileId) throws IOException {
-        Files dbFile = filesRepository.getFilesByFileId(fileId);
+    public FileData getFIle(String fileId) throws IOException {
+        FileData dbFile = filesRepository.getFilesByFileId(fileId);
         InputStream is = new ByteArrayInputStream(dbFile.getFileData());
         byte[] compressedFile = IOUtils.toByteArray(is);
         byte[] decompressedFile = decompressFile(compressedFile);
-        return new Files(dbFile.getFileName(), decompressedFile);
+        dbFile.setFileData(decompressedFile);
+        return dbFile;
     }
 
     private byte[] getBytes(InputStream is) throws IOException {
@@ -76,5 +80,26 @@ public class FileServiceImpl implements FileService {
         return baos.toByteArray();
     }
 
+    public  MediaType getMediaTypeForFileType(String fileType) {
+        switch (fileType) {
+            case "pdf":
+                return MediaType.APPLICATION_PDF;
+            case "png":
+                return MediaType.IMAGE_PNG;
+            case "jpeg":
+                return MediaType.IMAGE_JPEG;
+            case "gif":
+                return MediaType.IMAGE_GIF;
+            case "csv":
+            case "txt":
+                return MediaType.TEXT_PLAIN;
+            case "xml":
+                return MediaType.APPLICATION_XML;
+            case "json":
+                return MediaType.APPLICATION_JSON;
+            default:
+                return MediaType.APPLICATION_OCTET_STREAM;
+        }
+    }
 
 }
