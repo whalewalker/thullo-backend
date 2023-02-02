@@ -82,6 +82,11 @@ app:
 #
 #url: "jdbc:mysql://thullo-db.cyjqopky4iiy.us-east-1.rds.amazonaws.com:3306/thullo"
   #    username: "admin"
-  #    password: "thullo-app"
+  #    password: "thullo-app
+
+
+  #    url: "jdbc:mysql://localhost:3306/thullo"
+  #    username: "root"
+  #    password: "password"
 
 # http://ec2-3-83-152-86.compute-1.amazonaws.com:8080/api/v1/thullo/upload
