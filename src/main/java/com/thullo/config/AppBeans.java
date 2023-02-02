@@ -1,5 +1,6 @@
 package com.thullo.config;
 
+import com.thullo.data.model.UUIDWrapper;
 import com.thullo.data.repository.UserRepository;
 import com.thullo.security.CustomUserDetailService;
 import org.modelmapper.ModelMapper;
@@ -14,8 +15,6 @@ import javax.persistence.EntityManager;
 @Configuration
 public class AppBeans {
 
-//    @Autowired
-//    private UserRepository userRepository;
 
     @Bean
     public BCryptPasswordEncoder passwordEncoder() {
@@ -30,13 +29,8 @@ public class AppBeans {
         return mapper;
     }
 
-//    @Bean
-//    public CustomUserDetailService customUserDetailService(){
-//        return new CustomUserDetailService();
-//    }
-
-//    @Bean
-//    public UserRepository userRepository(EntityManager entityManager){
-//        return new JpaRepositoryFactory(entityManager).getRepository(UserRepository.class);
-//    }
+    @Bean
+    public UUIDWrapper uuidWrapper(){
+        return  new UUIDWrapper();
+    }
 }

@@ -54,11 +54,15 @@ public class User extends RepresentationModel<User> {
     @JsonIgnore
     private List<Role> roles = new ArrayList<>();
 
-    @JsonFormat(pattern="yyyy-MM-dd HH:mm:ss")
+    @OneToMany(mappedBy = "user")
+    private List<Board> boards;
+
     @CreationTimestamp
-    private LocalDateTime datePublished;
+    @JsonFormat(pattern="yyyy-MM-dd HH:mm:ss")
+    private LocalDateTime createdAt;
 
     @UpdateTimestamp
     @JsonFormat(pattern="yyyy-MM-dd HH:mm:ss")
-    private LocalDateTime updatedDated;
+    private LocalDateTime updatedAt;
+
 }

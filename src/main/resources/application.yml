@@ -5,6 +5,12 @@ spring:
   profiles:
     active: ${PROFILE:dev}
 
+  # FILE CONFIG
+    servlet:
+      multipart:
+        max-file-size: 1MB
+        max-request-size: 10MB
+
   # DATASOURCE CONFIG
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
