@@ -40,9 +40,9 @@ public class FileController {
 
 
     @PostMapping(value = "/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public String uploadFile(@RequestParam("file") MultipartFile file, HttpServletRequest request) {
+    public ResponseEntity<ApiResponse> uploadFile(@RequestParam("file") MultipartFile file, HttpServletRequest request) {
         String url = request.getRequestURL().toString();
-        return fileService.uploadFile(file, url);
+        return ResponseEntity.ok(new ApiResponse(true, "File successfully uploaded", fileService.uploadFile(file, url)));
     }
 
 }

@@ -30,8 +30,8 @@ public class FileServiceImpl implements FileService {
         try {
             byte[] compressedFile = compressFile(file.getBytes());
             String fileId = uuidWrapper.getUUID();
-            String baseUrl = url.substring(0, url.lastIndexOf("/"));
-            String fileUrl = format("%s/files/%s", baseUrl, fileId);
+            String baseUrl = url.substring(0, url.lastIndexOf("thullo"));
+            String fileUrl = format("%s/thullo/files/%s", baseUrl, fileId);
             InputStream is = new ByteArrayInputStream(compressedFile);
             filesRepository.save(new Files(fileId, file.getOriginalFilename(), is.readAllBytes()));
 

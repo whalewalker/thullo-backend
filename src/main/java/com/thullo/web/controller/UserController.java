@@ -4,6 +4,7 @@ package com.thullo.web.controller;
 import com.thullo.security.CurrentUser;
 import com.thullo.security.UserPrincipal;
 import com.thullo.service.UserService;
+import com.thullo.web.exception.UserException;
 import com.thullo.web.payload.request.UserProfileRequest;
 import com.thullo.web.payload.response.ApiResponse;
 import com.thullo.web.payload.response.UserProfileResponse;
@@ -24,14 +25,24 @@ public class UserController {
 
     @GetMapping("/profile")
     public ResponseEntity<ApiResponse> getUserDetails(@CurrentUser UserPrincipal userPrincipal) {
-        UserProfileResponse userDetails = userService.getUserDetails(userPrincipal.getEmail());
-        return ResponseEntity.ok(new ApiResponse(
-                true, "User data successfully retrieved", userDetails));
+        try {
+            UserProfileResponse userDetails = userService.getUserDetails(userPrincipal.getEmail());
+            return ResponseEntity.ok(new ApiResponse(
+                    true, "User data successfully retrieved", userDetails));
+        } catch (UserException ex) {
+            return ResponseEntity.badRequest().body(new ApiResponse(false, "Bad request, check your request data"));
+        }
+
     }
 
     @PostMapping("/edit")
-    public ResponseEntity<ApiResponse> updateUserDetails(@RequestBody UserProfileRequest profileRequest,  @CurrentUser UserPrincipal userPrincipal) {
-         userService.updateUserDetails(profileRequest, userPrincipal.getEmail());
-        return ResponseEntity.ok(new ApiResponse(true, "User data successfully updated"));
+    public ResponseEntity<ApiResponse> updateUserDetails(@RequestBody UserProfileRequest profileRequest, @CurrentUser UserPrincipal userPrincipal) {
+        try {
+            userService.updateUserDetails(profileRequest, userPrincipal.getEmail());
+            return ResponseEntity.ok(new ApiResponse(true, "User data successfully updated"));
+        } catch (UserException ex) {
+            return ResponseEntity.badRequest().body(new ApiResponse(false, "Bad request, check your request data"));
+        }
+
     }
 }
