@@ -2,6 +2,7 @@ package com.thullo.web.controller;
 
 import com.thullo.data.model.Files;
 import com.thullo.service.FileService;
+import com.thullo.web.payload.response.ApiResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
@@ -20,7 +21,7 @@ public class FileController {
     private final FileService fileService ;
 
     @GetMapping("/files/{fileId}")
-    public ResponseEntity<Resource> getFile(@PathVariable("fileId") String fileId) {
+    public ResponseEntity<?> getFile(@PathVariable("fileId") String fileId) {
         try {
             Files files = fileService.getFIle(fileId);
             Resource resource = new ByteArrayResource(files.getFileData());
@@ -33,7 +34,7 @@ public class FileController {
                     .contentType(MediaType.APPLICATION_OCTET_STREAM)
                     .body(resource);
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body(null);
+            return ResponseEntity.badRequest().body(new ApiResponse(false, "File not found"));
         }
     }
 
