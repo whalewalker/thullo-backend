@@ -71,7 +71,7 @@ public class SecurityConfig  {
                 .authenticationEntryPoint(unauthorizedHandler)
                 .and()
                 .authorizeRequests()
-                .antMatchers("/api/v1/thullo/auth/**", "/oauth2/**")
+                .antMatchers("/api/v1/thullo/auth/**", "/oauth2/**", "/api/v1/thullo/files/**")
                 .permitAll()
                 .antMatchers(HttpMethod.GET, "/api/v1/thullo/users/**")
                 .permitAll()

@@ -1,9 +1,9 @@
 ALREADY_SETUP: true
 spring:
   datasource:
-    url: "jdbc:mysql://localhost:3306/thullo"
-    username: "root"
-    password: "password"
+    url: "jdbc:mysql://thullo-db.cyjqopky4iiy.us-east-1.rds.amazonaws.com:3306/thullo"
+    username: "admin"
+    password: "thullo-app"
 
   # JPA CONFIG
   jpa:
