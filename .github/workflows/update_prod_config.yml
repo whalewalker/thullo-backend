@@ -81,8 +81,8 @@ jobs:
 
       # Commit and push all changed files.
       - name: GitHub Commit & Push
-        # Only run on main branch push (e.g. after pull request merge).
-        if: github.event_name == 'push'
+#        # Only run on main branch push (e.g. after pull request merge).
+#        if: github.event_name == 'push'
         run: |
           git config --global user.name "whalewalker"
           git config --global user.email "username@users.noreply.github.com"
