@@ -42,41 +42,41 @@ jobs:
 
       - name: Delete existing database configuration
         run: |
-          sed -i '/spring\.datasource\.url:/d' application-prod.yml
-          sed -i '/spring\.datasource\.username:/d' application-prod.yml
-          sed -i '/spring\.datasource\.password:/d' application-prod.yml
-          sed -i '/spring\.jpa\.hibernate\.ddl-auto:/d' application-prod.yml
-          sed -i '/spring\.security\.oauth2\.client\.registration\.google\.client-id:/d' application-prod.yml
-          sed -i '/spring\.security\.oauth2\.client\.registration\.google\.client-secret:/d' application-prod.yml
-          sed -i '/spring\.security\.oauth2\.client\.registration\.github\.client-id:/d' application-prod.yml
-          sed -i '/spring\.security\.oauth2\.client\.registration\.github\.client-secret:/d' application-prod.yml
-          sed -i '/spring\.security\.oauth2\.client\.registration\.facebook\.client-id:/d' application-prod.yml
-          sed -i '/spring\.security\.oauth2\.client\.registration\.facebook\.client-secret:/d' application-prod.yml
-          sed -i '/spring\.security\.oauth2\.client\.registration\.twitter\.client-id:/d' application-prod.yml
-          sed -i '/spring\.security\.oauth2\.client\.registration\.twitter\.client-secret:/d' application-prod.yml
-          sed -i '/app\.auth\.tokenSecret:/d' application-prod.yml
-          sed -i '/app\.auth\.tokenExpirationMsec:/d' application-prod.yml
-          sed -i '/app\.cors\.allowedOrigins:/d' application-prod.yml
-          sed -i '/app\oauth2\.authorizedRedirectUris:/d' application-prod.yml
+          sed -i '/spring\.datasource\.url:/d' src/main/resources/application-prod.properties
+          sed -i '/spring\.datasource\.username:/d' src/main/resources/application-prod.properties
+          sed -i '/spring\.datasource\.password:/d' src/main/resources/application-prod.properties
+          sed -i '/spring\.jpa\.hibernate\.ddl-auto:/d' src/main/resources/application-prod.properties
+          sed -i '/spring\.security\.oauth2\.client\.registration\.google\.client-id:/d' src/main/resources/application-prod.properties
+          sed -i '/spring\.security\.oauth2\.client\.registration\.google\.client-secret:/d' src/main/resources/application-prod.properties
+          sed -i '/spring\.security\.oauth2\.client\.registration\.github\.client-id:/d' src/main/resources/application-prod.properties
+          sed -i '/spring\.security\.oauth2\.client\.registration\.github\.client-secret:/d' src/main/resources/application-prod.properties
+          sed -i '/spring\.security\.oauth2\.client\.registration\.facebook\.client-id:/d' src/main/resources/application-prod.properties
+          sed -i '/spring\.security\.oauth2\.client\.registration\.facebook\.client-secret:/d' src/main/resources/application-prod.properties
+          sed -i '/spring\.security\.oauth2\.client\.registration\.twitter\.client-id:/d' src/main/resources/application-prod.properties
+          sed -i '/spring\.security\.oauth2\.client\.registration\.twitter\.client-secret:/d' src/main/resources/application-prod.properties
+          sed -i '/app\.auth\.tokenSecret:/d' src/main/resources/application-prod.properties
+          sed -i '/app\.auth\.tokenExpirationMsec:/d' src/main/resources/application-prod.properties
+          sed -i '/app\.cors\.allowedOrigins:/d' src/main/resources/application-prod.properties
+          sed -i '/app\oauth2\.authorizedRedirectUris:/d' src/main/resources/application-prod.properties
 
       - name: Replace properties in yml
         run: |
-          echo "spring.datasource.url=$DB_URL" >> application-prod.yml
-          echo "spring.datasource.username=$DB_USERNAME" >> application-prod.yml
-          echo "spring.datasource.password=$DB_PASSWORD" >> application-prod.yml
-          echo "spring.jpa.hibernate.ddl-auto=$JPA_DDL" >> application-prod.yml
-          echo "spring.security.oauth2.client.registration.google.client-id=$GOOGLE_CLIENT_ID" >> application-prod.yml
-          echo "spring.security.oauth2.client.registration.google.client-secret=$GOOGLE_CLIENT_SECRET" >> application-prod.yml
-          echo "spring.security.oauth2.client.registration.github.client-id=$GH_CLIENT_ID" >> application-prod.yml
-          echo "spring.security.oauth2.client.registration.github.client-secret=$GH_CLIENT_SECRET" >> application-prod.yml
-          echo "spring.security.oauth2.client.registration.facebook.client-id=$FACEBOOK_CLIENT_ID" >> application-prod.yml
-          echo "spring.security.oauth2.client.registration.facebook.client-secret=$FACEBOOK_CLIENT_SECRET" >> application-prod.yml
-          echo "spring.security.oauth2.client.registration.twitter.client-id=$TWITTER_CLIENT_ID" >> application-prod.yml
-          echo "spring.security.oauth2.client.registration.twitter.client-secret=$TWITTER_CLIENT_SECRET" >> application-prod.yml
-          echo "app.auth.tokenSecret=$JWT_TOKEN_SECRET" >> application-prod.yml
-          echo "app.auth.tokenExpirationMsec=$JWT_EXPIRATION_TIME" >> application-prod.yml
-          echo "app.cors.allowedOrigins=$ORIGINS" >> application-prod.yml
-          echo "app.oauth2.authorizedRedirectUris=$REDIRECT_URL" >> application-prod.yml
+          echo "spring.datasource.url=$DB_URL" >> src/main/resources/application-prod.properties
+          echo "spring.datasource.username=$DB_USERNAME" >> src/main/resources/application-prod.properties
+          echo "spring.datasource.password=$DB_PASSWORD" >> src/main/resources/application-prod.properties
+          echo "spring.jpa.hibernate.ddl-auto=$JPA_DDL" >> src/main/resources/application-prod.properties
+          echo "spring.security.oauth2.client.registration.google.client-id=$GOOGLE_CLIENT_ID" >> src/main/resources/application-prod.properties
+          echo "spring.security.oauth2.client.registration.google.client-secret=$GOOGLE_CLIENT_SECRET" >> src/main/resources/application-prod.properties
+          echo "spring.security.oauth2.client.registration.github.client-id=$GH_CLIENT_ID" >> src/main/resources/application-prod.properties
+          echo "spring.security.oauth2.client.registration.github.client-secret=$GH_CLIENT_SECRET" >> src/main/resources/application-prod.properties
+          echo "spring.security.oauth2.client.registration.facebook.client-id=$FACEBOOK_CLIENT_ID" >> src/main/resources/application-prod.properties
+          echo "spring.security.oauth2.client.registration.facebook.client-secret=$FACEBOOK_CLIENT_SECRET" >> src/main/resources/application-prod.properties
+          echo "spring.security.oauth2.client.registration.twitter.client-id=$TWITTER_CLIENT_ID" >> src/main/resources/application-prod.properties
+          echo "spring.security.oauth2.client.registration.twitter.client-secret=$TWITTER_CLIENT_SECRET" >> src/main/resources/application-prod.properties
+          echo "app.auth.tokenSecret=$JWT_TOKEN_SECRET" >> src/main/resources/application-prod.properties
+          echo "app.auth.tokenExpirationMsec=$JWT_EXPIRATION_TIME" >> src/main/resources/application-prod.properties
+          echo "app.cors.allowedOrigins=$ORIGINS" >> src/main/resources/application-prod.properties
+          echo "app.oauth2.authorizedRedirectUris=$REDIRECT_URL" >> src/main/resources/application-prod.properties
           
 
       # Commit and push all changed files.
