@@ -4,7 +4,6 @@ import com.thullo.data.model.Token;
 import com.thullo.data.model.User;
 import com.thullo.service.AuthService;
 import com.thullo.web.exception.AuthException;
-import com.thullo.web.exception.RoleNotFoundException;
 import com.thullo.web.exception.TokenException;
 import com.thullo.web.exception.UserException;
 import com.thullo.web.payload.request.LoginRequest;
@@ -34,7 +33,6 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 @Slf4j
 @RequestMapping("api/v1/thullo/auth")
 @RequiredArgsConstructor
-@CrossOrigin(origins = "*")
 public class AuthController {
     private final AuthService authService;
 

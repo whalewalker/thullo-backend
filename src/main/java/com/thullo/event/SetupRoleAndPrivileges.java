@@ -24,7 +24,7 @@ public class SetupRoleAndPrivileges implements ApplicationListener<ContextRefres
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
 
-    @Value("${ALREADY_SETUP:false}")
+    @Value("${already-setup:false}")
     boolean alreadySetup;
 
     public SetupRoleAndPrivileges(RoleRepository roleRepository, UserRepository userRepository, PasswordEncoder passwordEncoder) {
