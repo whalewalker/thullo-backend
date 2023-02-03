@@ -79,14 +79,22 @@ jobs:
           echo "app.oauth2.authorizedRedirectUris=$REDIRECT_URL" >> application-prod.yml
 
       - name: GitHub Commit & Push
-        # You may pin to the exact commit or the version.
-        # uses: actions-js/push@156f2b10c3aa000c44dbe75ea7018f32ae999772
-        uses: actions-js/push@v1.4
-        with:
-          # Token for the repo. Can be passed in using $\{{ secrets.GITHUB_TOKEN }}
-          github_token: ${{ secrets.GH_TOKEN }}
-          # Email used to configure user.email in `git config`.
-          author_email: ohida2001@gmailcom
-          # Name used to configure user.name in `git config`.
-          author_name: Ismail Abdullah
+        steps:
+          - uses: actions/checkout@v2
+            with:
+              persist-credentials: false # otherwise, the token used is the GITHUB_TOKEN, instead of your personal access token.
+              fetch-depth: 0 # otherwise, there would be errors pushing refs to the destination repository.
+          - name: Create local changes
+            run: |
+              ...
+          - name: Commit files
+            run: |
+              git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
+              git config --local user.name "github-actions[bot]"
+              git commit -a -m "Update production configuration"
+          - name: Push changes
+            uses: ad-m/github-push-action@master
+            with:
+              github_token: ${{ secrets.GITHUB_TOKEN }}
+              branch: ${{ github.ref }}
 
