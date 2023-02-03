@@ -33,7 +33,7 @@ public class Board{
     @ManyToMany(mappedBy = "contributors")
     private List<Task> tasks;
 
-    @OneToMany(mappedBy = "board")
+    @OneToMany(mappedBy = "board", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<TaskColumn> taskColumns;
 
     @CreationTimestamp
