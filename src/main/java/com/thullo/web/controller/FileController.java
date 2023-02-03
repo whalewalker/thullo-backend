@@ -5,7 +5,6 @@ import com.thullo.service.FileService;
 import com.thullo.web.payload.response.ApiResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.ByteArrayResource;
-import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -25,7 +24,7 @@ public class FileController {
     public ResponseEntity<?> getFile(@PathVariable("fileId") String fileId) {
         try {
             FileData files = fileService.getFIle(fileId);
-            ByteArrayResource resource = new ByteArrayResource(files.getFileData());
+            ByteArrayResource resource = new ByteArrayResource(files.getFileByte());
             return ResponseEntity.ok()
                     .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=" + files.getFileName())
                     .contentType(fileService.getMediaTypeForFileType(files.getFileType()))
