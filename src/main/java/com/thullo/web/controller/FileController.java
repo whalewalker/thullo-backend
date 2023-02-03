@@ -24,7 +24,7 @@ public class FileController {
     public ResponseEntity<?> getFile(@PathVariable("fileId") String fileId) {
         try {
             FileData files = fileService.getFIle(fileId);
-            ByteArrayResource resource = new ByteArrayResource(files.getFileData());
+            ByteArrayResource resource = new ByteArrayResource(files.getFileByte());
             return ResponseEntity.ok()
                     .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=" + files.getFileName())
                     .contentType(fileService.getMediaTypeForFileType(files.getFileType()))

@@ -34,7 +34,7 @@ public class FileServiceImpl implements FileService {
             byte[] compressedFile = compressFile(file.getBytes());
             String fileId = uuidWrapper.getUUID();
             String baseUrl = url.substring(0, url.lastIndexOf("thullo"));
-            String fileUrl = format("%sthullo/files/%s", baseUrl, fileId, fileType);
+            String fileUrl = format("%sthullo/files/%s", baseUrl, fileId);
             InputStream is = new ByteArrayInputStream(compressedFile);
             filesRepository.save(new FileData(fileId, originalFileName, fileType, is.readAllBytes()));
 
@@ -54,10 +54,10 @@ public class FileServiceImpl implements FileService {
     @Override
     public FileData getFIle(String fileId) throws IOException {
         FileData dbFile = filesRepository.getFilesByFileId(fileId);
-        InputStream is = new ByteArrayInputStream(dbFile.getFileData());
+        InputStream is = new ByteArrayInputStream(dbFile.getFileByte());
         byte[] compressedFile = IOUtils.toByteArray(is);
         byte[] decompressedFile = decompressFile(compressedFile);
-        dbFile.setFileData(decompressedFile);
+        dbFile.setFileByte(decompressedFile);
         return dbFile;
     }
 
@@ -72,7 +72,7 @@ public class FileServiceImpl implements FileService {
         return baos.toByteArray();
     }
 
-    private byte[] compressFile(byte[] fileData) throws Exception {
+    private byte[] compressFile(byte[] fileData) throws IOException {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         GZIPOutputStream gzipOut = new GZIPOutputStream(baos);
         gzipOut.write(fileData);

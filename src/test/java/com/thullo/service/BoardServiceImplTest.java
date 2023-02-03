@@ -1,6 +1,7 @@
 package com.thullo.service;
 
 import com.thullo.data.model.Board;
+import com.thullo.data.model.TaskColumn;
 import com.thullo.data.model.User;
 import com.thullo.data.repository.BoardRepository;
 import com.thullo.data.repository.UserRepository;
@@ -28,7 +29,6 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -70,13 +70,21 @@ class BoardServiceImplTest {
 
         boardResponse = new BoardResponse();
         boardResponse.setName(boardName);
+        boardResponse.setTaskColumns(
+                List.of(
+                        new TaskColumn("Backlog \uD83E\uDD14", new Board()),
+                        new TaskColumn("In Progress \uD83D\uDCDA", new Board()),
+                        new TaskColumn("In Review ⚙️", new Board()),
+                        new TaskColumn("Completed \uD83D\uDE4C\uD83C\uDFFD", new Board()))
+
+        );
 
         userPrincipal = new UserPrincipal(
                 1L,
                 "Ismail Abdullah"
                 , "admin@gmail.com",
                 "password"
-                ,true
+                , true
                 , List.of(new SimpleGrantedAuthority("ROLE_USER"))
         );
     }
@@ -84,11 +92,11 @@ class BoardServiceImplTest {
     @Test
     void testCreateBoard_withBoardName_createANewBoard() throws UserException {
         when(userRepository.findByEmail(anyString())).thenReturn(Optional.of(new User()));
-            when(mapper.map(boardRequest, Board.class))
-                    .thenReturn(board);
+        when(mapper.map(boardRequest, Board.class))
+                .thenReturn(board);
         when(mapper.map(board, BoardResponse.class))
                 .thenReturn(boardResponse);
-            when(boardRepository.save(board)).thenReturn(board);
+        when(boardRepository.save(board)).thenReturn(board);
 
         BoardResponse actualResponse = boardService.createBoard(boardRequest, userPrincipal);
 
@@ -120,7 +128,6 @@ class BoardServiceImplTest {
                 .thenReturn(boardResponse);
 
 
-
         BoardResponse actualResponse = boardService.createBoard(boardRequest, userPrincipal);
 
         verify(mapper).map(boardRequest, Board.class);
@@ -131,6 +138,31 @@ class BoardServiceImplTest {
         assertEquals(imageUrl, actualResponse.getImageUrl());
     }
 
+
+    @Test
+    void testCreateBoard_WithValidRequest_createANewBoardWith4TaskColumns() throws IOException, UserException {
+        MultipartFile multipartFile = getMultipartFile("src/main/resources/static/code.png");
+        boardRequest.setFile(multipartFile);
+        boardRequest.setRequestUrl("http://localhost:8080/api/v1/thullo");
+
+        when(userRepository.findByEmail(anyString())).thenReturn(Optional.of(new User()));
+
+        when(mapper.map(boardRequest, Board.class))
+                .thenReturn(board);
+
+        when(fileService.uploadFile(boardRequest.getFile(), boardRequest.getRequestUrl()))
+                .thenReturn(imageUrl);
+
+        when(boardRepository.save(board)).thenReturn(board);
+
+        when(mapper.map(board, BoardResponse.class))
+                .thenReturn(boardResponse);
+
+        BoardResponse actualResponse = boardService.createBoard(boardRequest, userPrincipal);
+
+
+        assertEquals(4, actualResponse.getTaskColumns().size());
+    }
 
     public MultipartFile getMultipartFile(String filePath) throws IOException {
         File file = new File(filePath);

@@ -19,6 +19,10 @@ public class Label {
     private Long id;
     private String name;
 
+    private String colorCode;
+
+    private String backgroundCode;
+
     @CreationTimestamp
     @JsonFormat(pattern="yyyy-MM-dd HH:mm:ss")
     private LocalDateTime createdAt;
