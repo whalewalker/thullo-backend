@@ -78,8 +78,12 @@ jobs:
           echo "app.cors.allowedOrigins=$ORIGINS" >> application-prod.yml
           echo "app.oauth2.authorizedRedirectUris=$REDIRECT_URL" >> application-prod.yml
 
-      - name: Commit and push changes
-        uses: stefanzweifel/git-auto-commit-action@v4
+      - name: Commit changes
+        uses: actions/git-client@v2
         with:
-          commit_message: "Update production configuration file"
-          push: true
+          args: commit -a -m "Update production configuration file"
+
+      - name: Push changes
+        uses: actions/git-client@v2
+        with:
+          args: push
