@@ -1,3 +1,4 @@
+already-setup: true
 spring:
   datasource:
     url: ${DB_URL}
