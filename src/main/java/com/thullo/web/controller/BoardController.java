@@ -19,7 +19,6 @@ import javax.servlet.http.HttpServletRequest;
 @Slf4j
 @RequestMapping("api/v1/thullo/")
 @RequiredArgsConstructor
-@CrossOrigin()
 public class BoardController {
     private final BoardService boardService;
 

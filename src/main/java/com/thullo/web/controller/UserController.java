@@ -13,13 +13,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import javax.validation.Valid;
-
 @RestController
 @Slf4j
 @RequestMapping("api/v1/thullo/users")
 @RequiredArgsConstructor
-@CrossOrigin(origins = "*")
 public class UserController {
     private final UserService userService;
 
