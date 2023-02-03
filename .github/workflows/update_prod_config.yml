@@ -42,22 +42,22 @@ jobs:
 
       - name: Replace properties in yml
         run: |
-          grep -q echo "spring.datasource.url=$DB_URL" >> application-prod.yml
-          grep -q echo "spring.datasource.username=$DB_USERNAME" >> application-prod.yml
-          grep -q echo "spring.datasource.password=$DB_PASSWORD" >> application-prod.yml
-          grep -q echo "spring.jpa.hibernate.ddl-auto=$JPA_DDL" >> application-prod.yml
-          grep -q echo "spring.security.oauth2.client.registration.google.client-id=$GOOGLE_CLIENT_ID" >> application-prod.yml
-          grep -q echo "spring.security.oauth2.client.registration.google.client-secret=$GOOGLE_CLIENT_SECRET" >> application-prod.yml
-          grep -q echo "spring.security.oauth2.client.registration.github.client-id=$GH_CLIENT_ID" >> application-prod.yml
-          grep -q echo "spring.security.oauth2.client.registration.github.client-secret=$GH_CLIENT_SECRET" >> application-prod.yml
-          grep -q echo "spring.security.oauth2.client.registration.facebook.client-id=$FACEBOOK_CLIENT_ID" >> application-prod.yml
-          grep -q echo "spring.security.oauth2.client.registration.facebook.client-secret=$FACEBOOK_CLIENT_SECRET" >> application-prod.yml
-          grep -q echo "spring.security.oauth2.client.registration.twitter.client-id=$TWITTER_CLIENT_ID" >> application-prod.yml
-          grep -q echo "spring.security.oauth2.client.registration.twitter.client-secret=$TWITTER_CLIENT_SECRET" >> application-prod.yml
-          grep -q echo "app.auth.tokenSecret=$JWT_TOKEN_SECRET" >> application-prod.yml
-          grep -q echo "app.auth.tokenExpirationMsec=$JWT_EXPIRATION_TIME" >> application-prod.yml
-          grep -q echo "app.cors.allowedOrigins=$ORIGINS" >> application-prod.yml
-          grep -q echo "app.oauth2.authorizedRedirectUris=$REDIRECT_URL" >> application-prod.yml
+          grep -q  "spring.datasource.url=$DB_URL" >> application-prod.yml
+          grep -q  "spring.datasource.username=$DB_USERNAME" >> application-prod.yml
+          grep -q  "spring.datasource.password=$DB_PASSWORD" >> application-prod.yml
+          grep -q  "spring.jpa.hibernate.ddl-auto=$JPA_DDL" >> application-prod.yml
+          grep -q  "spring.security.oauth2.client.registration.google.client-id=$GOOGLE_CLIENT_ID" >> application-prod.yml
+          grep -q  "spring.security.oauth2.client.registration.google.client-secret=$GOOGLE_CLIENT_SECRET" >> application-prod.yml
+          grep -q  "spring.security.oauth2.client.registration.github.client-id=$GH_CLIENT_ID" >> application-prod.yml
+          grep -q  "spring.security.oauth2.client.registration.github.client-secret=$GH_CLIENT_SECRET" >> application-prod.yml
+          grep -q  "spring.security.oauth2.client.registration.facebook.client-id=$FACEBOOK_CLIENT_ID" >> application-prod.yml
+          grep -q  "spring.security.oauth2.client.registration.facebook.client-secret=$FACEBOOK_CLIENT_SECRET" >> application-prod.yml
+          grep -q  "spring.security.oauth2.client.registration.twitter.client-id=$TWITTER_CLIENT_ID" >> application-prod.yml
+          grep -q  "spring.security.oauth2.client.registration.twitter.client-secret=$TWITTER_CLIENT_SECRET" >> application-prod.yml
+          grep -q  "app.auth.tokenSecret=$JWT_TOKEN_SECRET" >> application-prod.yml
+          grep -q  "app.auth.tokenExpirationMsec=$JWT_EXPIRATION_TIME" >> application-prod.yml
+          grep -q  "app.cors.allowedOrigins=$ORIGINS" >> application-prod.yml
+          grep -q  "app.oauth2.authorizedRedirectUris=$REDIRECT_URL" >> application-prod.yml
 
       - name: Commit changes
         uses: stefanzweifel/git-auto-commit-action@v4
