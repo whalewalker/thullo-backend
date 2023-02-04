@@ -1,7 +1,7 @@
 package com.thullo.web.controller;
 
 
-import com.thullo.security.CurrentUser;
+import com.thullo.annotation.CurrentUser;
 import com.thullo.security.UserPrincipal;
 import com.thullo.service.UserService;
 import com.thullo.web.exception.UserException;

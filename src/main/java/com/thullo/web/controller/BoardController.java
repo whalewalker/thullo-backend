@@ -1,6 +1,6 @@
 package com.thullo.web.controller;
 
-import com.thullo.security.CurrentUser;
+import com.thullo.annotation.CurrentUser;
 import com.thullo.security.UserPrincipal;
 import com.thullo.service.BoardService;
 import com.thullo.web.exception.UserException;
@@ -23,7 +23,7 @@ public class BoardController {
     private final BoardService boardService;
 
     @PostMapping( "/create-board")
-    public ResponseEntity<ApiResponse> uploadFile(@RequestParam("file") MultipartFile file, @RequestParam("boardName") String boardName, @CurrentUser UserPrincipal principal,  HttpServletRequest request){
+    public ResponseEntity<ApiResponse> createBoard(@RequestParam(value="file", required=false) MultipartFile file, @RequestParam("boardName") String boardName, @CurrentUser UserPrincipal principal, HttpServletRequest request){
         BoardRequest boardRequest = new BoardRequest(boardName, request.getRequestURL().toString(),file);
         try {
             BoardResponse board = boardService.createBoard(boardRequest, principal);
