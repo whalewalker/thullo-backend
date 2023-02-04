@@ -43,11 +43,24 @@ public class BoardServiceImpl implements BoardService {
         User user = internalFindUserByEmail(principal.getEmail());
         Board board = mapper.map(boardRequest, Board.class);
         board.setUser(user);
-        String imageUrl = fileService.uploadFile(boardRequest.getFile(), boardRequest.getRequestUrl());
+        String imageUrl = null;
+        if (boardRequest.getFile() != null){
+            imageUrl = fileService.uploadFile(boardRequest.getFile(), boardRequest.getRequestUrl());
+        }
         board.setImageUrl(imageUrl);
         createDefaultTaskColumn(board);
         boardRepository.save(board);
         return mapper.map(board, BoardResponse.class);
+    }
+
+    @Override
+    public Board getBoard(Long id) {
+        return boardRepository.findById(id).orElse(null);
+    }
+
+    public boolean isBoardOwner(Long boardId, String email) {
+        Board board = getBoard(boardId);
+        return board.getUser().getEmail().equals(email);
     }
 
     private void createDefaultTaskColumn(Board board) {
