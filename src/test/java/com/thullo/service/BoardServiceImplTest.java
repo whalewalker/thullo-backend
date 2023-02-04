@@ -1,6 +1,7 @@
 package com.thullo.service;
 
 import com.thullo.data.model.Board;
+import com.thullo.data.model.Task;
 import com.thullo.data.model.TaskColumn;
 import com.thullo.data.model.User;
 import com.thullo.data.repository.BoardRepository;
@@ -28,7 +29,8 @@ import java.io.InputStream;
 import java.util.List;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -162,6 +164,42 @@ class BoardServiceImplTest {
 
 
         assertEquals(4, actualResponse.getTaskColumns().size());
+    }
+
+    @Test
+    void shouldReturnAllTaskColumnWhenValidBoardId(){
+        board.getTaskColumns().addAll(
+                List.of(
+                        createTaskColumn("Backlog"),
+                        createTaskColumn("In Progress"),
+                        createTaskColumn("In Review"),
+                        createTaskColumn("Completed"))
+        );
+
+        when(boardRepository.findById(anyLong()))
+                .thenReturn(Optional.ofNullable(board));
+
+        Board userBoard = boardService.getBoard(1L);
+
+        verify(boardRepository).findById(1L);
+        assertAll(() -> {
+            assertEquals(board.getName(), userBoard.getName());
+            assertEquals(4, board.getTaskColumns().size());
+            for(TaskColumn column : board.getTaskColumns()){
+                assertNotNull(column);
+                assertEquals(1, column.getTasks().size());
+                for (Task task : column.getTasks()){
+                    assertNotNull(task);
+                }
+            }
+        });
+    }
+
+    private TaskColumn createTaskColumn(String name) {
+        TaskColumn column = new TaskColumn();
+        column.setName(name);
+        column.getTasks().add(new Task());
+        return column;
     }
 
     public MultipartFile getMultipartFile(String filePath) throws IOException {
