@@ -2,16 +2,17 @@ package com.thullo.web.payload.response;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.springframework.hateoas.RepresentationModel;
+import lombok.Setter;
 
 import java.time.LocalDateTime;
 
-@Data
+@Setter
+@Getter
 @NoArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class ApiResponse extends RepresentationModel<ApiResponse> {
+public class ApiResponse  {
     private boolean isSuccessful;
     private String message;
     @JsonFormat(pattern="yyyy-MM-dd HH:mm:ss")

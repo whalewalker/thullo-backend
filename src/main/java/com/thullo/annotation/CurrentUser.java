@@ -1,4 +1,4 @@
-package com.thullo.security;
+package com.thullo.annotation;
 
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 
