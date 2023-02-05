@@ -58,6 +58,12 @@ public class BoardServiceImpl implements BoardService {
         return boardRepository.findById(id).orElse(null);
     }
 
+    @Override
+    public List<Board> getBoards(String  email) throws UserException {
+        User user = internalFindUserByEmail(email);
+        return boardRepository.getAllByUser(user);
+    }
+
     public boolean isBoardOwner(Long boardId, String email) {
         Board board = getBoard(boardId);
         return board.getUser().getEmail().equals(email);

@@ -26,6 +26,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -193,6 +194,19 @@ class BoardServiceImplTest {
                 }
             }
         });
+    }
+
+    @Test
+    void shouldReturnAllBoardWhenValidUser() throws UserException {
+        when(boardRepository.findAll())
+                .thenReturn(new ArrayList<>(List.of(
+                        new Board(), new Board(), new Board() )));
+
+        List<Board> boards = boardService.getBoards("ismail!gmail.com");
+        verify(boardRepository).findAll();
+        for(Board userBoard : boards){
+            assertNotNull(userBoard);
+        }
     }
 
     private TaskColumn createTaskColumn(String name) {

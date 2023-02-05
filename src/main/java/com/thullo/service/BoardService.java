@@ -6,6 +6,8 @@ import com.thullo.web.exception.UserException;
 import com.thullo.web.payload.request.BoardRequest;
 import com.thullo.web.payload.response.BoardResponse;
 
+import java.util.List;
+
 public interface BoardService {
     /**
      * Creates a new board based on the provided board request.
@@ -16,4 +18,6 @@ public interface BoardService {
     BoardResponse createBoard(BoardRequest boardRequest, UserPrincipal principal) throws UserException;
 
     Board getBoard(Long id);
+
+    List<Board> getBoards(String email) throws UserException;
 }
