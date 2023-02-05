@@ -4,9 +4,9 @@ import com.thullo.data.model.Board;
 import com.thullo.data.model.TaskColumn;
 import com.thullo.data.model.User;
 import com.thullo.data.repository.BoardRepository;
-import com.thullo.data.repository.TaskColumnRepository;
 import com.thullo.data.repository.UserRepository;
 import com.thullo.security.UserPrincipal;
+import com.thullo.web.exception.BadRequestException;
 import com.thullo.web.exception.UserException;
 import com.thullo.web.payload.request.BoardRequest;
 import com.thullo.web.payload.response.BoardResponse;
@@ -31,8 +31,6 @@ public class BoardServiceImpl implements BoardService {
 
     private final UserRepository userRepository;
 
-    private final TaskColumnRepository taskColumnRepository;
-
     /**
      * Creates a new board based on the provided board request.
      *
@@ -55,7 +53,13 @@ public class BoardServiceImpl implements BoardService {
 
     @Override
     public Board getBoard(Long id) {
-        return boardRepository.findById(id).orElse(null);
+        return boardRepository.findById(id).orElseThrow(()-> new BadRequestException("Board not found!"));
+    }
+
+    @Override
+    public List<Board> getBoards(String  email) throws UserException {
+        User user = internalFindUserByEmail(email);
+        return boardRepository.getAllByUser(user);
     }
 
     public boolean isBoardOwner(Long boardId, String email) {

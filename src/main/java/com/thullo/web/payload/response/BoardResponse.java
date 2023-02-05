@@ -9,6 +9,5 @@ import java.util.List;
 public class BoardResponse {
     private String name;
     private String imageUrl;
-
     private List<TaskColumn> taskColumns;
 }

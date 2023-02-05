@@ -34,10 +34,20 @@ public class BoardController {
         }
     }
 
-    @GetMapping("boards/{boardId}")
+    @GetMapping("/boards/{boardId}")
     @PreAuthorize("@boardServiceImpl.isBoardOwner(#boardId, authentication.principal.email)")
     public ResponseEntity<ApiResponse> getABoard(@PathVariable("boardId") Long boardId) {
         return ResponseEntity.ok(new ApiResponse(true, "Board successfully fetched",
                 boardService.getBoard(boardId)));
+    }
+
+    @GetMapping("/boards")
+    public ResponseEntity<ApiResponse> getBoards(@CurrentUser UserPrincipal userPrincipal) {
+        try {
+            return ResponseEntity.ok(new ApiResponse(true, "Board successfully fetched",
+                    boardService.getBoards(userPrincipal.getEmail())));
+        } catch (UserException ex) {
+            return ResponseEntity.badRequest().body(new ApiResponse(false, "Bad request, check your request data"));
+        }
     }
 }
