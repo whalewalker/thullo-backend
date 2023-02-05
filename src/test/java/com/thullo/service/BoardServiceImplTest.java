@@ -31,8 +31,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -198,12 +197,19 @@ class BoardServiceImplTest {
 
     @Test
     void shouldReturnAllBoardWhenValidUser() throws UserException {
-        when(boardRepository.findAll())
+        User boardOwner = new User();
+        when(boardRepository.getAllByUser(any(User.class)))
                 .thenReturn(new ArrayList<>(List.of(
                         new Board(), new Board(), new Board() )));
+        when(userRepository.findByEmail(anyString()))
+                .thenReturn(Optional.of(boardOwner));
 
-        List<Board> boards = boardService.getBoards("ismail!gmail.com");
-        verify(boardRepository).findAll();
+        List<Board> boards = boardService.getBoards("ismail@gmail.com");
+        verify(boardRepository).getAllByUser(boardOwner);
+        verify(userRepository).findByEmail("ismail@gmail.com");
+
+        assertNotNull(boards);
+        assertEquals(3, boards.size());
         for(Board userBoard : boards){
             assertNotNull(userBoard);
         }
