@@ -7,17 +7,12 @@ import com.thullo.security.oauth2.OAuth2AuthenticationSuccessHandler;
 import com.thullo.security.oauth2.Oauth2CustomUserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.http.HttpMethod;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
@@ -28,14 +23,10 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
         jsr250Enabled = true
 )
 @RequiredArgsConstructor
-public class SecurityConfig  {
-
+public class SecurityConfig {
     private final JwtAuthenticationEntryPoint unauthorizedHandler;
 
-    private final CustomUserDetailService customUserDetailService;
-
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
-    private final BCryptPasswordEncoder passwordEncoder;
 
     private final Oauth2CustomUserService customOAuth2UserService;
 
@@ -45,8 +36,7 @@ public class SecurityConfig  {
     private final HttpCookieOAuth2AuthorizationRequestRepository httpCookieOAuth2AuthorizationRequestRepository;
 
 
-
-    /*
+    /**
          By default, Spring OAuth2 uses HttpSessionOAuth2AuthorizationRequestRepository to save
          the authorization request. But, since our service is stateless, we can't save it in
          the session. We'll save the request in a Base64 encoded cookie instead.
@@ -97,22 +87,10 @@ public class SecurityConfig  {
     }
 
 
-
     @Bean
-    public AuthenticationManager authenticationManager(HttpSecurity httpSecurity) throws Exception {
-        AuthenticationManagerBuilder authenticationManagerBuilder = httpSecurity.getSharedObject(AuthenticationManagerBuilder.class);
-        authenticationManagerBuilder.userDetailsService(customUserDetailService)
-                .passwordEncoder(passwordEncoder);
-        return authenticationManagerBuilder.build();
-    }
-
-
-    @Bean
-    public WebSecurityCustomizer securityCustomizer(){
+    public WebSecurityCustomizer securityCustomizer() {
         return (web -> web.debug(false)
                 .ignoring()
                 .antMatchers("/css/**", "/js/**", "/img/**", "/lib/**", "/favicon.ico"));
     }
-
-
 }

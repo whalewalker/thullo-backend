@@ -1,21 +1,21 @@
 package com.thullo.security.oauth2;
 
-import com.thullo.config.AppProperties;
 import com.thullo.security.JwtTokenProvider;
 import com.thullo.util.CookieUtils;
 import com.thullo.web.exception.BadRequestException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
 import org.springframework.web.util.UriComponentsBuilder;
 
-import javax.servlet.ServletException;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.net.URI;
+import java.util.List;
 import java.util.Optional;
 
 import static com.thullo.util.AppConstants.REDIRECT_URI_PARAM_COOKIE_NAME;
@@ -26,12 +26,13 @@ import static com.thullo.util.AppConstants.REDIRECT_URI_PARAM_COOKIE_NAME;
 public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
     private final JwtTokenProvider tokenProvider;
 
-    private final AppProperties appProperties;
+    @Value("${app.oauth2.authorized-redirect-uris}")
+    private List<String> authorizedRedirectUris;
 
     private final HttpCookieOAuth2AuthorizationRequestRepository httpCookieOAuth2AuthorizationRequestRepository;
 
     @Override
-    public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException, ServletException {
+    public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException {
         String targetUrl = determineTargetUrl(request, response, authentication);
 
         if (response.isCommitted()) {
@@ -69,7 +70,7 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
     private boolean isAuthorizedRedirectUri(String uri) {
         URI clientRedirectUri = URI.create(uri);
 
-        return appProperties.getOAuth2().getAuthorizedRedirectUris()
+        return authorizedRedirectUris
                 .stream()
                 .anyMatch(authorizedRedirectUri -> {
                     // Only validate host and port. Let the clients use different paths if they want to

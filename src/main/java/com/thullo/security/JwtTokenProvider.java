@@ -1,11 +1,11 @@
 package com.thullo.security;
 
-import com.thullo.config.AppProperties;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
@@ -19,8 +19,11 @@ import java.util.function.Function;
 @Slf4j
 @RequiredArgsConstructor
 public class JwtTokenProvider {
+    @Value("${app.auth.token-expiration-milli-sec}")
+    private long tokenExpirationMsec;
 
-    private final AppProperties appProperties;
+    @Value("${app.auth.token-secret}")
+    private String tokenSecret;
 
     public String generateToken(String email) {
         Map<String, Object> claims = new HashMap<>();
@@ -32,8 +35,8 @@ public class JwtTokenProvider {
                 .setClaims(claims).setSubject(subject)
                 .setIssuedAt(new Date(System.currentTimeMillis()))
 //                // Jwt expiration time is 10hr after jwt is issued
-                .setExpiration(new Date(System.currentTimeMillis() + appProperties.getAuth().getTokenExpirationMsec()))
-                .signWith(SignatureAlgorithm.HS256, appProperties.getAuth().getTokenSecret()).compact();
+                .setExpiration(new Date(System.currentTimeMillis() + tokenExpirationMsec))
+                .signWith(SignatureAlgorithm.HS256, tokenSecret).compact();
     }
 
     public String extractEmail(String jwtToken) {
@@ -46,7 +49,7 @@ public class JwtTokenProvider {
     }
 
     private Claims extractAllClaim(String jwtToken) {
-        return Jwts.parser().setSigningKey(appProperties.getAuth().getTokenSecret())
+        return Jwts.parser().setSigningKey(tokenSecret)
                 .parseClaimsJws(jwtToken).getBody();
     }
 

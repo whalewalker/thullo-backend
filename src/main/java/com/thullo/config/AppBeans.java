@@ -1,20 +1,20 @@
 package com.thullo.config;
 
 import com.thullo.data.model.UUIDWrapper;
-import com.thullo.data.repository.UserRepository;
 import com.thullo.security.CustomUserDetailService;
+import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.data.jpa.repository.support.JpaRepositoryFactory;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
-import javax.persistence.EntityManager;
-
 @Configuration
+@RequiredArgsConstructor
 public class AppBeans {
-
+    private final CustomUserDetailService customUserDetailService;
 
     @Bean
     public BCryptPasswordEncoder passwordEncoder() {
@@ -32,5 +32,13 @@ public class AppBeans {
     @Bean
     public UUIDWrapper uuidWrapper(){
         return  new UUIDWrapper();
+    }
+
+    @Bean
+    public AuthenticationManager authenticationManager(HttpSecurity httpSecurity) throws Exception {
+        AuthenticationManagerBuilder authenticationManagerBuilder = httpSecurity.getSharedObject(AuthenticationManagerBuilder.class);
+        authenticationManagerBuilder.userDetailsService(customUserDetailService)
+                .passwordEncoder(passwordEncoder());
+        return authenticationManagerBuilder.build();
     }
 }
