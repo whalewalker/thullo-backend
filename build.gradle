@@ -44,5 +44,7 @@ tasks.named('test') {
 
 bootJar{
     launchScript()
+    enabled = true
+    archiveClassifier.set("")
 }
 
