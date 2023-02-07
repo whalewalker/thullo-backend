@@ -61,7 +61,7 @@ public class SecurityConfig {
                 .authenticationEntryPoint(unauthorizedHandler)
                 .and()
                 .authorizeRequests()
-                .antMatchers("/api/v1/thullo/auth/**", "/oauth2/**", "/api/v1/thullo/files/**", "/swagger-ui/**", "/v3/api-docs/**", "/swagger-config/**")
+                .antMatchers("/api/v1/thullo/auth/**", "/oauth2/**", "/api/v1/thullo/files/**", "/swagger-ui/**", "/v3/api-docs/**")
                 .permitAll()
                 .antMatchers(HttpMethod.GET, "/api/v1/thullo/users/**")
                 .permitAll()
