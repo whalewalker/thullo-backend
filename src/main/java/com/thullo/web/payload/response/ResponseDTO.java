@@ -12,21 +12,21 @@ import java.time.LocalDateTime;
 @Getter
 @NoArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class ApiResponse  {
+public class ResponseDTO {
     private boolean isSuccessful;
     private String message;
     @JsonFormat(pattern="yyyy-MM-dd HH:mm:ss")
     private LocalDateTime localDateTime;
     private Object data;
 
-    public ApiResponse(boolean isSuccessful, String message) {
+    public ResponseDTO(boolean isSuccessful, String message) {
         this.isSuccessful = isSuccessful;
         this.message = message;
         localDateTime = LocalDateTime.now();
     }
 
 
-    public ApiResponse(boolean isSuccessful, String message, Object data) {
+    public ResponseDTO(boolean isSuccessful, String message, Object data) {
         this(isSuccessful, message);
         this.data = data;
     }
