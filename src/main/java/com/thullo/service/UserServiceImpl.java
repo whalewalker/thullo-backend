@@ -10,8 +10,6 @@ import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 
-import java.util.Optional;
-
 import static java.lang.String.format;
 
 @Service
@@ -29,8 +27,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public UserProfileResponse getUserDetails(String email) throws UserException {
         User user = internalFindUserByEmail(email);
-        UserProfileResponse userDetail = mapper.map(user, UserProfileResponse.class);
-        return userDetail;
+        return mapper.map(user, UserProfileResponse.class);
     }
 
     /**

@@ -2,7 +2,7 @@ package com.thullo.web.controller;
 
 import com.thullo.data.model.FileData;
 import com.thullo.service.FileService;
-import com.thullo.web.payload.response.ResponseDTO;
+import com.thullo.web.payload.response.ApiResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.HttpHeaders;
@@ -30,16 +30,18 @@ public class FileController {
                     .contentType(fileService.getMediaTypeForFileType(files.getFileType()))
                     .body(resource);
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body(new ResponseDTO(false, "File not found"));        }
+            return ResponseEntity.badRequest().body(new ApiResponse(false, "File not found"));        }
     }
 
 
     @PostMapping(value = "/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<ResponseDTO> uploadFile(@RequestParam("file") MultipartFile file, HttpServletRequest request) {
+    public ResponseEntity<ApiResponse> uploadFile(@RequestParam("file") MultipartFile file, HttpServletRequest request) {
         String url = request.getRequestURL().toString();
-        return ResponseEntity.ok(new ResponseDTO(true, "File successfully uploaded", fileService.uploadFile(file, url)));
+        try {
+            return ResponseEntity.ok(new ApiResponse(true, "File successfully uploaded",
+                    fileService.uploadFile(file, url)));
+        } catch (Exception ex) {
+            return ResponseEntity.badRequest().body(new ApiResponse(false, ex.getMessage()));
+        }
     }
-
-
-
 }

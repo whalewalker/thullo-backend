@@ -7,6 +7,7 @@ import com.thullo.data.model.User;
 import com.thullo.data.repository.BoardRepository;
 import com.thullo.data.repository.UserRepository;
 import com.thullo.security.UserPrincipal;
+import com.thullo.web.exception.BadRequestException;
 import com.thullo.web.exception.UserException;
 import com.thullo.web.payload.request.BoardRequest;
 import com.thullo.web.payload.response.BoardResponse;
@@ -92,7 +93,7 @@ class BoardServiceImplTest {
     }
 
     @Test
-    void testCreateBoard_withBoardName_createANewBoard() throws UserException {
+    void testCreateBoard_withBoardName_createANewBoard() throws UserException, BadRequestException {
         when(userRepository.findByEmail(anyString())).thenReturn(Optional.of(new User()));
         when(mapper.map(boardRequest, Board.class))
                 .thenReturn(board);
@@ -109,7 +110,7 @@ class BoardServiceImplTest {
     }
 
     @Test
-    void testCreateBoard_WithBoardNameAndCoverImage_createANewBoard() throws IOException, UserException {
+    void testCreateBoard_WithBoardNameAndCoverImage_createANewBoard() throws IOException, UserException, BadRequestException {
         MultipartFile multipartFile = getMultipartFile("src/main/resources/static/code.png");
         boardRequest.setFile(multipartFile);
         boardRequest.setRequestUrl("http://localhost:8080/api/v1/thullo");
@@ -142,7 +143,7 @@ class BoardServiceImplTest {
 
 
     @Test
-    void testCreateBoard_WithValidRequest_createANewBoardWith4TaskColumns() throws IOException, UserException {
+    void testCreateBoard_WithValidRequest_createANewBoardWith4TaskColumns() throws IOException, UserException, BadRequestException {
         MultipartFile multipartFile = getMultipartFile("src/main/resources/static/code.png");
         boardRequest.setFile(multipartFile);
         boardRequest.setRequestUrl("http://localhost:8080/api/v1/thullo");
@@ -167,7 +168,7 @@ class BoardServiceImplTest {
     }
 
     @Test
-    void shouldReturnAllTaskColumnWhenValidBoardId(){
+    void shouldReturnAllTaskColumnWhenValidBoardId() throws BadRequestException {
         board.getTaskColumns().addAll(
                 List.of(
                         createTaskColumn("Backlog"),
@@ -198,14 +199,14 @@ class BoardServiceImplTest {
     @Test
     void shouldReturnAllBoardWhenValidUser() throws UserException {
         User boardOwner = new User();
-        when(boardRepository.getAllByUser(any(User.class)))
+        when(boardRepository.getAllByUserOrderByCreatedAtDesc(any(User.class)))
                 .thenReturn(new ArrayList<>(List.of(
                         new Board(), new Board(), new Board() )));
         when(userRepository.findByEmail(anyString()))
                 .thenReturn(Optional.of(boardOwner));
 
         List<Board> boards = boardService.getBoards("ismail@gmail.com");
-        verify(boardRepository).getAllByUser(boardOwner);
+        verify(boardRepository).getAllByUserOrderByCreatedAtDesc(boardOwner);
         verify(userRepository).findByEmail("ismail@gmail.com");
 
         assertNotNull(boards);

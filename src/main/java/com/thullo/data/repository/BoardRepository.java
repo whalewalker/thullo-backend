@@ -9,5 +9,5 @@ import java.util.List;
 
 @Repository
 public interface BoardRepository extends JpaRepository<Board, Long> {
-    List<Board> getAllByUser(User user);
+    List<Board> getAllByUserOrderByCreatedAtDesc(User user);
 }

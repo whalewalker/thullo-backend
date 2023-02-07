@@ -6,6 +6,7 @@ import com.thullo.data.model.User;
 import com.thullo.data.repository.BoardRepository;
 import com.thullo.data.repository.UserRepository;
 import com.thullo.security.UserPrincipal;
+import com.thullo.util.Helper;
 import com.thullo.web.exception.BadRequestException;
 import com.thullo.web.exception.UserException;
 import com.thullo.web.payload.request.BoardRequest;
@@ -15,6 +16,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 
+import java.io.IOException;
 import java.util.List;
 
 import static java.lang.String.format;
@@ -37,7 +39,8 @@ public class BoardServiceImpl implements BoardService {
      * @param boardRequest The request containing the information for the new board to be created.
      * @return A response object containing the result of the board creation process.
      */
-    public BoardResponse createBoard(BoardRequest boardRequest, UserPrincipal principal) throws UserException {
+    public BoardResponse createBoard(BoardRequest boardRequest, UserPrincipal principal) throws UserException, BadRequestException, IOException {
+        if(Helper.isNullOrEmpty(boardRequest.getName())) throw new BadRequestException("Board name cannot be empty");
         User user = internalFindUserByEmail(principal.getEmail());
         Board board = mapper.map(boardRequest, Board.class);
         board.setUser(user);
@@ -52,18 +55,23 @@ public class BoardServiceImpl implements BoardService {
     }
 
     @Override
-    public Board getBoard(Long id) {
-        return boardRepository.findById(id).orElseThrow(()-> new BadRequestException("Board not found!"));
+    public Board getBoard(Long id) throws BadRequestException {
+        return boardRepository.findById(id).orElseThrow(()-> new BadRequestException ("Board not found!"));
+    }
+
+    private Board getBoardInternal(Long id){
+        return boardRepository.findById(id).orElse(null);
     }
 
     @Override
     public List<Board> getBoards(String  email) throws UserException {
         User user = internalFindUserByEmail(email);
-        return boardRepository.getAllByUser(user);
+        return boardRepository.getAllByUserOrderByCreatedAtDesc(user);
     }
 
     public boolean isBoardOwner(Long boardId, String email) {
-        Board board = getBoard(boardId);
+        Board board = getBoardInternal(boardId);
+        if (board == null) return false;
         return board.getUser().getEmail().equals(email);
     }
 

@@ -101,32 +101,46 @@ public class AuthServiceImpl implements AuthService {
     @Transactional
     @Override
     public JwtTokenResponse login(LoginRequest loginRequest) throws UserException {
-        final Authentication authentication = authenticationManager.authenticate(
+        Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
                         loginRequest.getEmail(),
                         loginRequest.getPassword()
                 )
         );
         SecurityContextHolder.getContext().setAuthentication(authentication);
-        final String jwtToken = tokenProvider.generateToken(loginRequest.getEmail());
+        String jwtToken = tokenProvider.generateToken(loginRequest.getEmail());
         User user = internalFindUserByEmail(loginRequest.getEmail());
-        Token refreshToken = new Token(user);
-        tokenRepository.save(refreshToken);
-        return new JwtTokenResponse(jwtToken, refreshToken.getToken(), user.getEmail());
+        JwtTokenResponse jwtTokenResponse = new JwtTokenResponse();
+
+        Optional<Token> optionalToken = tokenRepository.findByUser(user);
+        if (optionalToken.isPresent() && isValidToken(optionalToken.get().getExpiryDate())) {
+            jwtTokenResponse.setRefreshToken(optionalToken.get().getToken());
+        } else if (optionalToken.isPresent() && !isValidToken(optionalToken.get().getExpiryDate())) {
+            Token token = optionalToken.get();
+            token.updateToken(UUID.randomUUID().toString(), REFRESH.name());
+            jwtTokenResponse.setRefreshToken(tokenRepository.save(token).getToken());
+        } else {
+            Token refreshToken = new Token(user);
+            jwtTokenResponse.setRefreshToken(tokenRepository.save(refreshToken).getToken());
+        }
+
+        jwtTokenResponse.setJwtToken(jwtToken);
+        jwtTokenResponse.setEmail(user.getEmail());
+        return jwtTokenResponse;
     }
 
     private User internalFindUserByEmail(String email) throws UserException {
-        return userRepository.findByEmail(email).orElseThrow(()-> new UserException(format( "user not found with email %s", email)));
+        return userRepository.findByEmail(email).orElseThrow(() -> new UserException(format("user not found with email %s", email)));
     }
 
     @Override
-    public Token resendVerificationToken(String token) throws TokenException {
-        return generateNewToken(token, VERIFICATION.toString());
+    public TokenResponse resendVerificationToken(String token) throws TokenException {
+        return modelMapper.map(generateNewToken(token, VERIFICATION.toString()), TokenResponse.class) ;
     }
 
     @Override
-    public Token resendResetPasswordToken(String verificationToken) throws TokenException {
-        return generateNewToken(verificationToken, PASSWORD_RESET.toString());
+    public TokenResponse resendResetPasswordToken(String verificationToken) throws TokenException {
+        return modelMapper.map(generateNewToken(verificationToken, PASSWORD_RESET.toString()), TokenResponse.class) ;
     }
 
 
@@ -140,10 +154,22 @@ public class AuthServiceImpl implements AuthService {
     public TokenResponse createPasswordResetTokenForUser(String email) throws AuthException {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new AuthException("No user found with email " + email));
-        String token = UUID.randomUUID().toString();
-        Token createdToken = createVerificationToken(user, token, PASSWORD_RESET.toString());
+
+        Optional<Token> optionalToken = tokenRepository.findByUser(user);
+
+        if (optionalToken.isPresent() && isValidToken(optionalToken.get().getExpiryDate()))
+            return modelMapper.map(optionalToken.get(), TokenResponse.class);
+
+        else if (optionalToken.isPresent() && !isValidToken(optionalToken.get().getExpiryDate())) {
+            Token token = optionalToken.get();
+            token.updateToken(UUID.randomUUID().toString(), PASSWORD_RESET.toString());
+            return modelMapper.map(tokenRepository.save(token), TokenResponse.class);
+        }
+
+        Token createdToken = createVerificationToken(user, UUID.randomUUID().toString(), PASSWORD_RESET.toString());
         return modelMapper.map(createdToken, TokenResponse.class);
     }
+
 
     @Override
     public JwtTokenResponse refreshToken(TokenRefreshRequest request) throws TokenException {
@@ -157,11 +183,10 @@ public class AuthServiceImpl implements AuthService {
     }
 
     private Token getRefreshToken(Token token) throws TokenException {
-        if (!isValidToken(token.getExpiryDate()))
+        if (isValidToken(token.getExpiryDate()))
             return token;
         else throw new TokenException("Refresh token was expired. Please make a new sign in request");
     }
-
 
 
     @Override

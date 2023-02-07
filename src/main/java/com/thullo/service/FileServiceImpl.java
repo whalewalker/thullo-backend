@@ -3,6 +3,7 @@ package com.thullo.service;
 import com.thullo.data.model.FileData;
 import com.thullo.data.model.UUIDWrapper;
 import com.thullo.data.repository.FilesRepository;
+import com.thullo.web.exception.BadRequestException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
@@ -24,9 +25,8 @@ public class FileServiceImpl implements FileService {
     private final UUIDWrapper uuidWrapper;
 
     @Override
-    public String uploadFile(MultipartFile file, String url) {
-
-        try {
+    public String uploadFile(MultipartFile file, String url) throws BadRequestException, IOException {
+            if(file.isEmpty()) throw new BadRequestException("File cannot be empty");
             String originalFileName = file.getOriginalFilename();
             assert originalFileName != null;
             String fileType = originalFileName.substring(originalFileName.lastIndexOf(".") + 1);
@@ -37,11 +37,7 @@ public class FileServiceImpl implements FileService {
             String fileUrl = format("%sthullo/files/%s", baseUrl, fileId);
             InputStream is = new ByteArrayInputStream(compressedFile);
             filesRepository.save(new FileData(fileId, originalFileName, fileType, is.readAllBytes()));
-
             return fileUrl;
-        } catch (Exception e) {
-            return "Error uploading file: " + e.getMessage();
-        }
     }
 
     @Override

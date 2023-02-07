@@ -1,12 +1,18 @@
 package com.thullo.web.payload.response;
 
-import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
+import org.springframework.hateoas.RepresentationModel;
 
 import java.time.LocalDateTime;
 
-@Data
-public class TokenResponse {
+@Getter
+@Setter
+@EqualsAndHashCode(callSuper = true)
+public class TokenResponse extends RepresentationModel<TokenResponse> {
        private String token;
        private  String tokenType;
        private LocalDateTime expiryDate;
+
 }
