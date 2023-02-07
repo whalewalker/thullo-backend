@@ -37,10 +37,10 @@ public class SecurityConfig {
 
 
     /**
-         By default, Spring OAuth2 uses HttpSessionOAuth2AuthorizationRequestRepository to save
-         the authorization request. But, since our service is stateless, we can't save it in
-         the session. We'll save the request in a Base64 encoded cookie instead.
-       */
+     * By default, Spring OAuth2 uses HttpSessionOAuth2AuthorizationRequestRepository to save
+     * the authorization request. But, since our service is stateless, we can't save it in
+     * the session. We'll save the request in a Base64 encoded cookie instead.
+     */
     @Bean
     public HttpCookieOAuth2AuthorizationRequestRepository cookieAuthorizationRequestRepository() {
         return httpCookieOAuth2AuthorizationRequestRepository;
@@ -61,7 +61,21 @@ public class SecurityConfig {
                 .authenticationEntryPoint(unauthorizedHandler)
                 .and()
                 .authorizeRequests()
-                .antMatchers("/api/v1/thullo/auth/**", "/oauth2/**", "/api/v1/thullo/files/**", "/swagger-ui/**", "/v3/api-docs/**")
+                .antMatchers("/api/v1/thullo/auth/**", "/oauth2/**", "/api/v1/thullo/files/**")
+                .permitAll()
+                .antMatchers(
+                        "/v2/api-docs",
+                        "/v3/api-docs",
+                        "/**/v3/api-docs",
+                        "/swagger-resources",
+                        "/swagger-resources/**",
+                        "/configuration/ui",
+                        "/configuration/security",
+                        "/swagger-ui.html",
+                        "**/swagger-ui.html",
+                        "/**/swagger-ui.html**",
+                        "/swagger-ui.html**",
+                        "/webjars/**")
                 .permitAll()
                 .antMatchers(HttpMethod.GET, "/api/v1/thullo/users/**")
                 .permitAll()
