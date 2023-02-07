@@ -6,7 +6,10 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-@OpenAPIDefinition(servers = {@Server(url = "/", description = "Default server URL")})
+@OpenAPIDefinition(servers = {
+        @Server(url = "http://localhost:8080", description = "local"),
+        @Server(url = "https://thullo-backend-production.up.railway.app", description = "live")
+})
 public class ThulloApplication {
     public static void main(String[] args) {
         SpringApplication.run(ThulloApplication.class, args);
