@@ -2,6 +2,7 @@ package com.thullo.service;
 
 import com.thullo.data.model.Task;
 import com.thullo.data.repository.TaskRepository;
+import com.thullo.web.exception.BadRequestException;
 import com.thullo.web.payload.request.TaskRequest;
 import com.thullo.web.payload.request.TaskResponse;
 import org.apache.commons.io.IOUtils;
@@ -63,7 +64,7 @@ class TaskServiceImplTest {
     }
 
     @Test
-    void testCreateTask_withValidName_thenTaskIsCreated(){
+    void testCreateTask_withValidName_thenTaskIsCreated() throws BadRequestException, IOException {
 
         when(taskRepository.save(any())).thenReturn(task);
 
@@ -78,7 +79,7 @@ class TaskServiceImplTest {
     }
 
     @Test
-    void testCreateTask_withCoverImage_thenTaskIsCreated() throws IOException {
+    void testCreateTask_withCoverImage_thenTaskIsCreated() throws IOException, BadRequestException {
         MultipartFile multipartFile = getMultipartFile("src/main/resources/static/code.png");
         String url = "http://localhost:8080/api/v1/thullo";
         taskRequest.setFile(multipartFile);

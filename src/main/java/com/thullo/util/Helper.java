@@ -8,7 +8,7 @@ public class Helper {
 
     public static boolean isValidToken(LocalDateTime expiryDate) {
         long minutes = ChronoUnit.MINUTES.between(LocalDateTime.now(), expiryDate);
-        return minutes <= 0;
+        return minutes >= 0;
     }
 
     public  static boolean isNullOrEmpty(String  value){

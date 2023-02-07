@@ -24,9 +24,9 @@ public interface AuthService {
 
     void saveResetPassword(PasswordRequest passwordRequest) throws AuthException, TokenException;
 
-    Token resendVerificationToken(String token) throws TokenException;
+    com.thullo.web.payload.response.TokenResponse resendVerificationToken(String token) throws TokenException;
 
-    Token resendResetPasswordToken(String token) throws TokenException;
+    TokenResponse resendResetPasswordToken(String token) throws TokenException;
 
     TokenResponse createPasswordResetTokenForUser(String email) throws AuthException;
 

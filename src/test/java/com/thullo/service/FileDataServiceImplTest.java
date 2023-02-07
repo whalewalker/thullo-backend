@@ -3,6 +3,7 @@ package com.thullo.service;
 import com.thullo.data.model.UUIDWrapper;
 import com.thullo.data.model.FileData;
 import com.thullo.data.repository.FilesRepository;
+import com.thullo.web.exception.BadRequestException;
 import org.apache.commons.io.IOUtils;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -35,7 +36,7 @@ class FileDataServiceImplTest {
 
 
     @Test
-    void testUploadFile_withValidFile_thenGeneratedUrl() throws IOException {
+    void testUploadFile_withValidFile_thenGeneratedUrl() throws IOException, BadRequestException {
         when(uuidWrapper.getUUID()).thenReturn("123e4567-e89b-12d3-a456-426655440000");
         when(filesRepository.save(any())).thenReturn(new FileData());
         MultipartFile multipartFile = getMultipartFile("src/main/resources/static/code.png");

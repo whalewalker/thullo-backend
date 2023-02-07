@@ -36,26 +36,13 @@ public class SecurityConfig {
     private final HttpCookieOAuth2AuthorizationRequestRepository httpCookieOAuth2AuthorizationRequestRepository;
 
     private static final String[] AUTH_WHITELIST = {
-            // -- Swagger UI v2
-            "/v2/api-docs",
-            "/swagger-resources",
-            "/swagger-resources/**",
-            "/configuration/ui",
-            "/configuration/security",
-            "/swagger-ui.html",
-            "/webjars/**",
-            "/swagger-resources/**",
-            "/configuration/**",
-            // -- Swagger UI v3 (OpenAPI)
-            "/v3/api-docs/**",
-            "/swagger-ui/**",
             // other public endpoints of your API may be appended to this array
             "/api/v1/thullo/auth/**",
             "/oauth2/**",
             "/api/v1/thullo/files/**"
     };
 
-    /**
+    /**§
      * By default, Spring OAuth2 uses HttpSessionOAuth2AuthorizationRequestRepository to save
      * the authorization request. But, since our service is stateless, we can't save it in
      * the session. We'll save the request in a Base64 encoded cookie instead.

@@ -12,6 +12,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 
+import java.io.IOException;
+
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -24,21 +26,29 @@ public class TaskServiceImpl implements TaskService{
     private final TaskColumnRepository taskColumnRepository;
 
     @Override
-    public TaskResponse createTask(TaskRequest taskRequest) {
+    public TaskResponse createTask(TaskRequest taskRequest) throws BadRequestException, IOException {
         Task task = taskRequest.getTask();
-        String imageUrl = fileService.uploadFile(taskRequest.getFile(), taskRequest.getRequestUrl());
+        String imageUrl = null;
+        if (taskRequest.getFile() != null){
+            imageUrl =  fileService.uploadFile(taskRequest.getFile(), taskRequest.getRequestUrl());
+        }
         task.setImageUrl(imageUrl);
         Task saveTask = taskRepository.save(task);
         return mapper.map(saveTask, TaskResponse.class);
     }
 
+
+
     public boolean isTaskOwner(Long taskColumnId, String email) {
         TaskColumn taskColumn = getTaskColumn(taskColumnId);
+        if (taskColumn == null) return false;
         return taskColumn.getBoard().getUser().getEmail().equals(email);
     }
 
+
+
     private TaskColumn getTaskColumn(Long taskColumnId) {
-        return taskColumnRepository.findById(taskColumnId).orElseThrow( ()-> new BadRequestException("Task not found!"));
+        return taskColumnRepository.findById(taskColumnId).orElse(null);
     }
 
 }
