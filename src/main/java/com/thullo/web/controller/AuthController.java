@@ -10,23 +10,16 @@ import com.thullo.web.payload.request.LoginRequest;
 import com.thullo.web.payload.request.PasswordRequest;
 import com.thullo.web.payload.request.TokenRefreshRequest;
 import com.thullo.web.payload.request.UserRequest;
-import com.thullo.web.payload.response.ResponseDTO;
 import com.thullo.web.payload.response.JwtTokenResponse;
+import com.thullo.web.payload.response.ResponseDTO;
 import com.thullo.web.payload.response.TokenResponse;
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.Schema;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.hateoas.Link;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import java.io.UnsupportedEncodingException;
 import java.util.UUID;
@@ -42,16 +35,9 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 public class AuthController {
     private final AuthService authService;
 
-    @Operation(summary = "Create A New Account", description = "Returns a message", tags = { "Register" })
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "successful operation", content = @Content(
-                    mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = ResponseDTO.class)
-            )),
-            @ApiResponse(responseCode = "400", description = "Invalid request data", content = @Content(
-                    mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = ResponseDTO.class)
-            ))})
+
     @PostMapping("/register")
-    public ResponseEntity<?> register(@Valid @RequestBody UserRequest userRequest, HttpServletRequest request) {
+    public ResponseEntity<?> register(@Valid @RequestBody UserRequest userRequest) {
         try {
             User user = authService.registerNewUserAccount(userRequest);
             String token = UUID.randomUUID().toString();
@@ -160,7 +146,7 @@ public class AuthController {
     }
 
     @PostMapping("/refresh-token")
-    public ResponseEntity<?> refreshToken(@Valid @RequestBody TokenRefreshRequest request, HttpServletRequest httpServletRequest) {
+    public ResponseEntity<?> refreshToken(@Valid @RequestBody TokenRefreshRequest request) {
         try {
             JwtTokenResponse jwtTokenResponse = authService.refreshToken(request);
             return new ResponseEntity<>(jwtTokenResponse, HttpStatus.OK);

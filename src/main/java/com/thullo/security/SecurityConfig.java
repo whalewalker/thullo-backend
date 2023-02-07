@@ -108,6 +108,7 @@ public class SecurityConfig {
 
 
 
+
     @Bean
     public WebSecurityCustomizer securityCustomizer() {
         return (web -> web.debug(false)
