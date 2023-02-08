@@ -13,4 +13,5 @@ public interface TaskService {
     Task moveTask(Long taskId, Long newColumnId, Long index) throws RecordNotFoundException;
 
     Task editTask(Long taskId, TaskRequest taskRequest);
+    public Task getTask(Long taskId) throws RecordNotFoundException;
 }

@@ -32,7 +32,8 @@ import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class TaskServiceImplTest {
@@ -172,7 +173,7 @@ class TaskServiceImplTest {
 
 
     @Test
-    void testMoveTask_InvalidColumnId_throwRecordNotFoundException() {
+    void testMoveTask_InvalidColumnId_throwRecordNotFoundException(){
         when(taskRepository.findById(anyLong()))
                 .thenReturn(Optional.ofNullable(task));
 
@@ -332,6 +333,27 @@ class TaskServiceImplTest {
         assertEquals(0, response.getPosition());
     }
 
+    @Test
+    void getTask_withValidId_getTask() throws RecordNotFoundException {
+        task.setId(1L);
+        when(taskRepository.findById(anyLong()))
+                .thenReturn(Optional.ofNullable(task));
+
+        Task response = taskService.getTask(1L);
+
+        verify(taskRepository).findById(1L);
+        assertNotNull(response);
+        assertEquals(1L, response.getId());
+    }
+
+    @Test
+    void getTask_withInvalidId_throwRequestNotFoundException(){
+        when(taskRepository.findById(anyLong()))
+                .thenReturn(Optional.empty());
+
+        assertThrows(RecordNotFoundException.class,
+                () -> taskService.getTask(1L));
+    }
     @Test
     void testEditTask_withValidDescription_taskIsUpdated(){
         TaskRequest request = new TaskRequest();
