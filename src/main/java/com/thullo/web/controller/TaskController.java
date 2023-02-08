@@ -51,4 +51,15 @@ public class TaskController {
             return ResponseEntity.badRequest().body(new ApiResponse(false, ex.getMessage()));
         }
     }
+
+    @GetMapping("/tasks/{taskId}")
+    @PreAuthorize("@taskServiceImpl.isTaskCreator(#taskId, authentication.principal.email)")
+    public ResponseEntity<?> getTask(@PathVariable("taskId") Long taskId) {
+        try {
+            Task task = taskService.getTask(taskId);
+            return new ResponseEntity<>(task, HttpStatus.OK);
+        } catch (RecordNotFoundException ex) {
+            return ResponseEntity.badRequest().body(new ApiResponse(false, ex.getMessage()));
+        }
+    }
 }

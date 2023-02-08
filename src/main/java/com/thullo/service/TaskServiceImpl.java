@@ -77,7 +77,7 @@ public class TaskServiceImpl implements TaskService {
     }
 
     public boolean isTaskOwnedByUser(Long taskId, Long newColumnId, String email) {
-        Task task = taskRepository.findById(taskId).orElse(null);
+        Task task = getTaskInternal(taskId);
         if (task == null) {
             return false;
         }
@@ -95,9 +95,28 @@ public class TaskServiceImpl implements TaskService {
         return column.getBoard().getUser().getId().equals(user.getId());
     }
 
+    private Task getTaskInternal(Long taskId) {
+        return taskRepository.findById(taskId).orElse(null);
+    }
+
 
     private TaskColumn getTaskColumn(Long taskColumnId) {
         return taskColumnRepository.findById(taskColumnId).orElse(null);
     }
 
+    public Task getTask(Long taskId) throws RecordNotFoundException {
+        Task task = getTaskInternal(taskId);
+        if (task == null) throw new RecordNotFoundException("Task not found !");
+        return task;
+    }
+
+    public boolean isTaskCreator(Long taskId, String email){
+        User user = userRepository.findByEmail(email).orElse(null);
+        if (user == null) return false;
+
+        Task task = getTaskInternal(taskId);
+        if (task == null) return false;
+
+        return task.getTaskColumn().getBoard().getUser().getId().equals(user.getId());
+    }
 }

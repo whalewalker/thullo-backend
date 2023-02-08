@@ -330,6 +330,27 @@ class TaskServiceImplTest {
         assertEquals(0, response.getPosition());
     }
 
+    @Test
+    void getTask_withValidId_getTask() throws RecordNotFoundException {
+        task.setId(1L);
+        when(taskRepository.findById(anyLong()))
+                .thenReturn(Optional.ofNullable(task));
+
+        Task response = taskService.getTask(1L);
+
+        verify(taskRepository).findById(1L);
+        assertNotNull(response);
+        assertEquals(1L, response.getId());
+    }
+
+    @Test
+    void getTask_withInvalidId_throwRequestNotFoundException(){
+        when(taskRepository.findById(anyLong()))
+                .thenReturn(Optional.empty());
+
+        assertThrows(RecordNotFoundException.class,
+                () -> taskService.getTask(1L));
+    }
 
 
     public MultipartFile getMultipartFile(String filePath) throws IOException {
