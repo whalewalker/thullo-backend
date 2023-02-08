@@ -33,12 +33,17 @@ public class TaskColumn {
     private List<Task> tasks = new ArrayList<>();
 
     @CreationTimestamp
-    @JsonFormat(pattern="yyyy-MM-dd HH:mm:ss")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime createdAt;
 
     @UpdateTimestamp
-    @JsonFormat(pattern="yyyy-MM-dd HH:mm:ss")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime updatedAt;
+
+    public List<Task> getTasks() {
+        tasks.sort((o1, o2) -> (int) (o1.getPosition() - o2.getPosition()));
+        return tasks;
+    }
 
     public TaskColumn(String name, Board board) {
         this.name = name;
