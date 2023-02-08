@@ -62,4 +62,19 @@ public class TaskController {
             return ResponseEntity.badRequest().body(new ApiResponse(false, ex.getMessage()));
         }
     }
+
+
+    @PutMapping(value = "/edit-task/{taskId}",
+            consumes = {MediaType.MULTIPART_FORM_DATA_VALUE},
+            produces = {MediaType.APPLICATION_JSON_VALUE})
+    @PreAuthorize("@taskServiceImpl.isTaskCreator(#taskId, authentication.principal.email)")
+    public ResponseEntity<ApiResponse> editTask(@PathVariable Long taskId, TaskRequest taskRequest, HttpServletRequest request) {
+        taskRequest.setRequestUrl(request.getRequestURL().toString());
+        try {
+            Task taskResponse = taskService.editTask(taskId, taskRequest);
+            return ResponseEntity.ok(new ApiResponse(true, "Task created successfully", taskResponse));
+        } catch (RecordNotFoundException | BadRequestException | IOException ex) {
+            return ResponseEntity.badRequest().body(new ApiResponse(false, ex.getMessage()));
+        }
+    }
 }

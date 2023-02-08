@@ -33,13 +33,18 @@ public class TaskServiceImpl implements TaskService {
     @Override
     public TaskResponse createTask(TaskRequest taskRequest) throws BadRequestException, IOException {
         Task task = taskRequest.getTask();
+        String imageUrl = uploadTaskFile(taskRequest);
+        task.setImageUrl(imageUrl);
+        Task saveTask = taskRepository.save(task);
+        return mapper.map(saveTask, TaskResponse.class);
+    }
+
+    private String uploadTaskFile(TaskRequest taskRequest) throws BadRequestException, IOException {
         String imageUrl = null;
         if (taskRequest.getFile() != null) {
             imageUrl = fileService.uploadFile(taskRequest.getFile(), taskRequest.getRequestUrl());
         }
-        task.setImageUrl(imageUrl);
-        Task saveTask = taskRepository.save(task);
-        return mapper.map(saveTask, TaskResponse.class);
+        return imageUrl;
     }
 
     @Override
@@ -54,7 +59,7 @@ public class TaskServiceImpl implements TaskService {
         if (absoluteIndex > tasksInColumn.size())
             absoluteIndex = (long) tasksInColumn.size();
 
-        if(task.getTaskColumn().getId().equals(newColumnId) && task.getPosition() < absoluteIndex){
+        if (task.getTaskColumn().getId().equals(newColumnId) && task.getPosition() < absoluteIndex) {
             absoluteIndex--;
         }
 
@@ -70,9 +75,13 @@ public class TaskServiceImpl implements TaskService {
     }
 
     @Override
-    public Task editTask(Long taskId, TaskRequest taskRequest) {
-        Task task =
-        return null;
+    public Task editTask(Long taskId, TaskRequest taskRequest) throws BadRequestException, IOException, RecordNotFoundException {
+        Task task = getTask(taskId);
+        mapper.map(taskRequest, task);
+        String imageUrl = uploadTaskFile(taskRequest);
+        if (imageUrl != null)
+            task.setImageUrl(imageUrl);
+        return task;
     }
 
 
@@ -116,7 +125,7 @@ public class TaskServiceImpl implements TaskService {
         return task;
     }
 
-    public boolean isTaskCreator(Long taskId, String email){
+    public boolean isTaskCreator(Long taskId, String email) {
         User user = userRepository.findByEmail(email).orElse(null);
         if (user == null) return false;
 
