@@ -2,12 +2,14 @@ package com.thullo.service;
 
 import com.thullo.data.model.Task;
 import com.thullo.data.model.TaskColumn;
+import com.thullo.data.model.User;
 import com.thullo.data.repository.TaskColumnRepository;
 import com.thullo.data.repository.TaskRepository;
 import com.thullo.web.exception.BadRequestException;
 import com.thullo.web.exception.RecordNotFoundException;
 import com.thullo.web.payload.request.TaskRequest;
 import com.thullo.web.payload.request.TaskResponse;
+import com.thullo.web.payload.request.UserProfileRequest;
 import org.apache.commons.io.IOUtils;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -30,8 +32,7 @@ import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class TaskServiceImplTest {
@@ -56,6 +57,7 @@ class TaskServiceImplTest {
     private Task task;
     String taskName = "First task";
     String imageUrl = "http://localhost:8080/api/v1/thullo/files/123e4567-e89b-12d3-a456-426655440000";
+
     @BeforeEach
     void setUp() {
         task = new Task();
@@ -170,23 +172,23 @@ class TaskServiceImplTest {
 
 
     @Test
-    void testMoveTask_InvalidColumnId_throwRecordNotFoundException(){
+    void testMoveTask_InvalidColumnId_throwRecordNotFoundException() {
         when(taskRepository.findById(anyLong()))
                 .thenReturn(Optional.ofNullable(task));
 
         when(taskRepository.findByTaskColumnOrderByPositionAsc(anyLong()))
                 .thenReturn(Optional.empty());
 
-        assertThrows(RecordNotFoundException.class, ()->
+        assertThrows(RecordNotFoundException.class, () ->
                 taskService.moveTask(1L, 5L, 2L));
     }
 
     @Test
-    void testMoveTask_InvalidTaskId_throwRecordNotFoundException(){
+    void testMoveTask_InvalidTaskId_throwRecordNotFoundException() {
         when(taskRepository.findById(anyLong()))
                 .thenReturn(Optional.empty());
 
-        assertThrows(RecordNotFoundException.class, ()->
+        assertThrows(RecordNotFoundException.class, () ->
                 taskService.moveTask(1L, 5L, 2L));
     }
 
@@ -330,7 +332,14 @@ class TaskServiceImplTest {
         assertEquals(0, response.getPosition());
     }
 
+    @Test
+    void testEditTask_withValidDescription_taskIsUpdated(){
+        TaskRequest request = new TaskRequest();
 
+        when(taskRepository.findById(anyLong()))
+                .thenReturn(Optional.of(task));
+
+    }
 
     public MultipartFile getMultipartFile(String filePath) throws IOException {
         File file = new File(filePath);

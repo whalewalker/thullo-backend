@@ -69,6 +69,12 @@ public class TaskServiceImpl implements TaskService {
         return taskRepository.save(task);
     }
 
+    @Override
+    public Task editTask(Long taskId, TaskRequest taskRequest) {
+        Task task =
+        return null;
+    }
+
 
     public boolean isTaskOwner(Long taskColumnId, String email) {
         TaskColumn taskColumn = getTaskColumn(taskColumnId);
