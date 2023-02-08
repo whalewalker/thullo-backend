@@ -41,6 +41,7 @@ public class CurrentTaskColumnAspect {
     private Task createTask(TaskRequest taskRequest, TaskColumn currentTaskColumn) {
         Task task = new Task();
         task.setName(taskRequest.getName());
+        task.setPosition((long) currentTaskColumn.getTasks().size());
         task.setTaskColumn(currentTaskColumn);
         return task;
     }

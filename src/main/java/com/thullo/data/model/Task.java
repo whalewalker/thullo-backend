@@ -25,6 +25,8 @@ public class Task {
 
     private String imageUrl;
 
+    private Long position;
+
     @Lob
     private String description;
 
@@ -44,6 +46,8 @@ public class Task {
     )
     private List<User> contributors;
 
+    @ManyToMany
+    private List<Label> labels;
     @CreationTimestamp
     @JsonFormat(pattern="yyyy-MM-dd HH:mm:ss")
     private LocalDateTime createdAt;
@@ -55,4 +59,5 @@ public class Task {
     public Task(String name) {
         this.name = name;
     }
+
 }

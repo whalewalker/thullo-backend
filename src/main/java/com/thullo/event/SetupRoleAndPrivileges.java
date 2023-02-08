@@ -6,7 +6,6 @@ import com.thullo.data.model.Role;
 import com.thullo.data.model.User;
 import com.thullo.data.repository.RoleRepository;
 import com.thullo.data.repository.UserRepository;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.event.ContextRefreshedEvent;
@@ -24,9 +23,6 @@ public class SetupRoleAndPrivileges implements ApplicationListener<ContextRefres
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
 
-    @Value("${already-setup:false}")
-    boolean alreadySetup;
-
     public SetupRoleAndPrivileges(RoleRepository roleRepository, UserRepository userRepository, PasswordEncoder passwordEncoder) {
         this.roleRepository = roleRepository;
         this.userRepository = userRepository;
@@ -36,7 +32,7 @@ public class SetupRoleAndPrivileges implements ApplicationListener<ContextRefres
     @Override
     @Transactional
     public void onApplicationEvent(ContextRefreshedEvent event) {
-            if (alreadySetup) return;
+            if (roleRepository.count() > 0) return;
             createRoleIfNotFound("ROLE_ADMIN");
             createRoleIfNotFound("ROLE_USER");
             createRoleIfNotFound("ROLE_SUPER_MODERATOR");
@@ -58,7 +54,7 @@ public class SetupRoleAndPrivileges implements ApplicationListener<ContextRefres
     }
 
     @Transactional
-    void createRoleIfNotFound(String roleName) {
+    public void createRoleIfNotFound(String roleName) {
         Optional<Role> role = roleRepository.findByName(roleName);
         if (role.isEmpty()){
             roleRepository.save(new Role(roleName));

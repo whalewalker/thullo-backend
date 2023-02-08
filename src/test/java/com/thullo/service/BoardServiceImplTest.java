@@ -93,7 +93,7 @@ class BoardServiceImplTest {
     }
 
     @Test
-    void testCreateBoard_withBoardName_createANewBoard() throws UserException, BadRequestException {
+    void testCreateBoard_withBoardName_createANewBoard() throws UserException, BadRequestException, IOException {
         when(userRepository.findByEmail(anyString())).thenReturn(Optional.of(new User()));
         when(mapper.map(boardRequest, Board.class))
                 .thenReturn(board);
