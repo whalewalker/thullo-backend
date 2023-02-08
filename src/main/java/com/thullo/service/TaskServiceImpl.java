@@ -33,13 +33,18 @@ public class TaskServiceImpl implements TaskService {
     @Override
     public TaskResponse createTask(TaskRequest taskRequest) throws BadRequestException, IOException {
         Task task = taskRequest.getTask();
+        String imageUrl = uploadTaskFile(taskRequest);
+        task.setImageUrl(imageUrl);
+        Task saveTask = taskRepository.save(task);
+        return mapper.map(saveTask, TaskResponse.class);
+    }
+
+    private String uploadTaskFile(TaskRequest taskRequest) throws BadRequestException, IOException {
         String imageUrl = null;
         if (taskRequest.getFile() != null) {
             imageUrl = fileService.uploadFile(taskRequest.getFile(), taskRequest.getRequestUrl());
         }
-        task.setImageUrl(imageUrl);
-        Task saveTask = taskRepository.save(task);
-        return mapper.map(saveTask, TaskResponse.class);
+        return imageUrl;
     }
 
     @Override
@@ -54,7 +59,7 @@ public class TaskServiceImpl implements TaskService {
         if (absoluteIndex > tasksInColumn.size())
             absoluteIndex = (long) tasksInColumn.size();
 
-        if(task.getTaskColumn().getId().equals(newColumnId) && task.getPosition() < absoluteIndex){
+        if (task.getTaskColumn().getId().equals(newColumnId) && task.getPosition() < absoluteIndex) {
             absoluteIndex--;
         }
 
@@ -69,6 +74,16 @@ public class TaskServiceImpl implements TaskService {
         return taskRepository.save(task);
     }
 
+    @Override
+    public Task editTask(Long taskId, TaskRequest taskRequest) throws BadRequestException, IOException, RecordNotFoundException {
+        Task task = getTask(taskId);
+        mapper.map(taskRequest, task);
+        String imageUrl = uploadTaskFile(taskRequest);
+        if (imageUrl != null)
+            task.setImageUrl(imageUrl);
+        return task;
+    }
+
 
     public boolean isTaskOwner(Long taskColumnId, String email) {
         TaskColumn taskColumn = getTaskColumn(taskColumnId);
@@ -77,7 +92,7 @@ public class TaskServiceImpl implements TaskService {
     }
 
     public boolean isTaskOwnedByUser(Long taskId, Long newColumnId, String email) {
-        Task task = taskRepository.findById(taskId).orElse(null);
+        Task task = getTaskInternal(taskId);
         if (task == null) {
             return false;
         }
@@ -95,9 +110,28 @@ public class TaskServiceImpl implements TaskService {
         return column.getBoard().getUser().getId().equals(user.getId());
     }
 
+    private Task getTaskInternal(Long taskId) {
+        return taskRepository.findById(taskId).orElse(null);
+    }
+
 
     private TaskColumn getTaskColumn(Long taskColumnId) {
         return taskColumnRepository.findById(taskColumnId).orElse(null);
     }
 
+    public Task getTask(Long taskId) throws RecordNotFoundException {
+        Task task = getTaskInternal(taskId);
+        if (task == null) throw new RecordNotFoundException("Task not found !");
+        return task;
+    }
+
+    public boolean isTaskCreator(Long taskId, String email) {
+        User user = userRepository.findByEmail(email).orElse(null);
+        if (user == null) return false;
+
+        Task task = getTaskInternal(taskId);
+        if (task == null) return false;
+
+        return task.getTaskColumn().getBoard().getUser().getId().equals(user.getId());
+    }
 }

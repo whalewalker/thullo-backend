@@ -28,6 +28,7 @@ public class Task {
     private Long position;
 
     @Lob
+    @Column(columnDefinition = "TEXT")
     private String description;
 
     @ManyToOne

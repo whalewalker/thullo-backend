@@ -2,12 +2,14 @@ package com.thullo.service;
 
 import com.thullo.data.model.Task;
 import com.thullo.data.model.TaskColumn;
+import com.thullo.data.model.User;
 import com.thullo.data.repository.TaskColumnRepository;
 import com.thullo.data.repository.TaskRepository;
 import com.thullo.web.exception.BadRequestException;
 import com.thullo.web.exception.RecordNotFoundException;
 import com.thullo.web.payload.request.TaskRequest;
 import com.thullo.web.payload.request.TaskResponse;
+import com.thullo.web.payload.request.UserProfileRequest;
 import org.apache.commons.io.IOUtils;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -56,6 +58,7 @@ class TaskServiceImplTest {
     private Task task;
     String taskName = "First task";
     String imageUrl = "http://localhost:8080/api/v1/thullo/files/123e4567-e89b-12d3-a456-426655440000";
+
     @BeforeEach
     void setUp() {
         task = new Task();
@@ -177,16 +180,16 @@ class TaskServiceImplTest {
         when(taskRepository.findByTaskColumnOrderByPositionAsc(anyLong()))
                 .thenReturn(Optional.empty());
 
-        assertThrows(RecordNotFoundException.class, ()->
+        assertThrows(RecordNotFoundException.class, () ->
                 taskService.moveTask(1L, 5L, 2L));
     }
 
     @Test
-    void testMoveTask_InvalidTaskId_throwRecordNotFoundException(){
+    void testMoveTask_InvalidTaskId_throwRecordNotFoundException() {
         when(taskRepository.findById(anyLong()))
                 .thenReturn(Optional.empty());
 
-        assertThrows(RecordNotFoundException.class, ()->
+        assertThrows(RecordNotFoundException.class, () ->
                 taskService.moveTask(1L, 5L, 2L));
     }
 
@@ -330,7 +333,35 @@ class TaskServiceImplTest {
         assertEquals(0, response.getPosition());
     }
 
+    @Test
+    void getTask_withValidId_getTask() throws RecordNotFoundException {
+        task.setId(1L);
+        when(taskRepository.findById(anyLong()))
+                .thenReturn(Optional.ofNullable(task));
 
+        Task response = taskService.getTask(1L);
+
+        verify(taskRepository).findById(1L);
+        assertNotNull(response);
+        assertEquals(1L, response.getId());
+    }
+
+    @Test
+    void getTask_withInvalidId_throwRequestNotFoundException(){
+        when(taskRepository.findById(anyLong()))
+                .thenReturn(Optional.empty());
+
+        assertThrows(RecordNotFoundException.class,
+                () -> taskService.getTask(1L));
+    }
+    @Test
+    void testEditTask_withValidDescription_taskIsUpdated(){
+        TaskRequest request = new TaskRequest();
+
+        when(taskRepository.findById(anyLong()))
+                .thenReturn(Optional.of(task));
+
+    }
 
     public MultipartFile getMultipartFile(String filePath) throws IOException {
         File file = new File(filePath);

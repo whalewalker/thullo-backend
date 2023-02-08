@@ -11,4 +11,7 @@ import java.io.IOException;
 public interface TaskService {
     TaskResponse createTask(TaskRequest taskRequest) throws BadRequestException, IOException;
     Task moveTask(Long taskId, Long newColumnId, Long index) throws RecordNotFoundException;
+
+    Task editTask(Long taskId, TaskRequest taskRequest) throws BadRequestException, IOException, RecordNotFoundException;
+    public Task getTask(Long taskId) throws RecordNotFoundException;
 }
