@@ -10,7 +10,6 @@ import com.thullo.util.Helper;
 import com.thullo.web.exception.BadRequestException;
 import com.thullo.web.exception.UserException;
 import com.thullo.web.payload.request.BoardRequest;
-import com.thullo.web.payload.response.BoardResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
@@ -39,10 +38,10 @@ public class BoardServiceImpl implements BoardService {
      * @param boardRequest The request containing the information for the new board to be created.
      * @return A response object containing the result of the board creation process.
      */
-    public BoardResponse createBoard(BoardRequest boardRequest, UserPrincipal principal) throws UserException, BadRequestException, IOException {
+    public Board createBoard(BoardRequest boardRequest, UserPrincipal principal) throws UserException, BadRequestException, IOException {
         if(Helper.isNullOrEmpty(boardRequest.getName())) throw new BadRequestException("Board name cannot be empty");
         User user = internalFindUserByEmail(principal.getEmail());
-        Board board = mapper.map(boardRequest, Board.class);
+        com.thullo.data.model.Board board = mapper.map(boardRequest, com.thullo.data.model.Board.class);
         board.setUser(user);
         String imageUrl = null;
         if (boardRequest.getFile() != null){
@@ -51,7 +50,7 @@ public class BoardServiceImpl implements BoardService {
         board.setImageUrl(imageUrl);
         createDefaultTaskColumn(board);
         boardRepository.save(board);
-        return mapper.map(board, BoardResponse.class);
+        return mapper.map(board, Board.class);
     }
 
     @Override
@@ -59,7 +58,7 @@ public class BoardServiceImpl implements BoardService {
         return boardRepository.findById(id).orElseThrow(()-> new BadRequestException ("Board not found!"));
     }
 
-    private Board getBoardInternal(Long id){
+    private com.thullo.data.model.Board getBoardInternal(Long id){
         return boardRepository.findById(id).orElse(null);
     }
 
@@ -70,12 +69,12 @@ public class BoardServiceImpl implements BoardService {
     }
 
     public boolean isBoardOwner(Long boardId, String email) {
-        Board board = getBoardInternal(boardId);
+        com.thullo.data.model.Board board = getBoardInternal(boardId);
         if (board == null) return false;
         return board.getUser().getEmail().equals(email);
     }
 
-    private void createDefaultTaskColumn(Board board) {
+    private void createDefaultTaskColumn(com.thullo.data.model.Board board) {
         board.setTaskColumns(List.of(
                 new TaskColumn("Backlog \uD83E\uDD14", board),
                 new TaskColumn("In Progress \uD83D\uDCDA", board),

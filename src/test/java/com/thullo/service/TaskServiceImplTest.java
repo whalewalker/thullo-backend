@@ -2,14 +2,11 @@ package com.thullo.service;
 
 import com.thullo.data.model.Task;
 import com.thullo.data.model.TaskColumn;
-import com.thullo.data.model.User;
 import com.thullo.data.repository.TaskColumnRepository;
 import com.thullo.data.repository.TaskRepository;
 import com.thullo.web.exception.BadRequestException;
 import com.thullo.web.exception.RecordNotFoundException;
 import com.thullo.web.payload.request.TaskRequest;
-import com.thullo.web.payload.request.TaskResponse;
-import com.thullo.web.payload.request.UserProfileRequest;
 import org.apache.commons.io.IOUtils;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -54,14 +51,13 @@ class TaskServiceImplTest {
 
 
     private TaskRequest taskRequest;
-    private TaskResponse taskResponse;
     private Task task;
     String taskName = "First task";
     String imageUrl = "http://localhost:8080/api/v1/thullo/files/123e4567-e89b-12d3-a456-426655440000";
 
     @BeforeEach
     void setUp() {
-        task = new Task();
+        task = new com.thullo.data.model.Task();
         task.setName(taskName);
 
 
@@ -70,9 +66,9 @@ class TaskServiceImplTest {
         taskRequest.setTask(task);
 
 
-        taskResponse = new TaskResponse();
-        taskResponse.setName(taskName);
-        taskResponse.setImageUrl(imageUrl);
+        task = new Task();
+        task.setName(taskName);
+        task.setImageUrl(imageUrl);
 
     }
 
@@ -81,12 +77,10 @@ class TaskServiceImplTest {
 
         when(taskRepository.save(any())).thenReturn(task);
 
-        when(mapper.map(task, TaskResponse.class))
-                .thenReturn(taskResponse);
 
-        TaskResponse actualResponse = taskService.createTask(taskRequest);
+        Task actualResponse = taskService.createTask(taskRequest);
 
-        verify(mapper).map(task, TaskResponse.class);
+        verify(mapper).map(task, Task.class);
         verify(taskRepository).save(task);
         Assertions.assertEquals(taskName, actualResponse.getName());
     }
@@ -101,14 +95,14 @@ class TaskServiceImplTest {
 
         when(taskRepository.save(any())).thenReturn(task);
 
-        when(mapper.map(task, TaskResponse.class))
-                .thenReturn(taskResponse);
+        when(mapper.map(task, Task.class))
+                .thenReturn(task);
 
 
         when(fileService.uploadFile(taskRequest.getFile(), taskRequest.getRequestUrl()))
                 .thenReturn(imageUrl);
 
-        TaskResponse actualResponse = taskService.createTask(taskRequest);
+        Task actualResponse = taskService.createTask(taskRequest);
         verify(fileService).uploadFile(multipartFile, url);
         assertEquals(taskName, actualResponse.getName());
         assertEquals(imageUrl, actualResponse.getImageUrl());
@@ -129,19 +123,19 @@ class TaskServiceImplTest {
         backlog.setId(1L);
         backlog.setName("Backlog");
 
-        Task task1 = new Task();
+        com.thullo.data.model.Task task1 = new com.thullo.data.model.Task();
         task1.setName("First task");
         task1.setId(2L);
         task1.setPosition(1L);
         task1.setTaskColumn(backlog);
 
-        Task task2 = new Task();
+        com.thullo.data.model.Task task2 = new com.thullo.data.model.Task();
         task2.setName("Second task");
         task2.setId(3L);
         task2.setPosition(2L);
         task2.setTaskColumn(backlog);
 
-        Task updatedTask = new Task();
+        com.thullo.data.model.Task updatedTask = new com.thullo.data.model.Task();
         updatedTask.setName("Move me");
         updatedTask.setId(1L);
         updatedTask.setPosition(2L);
@@ -156,10 +150,10 @@ class TaskServiceImplTest {
         when(taskColumnRepository.findById(anyLong()))
                 .thenReturn(Optional.of(backlog));
 
-        when(taskRepository.save(any(Task.class)))
+        when(taskRepository.save(any(com.thullo.data.model.Task.class)))
                 .thenReturn(updatedTask);
 
-        Task response = taskService.moveTask(1L, 1L, 2L);
+        com.thullo.data.model.Task response = taskService.moveTask(1L, 1L, 2L);
 
         verify(taskRepository).findById(1L);
         verify(taskColumnRepository).findById(1L);
@@ -210,19 +204,19 @@ class TaskServiceImplTest {
         task.setName("Move me");
         task.setTaskColumn(todo);
 
-        Task task1 = new Task();
+        com.thullo.data.model.Task task1 = new com.thullo.data.model.Task();
         task1.setName("First task");
         task1.setId(2L);
         task1.setPosition(0L);
         task1.setTaskColumn(backlog);
 
-        Task task2 = new Task();
+        com.thullo.data.model.Task task2 = new com.thullo.data.model.Task();
         task2.setName("Second task");
         task2.setId(3L);
         task2.setPosition(1L);
         task2.setTaskColumn(backlog);
 
-        Task updatedTask = new Task();
+        com.thullo.data.model.Task updatedTask = new com.thullo.data.model.Task();
         updatedTask.setName("Move me");
         updatedTask.setId(1L);
         updatedTask.setPosition(2L);
@@ -237,10 +231,10 @@ class TaskServiceImplTest {
         when(taskColumnRepository.findById(anyLong()))
                 .thenReturn(Optional.of(backlog));
 
-        when(taskRepository.save(any(Task.class)))
+        when(taskRepository.save(any(com.thullo.data.model.Task.class)))
                 .thenReturn(updatedTask);
 
-        Task response = taskService.moveTask(1L, 1L, 10L);
+        com.thullo.data.model.Task response = taskService.moveTask(1L, 1L, 10L);
 
         assertNotNull(response);
         assertEquals(1L, response.getTaskColumn().getId());
@@ -270,10 +264,10 @@ class TaskServiceImplTest {
         when(taskColumnRepository.findById(anyLong()))
                 .thenReturn(Optional.of(todo));
 
-        when(taskRepository.save(any(Task.class)))
+        when(taskRepository.save(any(com.thullo.data.model.Task.class)))
                 .thenReturn(task);
 
-        Task response = taskService.moveTask(1L, 2L, 1L);
+        com.thullo.data.model.Task response = taskService.moveTask(1L, 2L, 1L);
 
         verify(taskRepository).findById(1L);
         verify(taskColumnRepository).findById(2L);
@@ -297,13 +291,13 @@ class TaskServiceImplTest {
         task.setName("Move me");
         task.setTaskColumn(todo);
 
-        Task task1 = new Task();
+        com.thullo.data.model.Task task1 = new com.thullo.data.model.Task();
         task1.setName("First task");
         task1.setId(2L);
         task1.setPosition(0L);
         task1.setTaskColumn(todo);
 
-        Task updatedTask = new Task();
+        com.thullo.data.model.Task updatedTask = new com.thullo.data.model.Task();
         updatedTask.setName("Move me");
         updatedTask.setId(1L);
         updatedTask.setPosition(0L);
@@ -318,10 +312,10 @@ class TaskServiceImplTest {
         when(taskColumnRepository.findById(anyLong()))
                 .thenReturn(Optional.of(todo));
 
-        when(taskRepository.save(any(Task.class)))
+        when(taskRepository.save(any(com.thullo.data.model.Task.class)))
                 .thenReturn(task);
 
-        Task response = taskService.moveTask(1L, 2L, 0L);
+        com.thullo.data.model.Task response = taskService.moveTask(1L, 2L, 0L);
 
         verify(taskRepository).findById(1L);
         verify(taskColumnRepository).findById(2L);
@@ -339,7 +333,7 @@ class TaskServiceImplTest {
         when(taskRepository.findById(anyLong()))
                 .thenReturn(Optional.ofNullable(task));
 
-        Task response = taskService.getTask(1L);
+        com.thullo.data.model.Task response = taskService.getTask(1L);
 
         verify(taskRepository).findById(1L);
         assertNotNull(response);

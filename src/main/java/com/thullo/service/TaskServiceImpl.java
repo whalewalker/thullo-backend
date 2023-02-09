@@ -9,7 +9,6 @@ import com.thullo.data.repository.UserRepository;
 import com.thullo.web.exception.BadRequestException;
 import com.thullo.web.exception.RecordNotFoundException;
 import com.thullo.web.payload.request.TaskRequest;
-import com.thullo.web.payload.request.TaskResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
@@ -31,12 +30,12 @@ public class TaskServiceImpl implements TaskService {
 
 
     @Override
-    public TaskResponse createTask(TaskRequest taskRequest) throws BadRequestException, IOException {
-        Task task = taskRequest.getTask();
+    public Task createTask(TaskRequest taskRequest) throws BadRequestException, IOException {
+        com.thullo.data.model.Task task = taskRequest.getTask();
         String imageUrl = uploadTaskFile(taskRequest);
         task.setImageUrl(imageUrl);
-        Task saveTask = taskRepository.save(task);
-        return mapper.map(saveTask, TaskResponse.class);
+        com.thullo.data.model.Task saveTask = taskRepository.save(task);
+        return mapper.map(saveTask, Task.class);
     }
 
     private String uploadTaskFile(TaskRequest taskRequest) throws BadRequestException, IOException {
@@ -48,12 +47,12 @@ public class TaskServiceImpl implements TaskService {
     }
 
     @Override
-    public Task moveTask(Long taskId, Long newColumnId, Long index) throws RecordNotFoundException {
+    public com.thullo.data.model.Task moveTask(Long taskId, Long newColumnId, Long index) throws RecordNotFoundException {
         Long absoluteIndex = Math.abs(index);
-        Task task = taskRepository.findById(taskId)
+        com.thullo.data.model.Task task = taskRepository.findById(taskId)
                 .orElseThrow(() -> new RecordNotFoundException("Task not found !"));
 
-        List<Task> tasksInColumn = taskRepository.findByTaskColumnOrderByPositionAsc(newColumnId).orElseThrow(
+        List<com.thullo.data.model.Task> tasksInColumn = taskRepository.findByTaskColumnOrderByPositionAsc(newColumnId).orElseThrow(
                 () -> new RecordNotFoundException("Task column not found !"));
 
         if (absoluteIndex > tasksInColumn.size())
@@ -75,8 +74,8 @@ public class TaskServiceImpl implements TaskService {
     }
 
     @Override
-    public Task editTask(Long taskId, TaskRequest taskRequest) throws BadRequestException, IOException, RecordNotFoundException {
-        Task task = getTask(taskId);
+    public com.thullo.data.model.Task editTask(Long taskId, TaskRequest taskRequest) throws BadRequestException, IOException, RecordNotFoundException {
+        com.thullo.data.model.Task task = getTask(taskId);
         mapper.map(taskRequest, task);
         String imageUrl = uploadTaskFile(taskRequest);
         if (imageUrl != null)
@@ -92,7 +91,7 @@ public class TaskServiceImpl implements TaskService {
     }
 
     public boolean isTaskOwnedByUser(Long taskId, Long newColumnId, String email) {
-        Task task = getTaskInternal(taskId);
+        com.thullo.data.model.Task task = getTaskInternal(taskId);
         if (task == null) {
             return false;
         }
@@ -110,7 +109,7 @@ public class TaskServiceImpl implements TaskService {
         return column.getBoard().getUser().getId().equals(user.getId());
     }
 
-    private Task getTaskInternal(Long taskId) {
+    private com.thullo.data.model.Task getTaskInternal(Long taskId) {
         return taskRepository.findById(taskId).orElse(null);
     }
 
@@ -120,7 +119,7 @@ public class TaskServiceImpl implements TaskService {
     }
 
     public Task getTask(Long taskId) throws RecordNotFoundException {
-        Task task = getTaskInternal(taskId);
+        com.thullo.data.model.Task task = getTaskInternal(taskId);
         if (task == null) throw new RecordNotFoundException("Task not found !");
         return task;
     }
@@ -129,7 +128,7 @@ public class TaskServiceImpl implements TaskService {
         User user = userRepository.findByEmail(email).orElse(null);
         if (user == null) return false;
 
-        Task task = getTaskInternal(taskId);
+        com.thullo.data.model.Task task = getTaskInternal(taskId);
         if (task == null) return false;
 
         return task.getTaskColumn().getBoard().getUser().getId().equals(user.getId());

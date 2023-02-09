@@ -1,6 +1,5 @@
 package com.thullo.service;
 
-import com.thullo.data.model.Board;
 import com.thullo.data.model.Task;
 import com.thullo.data.model.TaskColumn;
 import com.thullo.data.model.User;
@@ -10,7 +9,6 @@ import com.thullo.security.UserPrincipal;
 import com.thullo.web.exception.BadRequestException;
 import com.thullo.web.exception.UserException;
 import com.thullo.web.payload.request.BoardRequest;
-import com.thullo.web.payload.response.BoardResponse;
 import org.apache.commons.io.IOUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -54,10 +52,10 @@ class BoardServiceImplTest {
     @InjectMocks
     private BoardServiceImpl boardService;
 
-    private Board board;
+    private com.thullo.data.model.Board board;
     private BoardRequest boardRequest;
 
-    private BoardResponse boardResponse;
+    private Board board;
 
     private UserPrincipal userPrincipal;
     String boardName = "DevDegree challenge";
@@ -65,20 +63,20 @@ class BoardServiceImplTest {
 
     @BeforeEach
     void setUp() {
-        board = new Board();
+        board = new com.thullo.data.model.Board();
         board.setName(boardName);
 
         boardRequest = new BoardRequest();
         boardRequest.setName(boardName);
 
-        boardResponse = new BoardResponse();
-        boardResponse.setName(boardName);
-        boardResponse.setTaskColumns(
+        board = new Board();
+        board.setName(boardName);
+        board.setTaskColumns(
                 List.of(
-                        new TaskColumn("Backlog \uD83E\uDD14", new Board()),
-                        new TaskColumn("In Progress \uD83D\uDCDA", new Board()),
-                        new TaskColumn("In Review ⚙️", new Board()),
-                        new TaskColumn("Completed \uD83D\uDE4C\uD83C\uDFFD", new Board()))
+                        new TaskColumn("Backlog \uD83E\uDD14", new com.thullo.data.model.Board()),
+                        new TaskColumn("In Progress \uD83D\uDCDA", new com.thullo.data.model.Board()),
+                        new TaskColumn("In Review ⚙️", new com.thullo.data.model.Board()),
+                        new TaskColumn("Completed \uD83D\uDE4C\uD83C\uDFFD", new com.thullo.data.model.Board()))
 
         );
 
@@ -95,15 +93,15 @@ class BoardServiceImplTest {
     @Test
     void testCreateBoard_withBoardName_createANewBoard() throws UserException, BadRequestException, IOException {
         when(userRepository.findByEmail(anyString())).thenReturn(Optional.of(new User()));
-        when(mapper.map(boardRequest, Board.class))
+        when(mapper.map(boardRequest, com.thullo.data.model.Board.class))
                 .thenReturn(board);
-        when(mapper.map(board, BoardResponse.class))
-                .thenReturn(boardResponse);
+        when(mapper.map(board, Board.class))
+                .thenReturn(board);
         when(boardRepository.save(board)).thenReturn(board);
 
-        BoardResponse actualResponse = boardService.createBoard(boardRequest, userPrincipal);
+        Board actualResponse = boardService.createBoard(boardRequest, userPrincipal);
 
-        verify(mapper).map(boardRequest, Board.class);
+        verify(mapper).map(boardRequest, com.thullo.data.model.Board.class);
         verify(boardRepository).save(board);
         verify(userRepository).findByEmail(userPrincipal.getEmail());
         assertEquals(boardName, actualResponse.getName());
@@ -115,11 +113,11 @@ class BoardServiceImplTest {
         boardRequest.setFile(multipartFile);
         boardRequest.setRequestUrl("http://localhost:8080/api/v1/thullo");
 
-        boardResponse.setImageUrl(imageUrl);
+        board.setImageUrl(imageUrl);
 
         when(userRepository.findByEmail(anyString())).thenReturn(Optional.of(new User()));
 
-        when(mapper.map(boardRequest, Board.class))
+        when(mapper.map(boardRequest, com.thullo.data.model.Board.class))
                 .thenReturn(board);
 
         when(fileService.uploadFile(boardRequest.getFile(), boardRequest.getRequestUrl()))
@@ -127,13 +125,13 @@ class BoardServiceImplTest {
 
         when(boardRepository.save(board)).thenReturn(board);
 
-        when(mapper.map(board, BoardResponse.class))
-                .thenReturn(boardResponse);
+        when(mapper.map(board, Board.class))
+                .thenReturn(board);
 
 
-        BoardResponse actualResponse = boardService.createBoard(boardRequest, userPrincipal);
+        Board actualResponse = boardService.createBoard(boardRequest, userPrincipal);
 
-        verify(mapper).map(boardRequest, Board.class);
+        verify(mapper).map(boardRequest, com.thullo.data.model.Board.class);
         verify(boardRepository).save(board);
         verify(userRepository).findByEmail(userPrincipal.getEmail());
         verify(fileService).uploadFile(multipartFile, boardRequest.getRequestUrl());
@@ -150,7 +148,7 @@ class BoardServiceImplTest {
 
         when(userRepository.findByEmail(anyString())).thenReturn(Optional.of(new User()));
 
-        when(mapper.map(boardRequest, Board.class))
+        when(mapper.map(boardRequest, com.thullo.data.model.Board.class))
                 .thenReturn(board);
 
         when(fileService.uploadFile(boardRequest.getFile(), boardRequest.getRequestUrl()))
@@ -158,10 +156,10 @@ class BoardServiceImplTest {
 
         when(boardRepository.save(board)).thenReturn(board);
 
-        when(mapper.map(board, BoardResponse.class))
-                .thenReturn(boardResponse);
+        when(mapper.map(board, Board.class))
+                .thenReturn(board);
 
-        BoardResponse actualResponse = boardService.createBoard(boardRequest, userPrincipal);
+        Board actualResponse = boardService.createBoard(boardRequest, userPrincipal);
 
 
         assertEquals(4, actualResponse.getTaskColumns().size());
@@ -180,7 +178,7 @@ class BoardServiceImplTest {
         when(boardRepository.findById(anyLong()))
                 .thenReturn(Optional.ofNullable(board));
 
-        Board userBoard = boardService.getBoard(1L);
+        com.thullo.data.model.Board userBoard = boardService.getBoard(1L);
 
         verify(boardRepository).findById(1L);
         assertAll(() -> {
@@ -201,17 +199,17 @@ class BoardServiceImplTest {
         User boardOwner = new User();
         when(boardRepository.getAllByUserOrderByCreatedAtDesc(any(User.class)))
                 .thenReturn(new ArrayList<>(List.of(
-                        new Board(), new Board(), new Board() )));
+                        new com.thullo.data.model.Board(), new com.thullo.data.model.Board(), new com.thullo.data.model.Board() )));
         when(userRepository.findByEmail(anyString()))
                 .thenReturn(Optional.of(boardOwner));
 
-        List<Board> boards = boardService.getBoards("ismail@gmail.com");
+        List<com.thullo.data.model.Board> boards = boardService.getBoards("ismail@gmail.com");
         verify(boardRepository).getAllByUserOrderByCreatedAtDesc(boardOwner);
         verify(userRepository).findByEmail("ismail@gmail.com");
 
         assertNotNull(boards);
         assertEquals(3, boards.size());
-        for(Board userBoard : boards){
+        for(com.thullo.data.model.Board userBoard : boards){
             assertNotNull(userBoard);
         }
     }

@@ -1,13 +1,13 @@
 package com.thullo.web.controller;
 
 import com.thullo.annotation.CurrentUser;
+import com.thullo.data.model.Board;
 import com.thullo.security.UserPrincipal;
 import com.thullo.service.BoardService;
 import com.thullo.web.exception.BadRequestException;
 import com.thullo.web.exception.UserException;
 import com.thullo.web.payload.request.BoardRequest;
 import com.thullo.web.payload.response.ApiResponse;
-import com.thullo.web.payload.response.BoardResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -32,7 +32,7 @@ public class BoardController {
                                                    @CurrentUser UserPrincipal principal, HttpServletRequest request) {
         try {
             BoardRequest boardRequest = new BoardRequest(boardName, request.getRequestURL().toString(), file);
-            BoardResponse board = boardService.createBoard(boardRequest, principal);
+            Board board = boardService.createBoard(boardRequest, principal);
             return ResponseEntity.ok(new ApiResponse(true, "Board successfully created", board));
         } catch (UserException | IOException | BadRequestException ex) {
             return ResponseEntity.badRequest().body(new ApiResponse(false, "Bad request, check your request data",

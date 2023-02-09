@@ -7,7 +7,6 @@ import com.thullo.web.exception.BadRequestException;
 import com.thullo.web.exception.RecordNotFoundException;
 import com.thullo.web.payload.request.TaskMoveRequest;
 import com.thullo.web.payload.request.TaskRequest;
-import com.thullo.web.payload.request.TaskResponse;
 import com.thullo.web.payload.response.ApiResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -34,8 +33,8 @@ public class TaskController {
         taskRequest.setRequestUrl(request.getRequestURL().toString());
         taskRequest.setTaskColumnId(taskColumnId);
         try {
-            TaskResponse taskResponse = taskService.createTask(taskRequest);
-            return ResponseEntity.ok(new ApiResponse(true, "Task created successfully", taskResponse));
+            Task task = taskService.createTask(taskRequest);
+            return ResponseEntity.ok(new ApiResponse(true, "Task created successfully", task));
         } catch (BadRequestException | IOException ex) {
             return ResponseEntity.badRequest().body(new ApiResponse(false, ex.getMessage()));
         }
@@ -45,7 +44,7 @@ public class TaskController {
     @PreAuthorize("@taskServiceImpl.isTaskOwnedByUser(#request.taskId, #request.newColumnId, authentication.principal.email)")
     public ResponseEntity<?> moveTask(@RequestBody TaskMoveRequest request) {
         try {
-            Task task = taskService.moveTask(request.getTaskId(), request.getNewColumnId(), request.getIndex());
+            com.thullo.data.model.Task task = taskService.moveTask(request.getTaskId(), request.getNewColumnId(), request.getIndex());
             return new ResponseEntity<>(task, HttpStatus.OK);
         } catch (RecordNotFoundException ex) {
             return ResponseEntity.badRequest().body(new ApiResponse(false, ex.getMessage()));
@@ -71,8 +70,8 @@ public class TaskController {
     public ResponseEntity<ApiResponse> editTask(@PathVariable Long taskId, TaskRequest taskRequest, HttpServletRequest request) {
         taskRequest.setRequestUrl(request.getRequestURL().toString());
         try {
-            Task taskResponse = taskService.editTask(taskId, taskRequest);
-            return ResponseEntity.ok(new ApiResponse(true, "Task created successfully", taskResponse));
+            com.thullo.data.model.Task task = taskService.editTask(taskId, taskRequest);
+            return ResponseEntity.ok(new ApiResponse(true, "Task created successfully", task));
         } catch (RecordNotFoundException | BadRequestException | IOException ex) {
             return ResponseEntity.badRequest().body(new ApiResponse(false, ex.getMessage()));
         }
