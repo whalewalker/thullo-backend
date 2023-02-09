@@ -6,7 +6,6 @@ import com.thullo.data.model.User;
 import com.thullo.data.repository.UserRepository;
 import com.thullo.web.exception.UserException;
 import com.thullo.web.payload.request.UserProfileRequest;
-import com.thullo.web.payload.response.UserProfileResponse;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

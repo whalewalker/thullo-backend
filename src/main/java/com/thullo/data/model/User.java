@@ -48,6 +48,7 @@ public class User extends RepresentationModel<User> {
     @Enumerated(EnumType.STRING)
     private AuthProvider provider;
 
+    @JsonIgnore
     private String providerId;
 
     @ManyToMany(fetch = FetchType.LAZY)
@@ -59,7 +60,7 @@ public class User extends RepresentationModel<User> {
 
     @OneToMany(mappedBy = "user")
     @JsonManagedReference
-    private List<Board> boards;
+    private List<Board> boards = new ArrayList<>();
 
     @CreationTimestamp
     @JsonFormat(pattern="yyyy-MM-dd HH:mm:ss")

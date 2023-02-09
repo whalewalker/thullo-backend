@@ -1,9 +1,9 @@
 package com.thullo.service;
 
 
+import com.thullo.data.model.User;
 import com.thullo.web.exception.UserException;
 import com.thullo.web.payload.request.UserProfileRequest;
-import com.thullo.web.payload.response.UserProfileResponse;
 
 /**
  This class provides a centralized implementation for accessing and managing user information, offering methods for retrieving various details such as name, email, address, and updating information as needed.
@@ -15,7 +15,7 @@ public interface UserService {
      * @param email The unique identifier for the user whose information is being retrieved.
      * @return UserProfileResponse object that encapsulates various details such as name, email, address, and any other relevant information related to the user.
      */
-    UserProfileResponse getUserDetails(String email) throws UserException;
+    User getUserDetails(String email) throws UserException;
 
     /**
      Updates the user details for a given email.

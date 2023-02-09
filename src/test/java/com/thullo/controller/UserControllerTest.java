@@ -1,10 +1,9 @@
 package com.thullo.controller;
 
 
-import com.thullo.service.UserService;
+import com.thullo.data.model.User;
 import com.thullo.service.UserServiceImpl;
 import com.thullo.web.controller.UserController;
-import com.thullo.web.payload.response.UserProfileResponse;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -34,11 +33,11 @@ class UserControllerTest {
     @Autowired
     private MockMvc mockMvc;
     @Autowired
-    private JacksonTester<UserProfileResponse> userDetails;
-    private UserProfileResponse userProfile;
+    private JacksonTester<User> userDetails;
+    private User userProfile;
     @BeforeEach
     void setUp() {
-        userProfile = new UserProfileResponse();
+        userProfile = new User();
         userProfile.setEmail("ismail@gmail.com");
         userProfile.setName("Ismail Abdullah");
     }

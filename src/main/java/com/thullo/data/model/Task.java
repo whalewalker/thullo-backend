@@ -10,6 +10,7 @@ import org.hibernate.annotations.UpdateTimestamp;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -37,7 +38,7 @@ public class Task {
     private TaskColumn taskColumn;
 
     @OneToMany(mappedBy = "task", cascade = CascadeType.ALL)
-    private List<Comment> comments;
+    private List<Comment> comments = new ArrayList<>();
 
     @ManyToMany
     @JoinTable(
@@ -45,7 +46,7 @@ public class Task {
             joinColumns = @JoinColumn(name = "task_id"),
             inverseJoinColumns = @JoinColumn(name = "user_id")
     )
-    private List<User> contributors;
+    private List<User> contributors = new ArrayList<>();
 
     @ManyToMany
     private List<Label> labels;

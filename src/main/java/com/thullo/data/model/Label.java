@@ -8,6 +8,7 @@ import org.hibernate.annotations.UpdateTimestamp;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -24,7 +25,7 @@ public class Label {
     private String backgroundCode;
 
     @ManyToMany(mappedBy="labels")
-    private List<Task> tasks;
+    private List<Task> tasks = new ArrayList<>();
 
     @CreationTimestamp
     @JsonFormat(pattern="yyyy-MM-dd HH:mm:ss")
