@@ -20,5 +20,5 @@ public interface BoardService {
 
     Board getBoard(Long id) throws BadRequestException;
 
-    List<Board> getBoards(String email) throws UserException;
+    List<Board> getBoards(UserPrincipal userPrincipal) throws UserException;
 }

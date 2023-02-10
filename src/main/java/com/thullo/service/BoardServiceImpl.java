@@ -1,9 +1,11 @@
 package com.thullo.service;
 
+
 import com.thullo.data.model.Board;
 import com.thullo.data.model.TaskColumn;
 import com.thullo.data.model.User;
 import com.thullo.data.repository.BoardRepository;
+import com.thullo.data.repository.TaskColumnRepository;
 import com.thullo.data.repository.UserRepository;
 import com.thullo.security.UserPrincipal;
 import com.thullo.util.Helper;
@@ -13,7 +15,7 @@ import com.thullo.web.payload.request.BoardRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
-import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -32,6 +34,7 @@ public class BoardServiceImpl implements BoardService {
     private final FileService fileService;
 
     private final UserRepository userRepository;
+    private final TaskColumnRepository taskColumnRepository;
 
     /**
      * Creates a new board based on the provided board request.
@@ -40,11 +43,10 @@ public class BoardServiceImpl implements BoardService {
      * @return A response object containing the result of the board creation process.
      */
 
-    @CacheEvict(value = "boardsByUser", key = "#principal.id")
-    public Board createBoard(BoardRequest boardRequest, UserPrincipal principal) throws UserException, BadRequestException, IOException {
+    public Board createBoard(BoardRequest boardRequest, UserPrincipal userPrincipal) throws UserException, BadRequestException, IOException {
         if(Helper.isNullOrEmpty(boardRequest.getName())) throw new BadRequestException("Board name cannot be empty");
-        User user = internalFindUserByEmail(principal.getEmail());
-        com.thullo.data.model.Board board = mapper.map(boardRequest, com.thullo.data.model.Board.class);
+        User user = internalFindUserByEmail(userPrincipal.getEmail());
+        Board board = mapper.map(boardRequest, Board.class);
         board.setUser(user);
         String imageUrl = null;
         if (boardRequest.getFile() != null){
@@ -52,8 +54,9 @@ public class BoardServiceImpl implements BoardService {
         }
         board.setImageUrl(imageUrl);
         createDefaultTaskColumn(board);
-        boardRepository.save(board);
-        return mapper.map(board, Board.class);
+        Board savedBoard = boardRepository.save(board);
+        savedBoard.getTaskColumns().forEach(this::updateTaskColumnCache);
+        return savedBoard;
     }
 
     @Override
@@ -61,23 +64,24 @@ public class BoardServiceImpl implements BoardService {
         return boardRepository.findById(id).orElseThrow(()-> new BadRequestException ("Board not found!"));
     }
 
+
     private Board getBoardInternal(Long id){
         return boardRepository.findById(id).orElse(null);
     }
 
     @Override
-    public List<Board> getBoards(String  email) throws UserException {
-        User user = internalFindUserByEmail(email);
+    public List<Board> getBoards(UserPrincipal userPrincipal) throws UserException {
+        User user = internalFindUserByEmail(userPrincipal.getEmail());
         return boardRepository.getAllByUserOrderByCreatedAtDesc(user);
     }
 
     public boolean isBoardOwner(Long boardId, String email) {
-        com.thullo.data.model.Board board = getBoardInternal(boardId);
+        Board board = getBoardInternal(boardId);
         if (board == null) return false;
         return board.getUser().getEmail().equals(email);
     }
 
-    private void createDefaultTaskColumn(com.thullo.data.model.Board board) {
+    private void createDefaultTaskColumn(Board board) {
         board.setTaskColumns(List.of(
                 new TaskColumn("Backlog \uD83E\uDD14", board),
                 new TaskColumn("In Progress \uD83D\uDCDA", board),
@@ -89,4 +93,10 @@ public class BoardServiceImpl implements BoardService {
     private User internalFindUserByEmail(String email) throws UserException {
         return userRepository.findByEmail(email).orElseThrow(() -> new UserException(format("user not found with email %s", email)));
     }
+
+    @CachePut(value = "taskColumns", key = "#taskColumn.id")
+    public void updateTaskColumnCache(TaskColumn taskColumn) {
+        taskColumnRepository.save(taskColumn);
+    }
+
 }

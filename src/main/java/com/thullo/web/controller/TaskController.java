@@ -9,7 +9,6 @@ import com.thullo.web.payload.request.TaskMoveRequest;
 import com.thullo.web.payload.request.TaskRequest;
 import com.thullo.web.payload.response.ApiResponse;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -42,10 +41,10 @@ public class TaskController {
 
     @PutMapping("/move")
     @PreAuthorize("@taskServiceImpl.isTaskOwnedByUser(#request.taskId, #request.newColumnId, authentication.principal.email)")
-    public ResponseEntity<?> moveTask(@RequestBody TaskMoveRequest request) {
+    public ResponseEntity<ApiResponse> moveTask(@RequestBody TaskMoveRequest request) {
         try {
-            com.thullo.data.model.Task task = taskService.moveTask(request.getTaskId(), request.getNewColumnId(), request.getPosition());
-            return new ResponseEntity<>(task, HttpStatus.OK);
+            Task task = taskService.moveTask(request.getTaskId(), request.getNewColumnId(), request.getPosition());
+            return ResponseEntity.ok(new ApiResponse(true, "Task moved successfully", task));
         } catch (RecordNotFoundException ex) {
             return ResponseEntity.badRequest().body(new ApiResponse(false, ex.getMessage()));
         }
@@ -53,10 +52,10 @@ public class TaskController {
 
     @GetMapping("/tasks/{taskId}")
     @PreAuthorize("@taskServiceImpl.isTaskCreator(#taskId, authentication.principal.email)")
-    public ResponseEntity<?> getTask(@PathVariable("taskId") Long taskId) {
+    public ResponseEntity<ApiResponse> getTask(@PathVariable("taskId") Long taskId) {
         try {
             Task task = taskService.getTask(taskId);
-            return new ResponseEntity<>(task, HttpStatus.OK);
+            return ResponseEntity.ok(new ApiResponse(true, "Task fetched successfully", task));
         } catch (RecordNotFoundException ex) {
             return ResponseEntity.badRequest().body(new ApiResponse(false, ex.getMessage()));
         }
@@ -70,10 +69,17 @@ public class TaskController {
     public ResponseEntity<ApiResponse> editTask(@PathVariable Long taskId, TaskRequest taskRequest, HttpServletRequest request) {
         taskRequest.setRequestUrl(request.getRequestURL().toString());
         try {
-            com.thullo.data.model.Task task = taskService.editTask(taskId, taskRequest);
+            Task task = taskService.editTask(taskId, taskRequest);
             return ResponseEntity.ok(new ApiResponse(true, "Task created successfully", task));
         } catch (RecordNotFoundException | BadRequestException | IOException ex) {
             return ResponseEntity.badRequest().body(new ApiResponse(false, ex.getMessage()));
         }
+    }
+
+    @DeleteMapping("tasks/{taskId}")
+    @PreAuthorize("@taskServiceImpl.isTaskCreator(#taskId, authentication.principal.email)")
+    public ResponseEntity<ApiResponse> deleteATask(@PathVariable Long taskId) {
+        taskService.deleteTask(taskId);
+        return ResponseEntity.ok(new ApiResponse(true, "Task delete successfully"));
     }
 }

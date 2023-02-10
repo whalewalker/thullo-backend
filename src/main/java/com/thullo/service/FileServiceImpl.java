@@ -7,6 +7,8 @@ import com.thullo.web.exception.BadRequestException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -26,19 +28,25 @@ public class FileServiceImpl implements FileService {
 
     @Override
     public String uploadFile(MultipartFile file, String url) throws BadRequestException, IOException {
-            if(file.isEmpty()) throw new BadRequestException("File cannot be empty");
-            String originalFileName = file.getOriginalFilename();
-            assert originalFileName != null;
-            String fileType = originalFileName.substring(originalFileName.lastIndexOf(".") + 1);
-
-            byte[] compressedFile = compressFile(file.getBytes());
-            String fileId = uuidWrapper.getUUID();
-            String baseUrl = url.substring(0, url.lastIndexOf("thullo"));
-            String fileUrl = format("%sthullo/files/%s", baseUrl, fileId);
-            InputStream is = new ByteArrayInputStream(compressedFile);
-            filesRepository.save(new FileData(fileId, originalFileName, fileType, is.readAllBytes()));
-            return fileUrl;
+        if(file.isEmpty()) throw new BadRequestException("File cannot be empty");
+        String baseUrl = url.substring(0, url.lastIndexOf("thullo"));
+        FileData fileData = uploadFileData(file);
+        return format("%sthullo/files/%s", baseUrl, fileData.getFileId());
     }
+
+    @CachePut(value = "files", key = "#result.fileId")
+    public FileData uploadFileData(MultipartFile file) throws IOException {
+        String originalFileName = file.getOriginalFilename();
+        assert originalFileName != null;
+        String fileType = originalFileName.substring(originalFileName.lastIndexOf(".") + 1);
+        byte[] compressedFile = compressFile(file.getBytes());
+        String fileId = uuidWrapper.getUUID();
+        InputStream is = new ByteArrayInputStream(compressedFile);
+        FileData fileData = new FileData(fileId, originalFileName, fileType, is.readAllBytes());
+        return filesRepository.save(fileData);
+    }
+
+
 
     @Override
     public byte[] decompressFile(byte[] compressedFile) throws IOException {
@@ -48,6 +56,7 @@ public class FileServiceImpl implements FileService {
     }
 
     @Override
+    @Cacheable(value = "files", key = "#fileId")
     public FileData getFIle(String fileId) throws IOException {
         FileData dbFile = filesRepository.getFilesByFileId(fileId);
         InputStream is = new ByteArrayInputStream(dbFile.getFileByte());

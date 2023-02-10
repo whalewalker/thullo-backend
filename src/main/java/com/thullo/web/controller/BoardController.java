@@ -35,7 +35,7 @@ public class BoardController {
             Board board = boardService.createBoard(boardRequest, principal);
             return ResponseEntity.ok(new ApiResponse(true, "Board successfully created", board));
         } catch (UserException | IOException | BadRequestException ex) {
-            return ResponseEntity.badRequest().body(new ApiResponse(false, "Bad request, check your request data",
+            return ResponseEntity.badRequest().body(new ApiResponse(false, ex.getMessage(),
                     new HashMap<>(Map.of("message", ex.getMessage()))));
         }
     }
@@ -47,7 +47,7 @@ public class BoardController {
             return ResponseEntity.ok(new ApiResponse(true, "Board successfully fetched",
                     boardService.getBoard(boardId)));
         } catch (BadRequestException ex) {
-            return ResponseEntity.badRequest().body(new ApiResponse(false, "Bad request, check your request data",
+            return ResponseEntity.badRequest().body(new ApiResponse(false, ex.getMessage(),
                     new HashMap<>(Map.of("message", ex.getMessage()))));
         }
     }
@@ -56,9 +56,11 @@ public class BoardController {
     public ResponseEntity<ApiResponse> getBoards(@CurrentUser UserPrincipal userPrincipal) {
         try {
             return ResponseEntity.ok(new ApiResponse(true, "Board successfully fetched",
-                    boardService.getBoards(userPrincipal.getEmail())));
+                    boardService.getBoards(userPrincipal)));
         } catch (UserException ex) {
             return ResponseEntity.badRequest().body(new ApiResponse(false, "Bad request, check your request data"));
         }
     }
+
+
 }

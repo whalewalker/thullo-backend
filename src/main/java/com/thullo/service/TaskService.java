@@ -9,8 +9,9 @@ import java.io.IOException;
 
 public interface TaskService {
     Task createTask(TaskRequest taskRequest) throws BadRequestException, IOException;
-    com.thullo.data.model.Task moveTask(Long taskId, Long newColumnId, Long index) throws RecordNotFoundException;
+    Task moveTask(Long taskId, Long newColumnId, Long index) throws RecordNotFoundException;
 
-    com.thullo.data.model.Task editTask(Long taskId, TaskRequest taskRequest) throws BadRequestException, IOException, RecordNotFoundException;
-   public Task getTask(Long taskId) throws RecordNotFoundException;
+    Task editTask(Long taskId, TaskRequest taskRequest) throws BadRequestException, IOException, RecordNotFoundException;
+   Task getTask(Long taskId) throws RecordNotFoundException;
+    void deleteTask(Long taskId);
 }

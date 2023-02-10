@@ -21,14 +21,14 @@ public class FileController {
     private final FileService fileService;
 
     @GetMapping("/files/{fileId}")
-    public ResponseEntity<?> getFile(@PathVariable("fileId") String fileId) {
+    public ResponseEntity<ApiResponse> getFile(@PathVariable("fileId") String fileId) {
         try {
             FileData files = fileService.getFIle(fileId);
             ByteArrayResource resource = new ByteArrayResource(files.getFileByte());
             return ResponseEntity.ok()
                     .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=" + files.getFileName())
                     .contentType(fileService.getMediaTypeForFileType(files.getFileType()))
-                    .body(resource);
+                    .body(new ApiResponse(true, "File fetched successfully", resource));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(new ApiResponse(false, "File not found"));        }
     }
