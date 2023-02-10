@@ -7,6 +7,7 @@ import com.thullo.data.repository.UserRepository;
 import com.thullo.web.exception.UserException;
 import com.thullo.web.payload.request.UserProfileRequest;
 import com.thullo.web.payload.request.UserRequest;
+import com.thullo.web.payload.response.UserProfileResponse;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -38,7 +39,7 @@ class UserServiceImplTest {
     private User mockedUser;
 
     private UserRequest mockedUserRequest;
-    private UserProfileRequest userProfileRequest;
+    private UserProfileRequest userProfileRequest = new UserProfileRequest();
 
     private User mockedUserResponse;
 
@@ -80,7 +81,7 @@ class UserServiceImplTest {
         when(mapper.map(mockedUser, User.class))
                 .thenReturn(mockedUserResponse);
 
-        User userDetails = userService.getUserDetails(mockedUser.getEmail());
+        UserProfileResponse userDetails = userService.getUserDetails(mockedUser.getEmail());
 
         verify(userRepository).findByEmail(mockedUser.getEmail());
         assertAll(() -> {

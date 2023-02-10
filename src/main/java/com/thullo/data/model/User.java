@@ -36,27 +36,22 @@ public class User extends RepresentationModel<User> {
     private String bio;
 
     @Column(nullable = false)
-    @JsonIgnore
     private Boolean emailVerified;
 
     @JsonIgnore
     private String password;
 
     @Enumerated(EnumType.STRING)
-    @JsonIgnore
     private AuthProvider provider;
 
-    @JsonIgnore
     private String providerId;
 
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(name = "user_roles",
             joinColumns = @JoinColumn(name = "user_id"),
             inverseJoinColumns = @JoinColumn(name = "role_id"))
-    @JsonIgnore
     private List<Role> roles = new ArrayList<>();
 
-    @JsonIgnore
     @OneToMany(mappedBy = "user")
     @JsonManagedReference
     private List<Board> boards = new ArrayList<>();
