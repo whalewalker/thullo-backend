@@ -13,6 +13,7 @@ import com.thullo.web.payload.request.BoardRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -38,6 +39,8 @@ public class BoardServiceImpl implements BoardService {
      * @param boardRequest The request containing the information for the new board to be created.
      * @return A response object containing the result of the board creation process.
      */
+
+    @CacheEvict(value = "boardsByUser", key = "#principal.id")
     public Board createBoard(BoardRequest boardRequest, UserPrincipal principal) throws UserException, BadRequestException, IOException {
         if(Helper.isNullOrEmpty(boardRequest.getName())) throw new BadRequestException("Board name cannot be empty");
         User user = internalFindUserByEmail(principal.getEmail());
@@ -58,7 +61,7 @@ public class BoardServiceImpl implements BoardService {
         return boardRepository.findById(id).orElseThrow(()-> new BadRequestException ("Board not found!"));
     }
 
-    private com.thullo.data.model.Board getBoardInternal(Long id){
+    private Board getBoardInternal(Long id){
         return boardRepository.findById(id).orElse(null);
     }
 
