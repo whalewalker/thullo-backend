@@ -33,10 +33,10 @@ public class Board{
     @JoinTable(name = "board_collaborators",
             joinColumns = @JoinColumn(name = "board_id"),
             inverseJoinColumns = @JoinColumn(name = "user_id"))
-    private List<User> collaborators;
+    private List<User> collaborators = new ArrayList<>();
 
     @ManyToMany(mappedBy = "contributors")
-    private List<Task> tasks;
+    private List<Task> tasks = new ArrayList<>();
 
     @OneToMany(mappedBy = "board", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<TaskColumn> taskColumns = new ArrayList<>();

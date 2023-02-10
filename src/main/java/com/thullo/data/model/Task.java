@@ -49,7 +49,7 @@ public class Task {
     private List<User> contributors = new ArrayList<>();
 
     @ManyToMany
-    private List<Label> labels;
+    private List<Label> labels = new ArrayList<>();
     @CreationTimestamp
     @JsonFormat(pattern="yyyy-MM-dd HH:mm:ss")
     private LocalDateTime createdAt;
