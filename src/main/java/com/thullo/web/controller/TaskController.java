@@ -44,7 +44,7 @@ public class TaskController {
     @PreAuthorize("@taskServiceImpl.isTaskOwnedByUser(#request.taskId, #request.newColumnId, authentication.principal.email)")
     public ResponseEntity<?> moveTask(@RequestBody TaskMoveRequest request) {
         try {
-            com.thullo.data.model.Task task = taskService.moveTask(request.getTaskId(), request.getNewColumnId(), request.getIndex());
+            com.thullo.data.model.Task task = taskService.moveTask(request.getTaskId(), request.getNewColumnId(), request.getPosition());
             return new ResponseEntity<>(task, HttpStatus.OK);
         } catch (RecordNotFoundException ex) {
             return ResponseEntity.badRequest().body(new ApiResponse(false, ex.getMessage()));

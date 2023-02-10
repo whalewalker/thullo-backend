@@ -1,9 +1,6 @@
 package com.thullo.data.model;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.fasterxml.jackson.annotation.*;
 import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
@@ -21,7 +18,6 @@ import java.util.List;
 })
 @Getter
 @Setter
-@JsonInclude(JsonInclude.Include.NON_DEFAULT)
 public class User extends RepresentationModel<User> {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -40,12 +36,14 @@ public class User extends RepresentationModel<User> {
     private String bio;
 
     @Column(nullable = false)
-    private Boolean emailVerified = false;
+    @JsonIgnore
+    private Boolean emailVerified;
 
     @JsonIgnore
     private String password;
 
     @Enumerated(EnumType.STRING)
+    @JsonIgnore
     private AuthProvider provider;
 
     @JsonIgnore
@@ -58,6 +56,7 @@ public class User extends RepresentationModel<User> {
     @JsonIgnore
     private List<Role> roles = new ArrayList<>();
 
+    @JsonIgnore
     @OneToMany(mappedBy = "user")
     @JsonManagedReference
     private List<Board> boards = new ArrayList<>();

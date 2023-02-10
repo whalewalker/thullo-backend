@@ -1,5 +1,6 @@
 package com.thullo.service;
 
+import com.thullo.data.model.Board;
 import com.thullo.data.model.Task;
 import com.thullo.data.model.TaskColumn;
 import com.thullo.data.model.User;
@@ -55,7 +56,6 @@ class BoardServiceImplTest {
     private com.thullo.data.model.Board board;
     private BoardRequest boardRequest;
 
-    private Board board;
 
     private UserPrincipal userPrincipal;
     String boardName = "DevDegree challenge";

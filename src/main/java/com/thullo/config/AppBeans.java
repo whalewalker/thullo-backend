@@ -13,6 +13,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 @Configuration
 @RequiredArgsConstructor
+
 public class AppBeans {
     private final CustomUserDetailService customUserDetailService;
 

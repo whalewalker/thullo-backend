@@ -10,5 +10,5 @@ import lombok.NoArgsConstructor;
 public class TaskMoveRequest {
     private Long taskId;
     private Long newColumnId;
-    private Long index;
+    private Long position;
 }
