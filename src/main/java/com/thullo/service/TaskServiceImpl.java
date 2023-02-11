@@ -7,7 +7,7 @@ import com.thullo.data.repository.TaskColumnRepository;
 import com.thullo.data.repository.TaskRepository;
 import com.thullo.data.repository.UserRepository;
 import com.thullo.web.exception.BadRequestException;
-import com.thullo.web.exception.RecordNotFoundException;
+import com.thullo.web.exception.ResourceNotFoundException;
 import com.thullo.web.payload.request.TaskRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -29,8 +29,6 @@ public class TaskServiceImpl implements TaskService {
     private final FileService fileService;
     private final TaskColumnRepository taskColumnRepository;
     private final UserRepository userRepository;
-
-
     @Override
     @CachePut(value = "tasks", key = "#result.id")
     public Task createTask(TaskRequest taskRequest) throws BadRequestException, IOException {
@@ -52,13 +50,13 @@ public class TaskServiceImpl implements TaskService {
 
     @Override
     @CachePut(value = "tasks", key = "#taskId")
-    public Task moveTask(Long taskId, Long newColumnId, Long index) throws RecordNotFoundException {
+    public Task moveTask(Long taskId, Long newColumnId, Long index) throws ResourceNotFoundException {
         Long absoluteIndex = Math.abs(index);
         Task task = taskRepository.findById(taskId)
-                .orElseThrow(() -> new RecordNotFoundException("Task not found !"));
+                .orElseThrow(() -> new ResourceNotFoundException("Task not found !"));
 
         List<Task> tasksInColumn = taskRepository.findByTaskColumnOrderByPositionAsc(newColumnId).orElseThrow(
-                () -> new RecordNotFoundException("Task column not found !"));
+                () -> new ResourceNotFoundException("Task column not found !"));
 
         if (absoluteIndex > tasksInColumn.size())
             absoluteIndex = (long) tasksInColumn.size();
@@ -81,7 +79,7 @@ public class TaskServiceImpl implements TaskService {
 
     @Override
     @CachePut(value = "tasks", key = "#taskId")
-    public Task editTask(Long taskId, TaskRequest taskRequest) throws BadRequestException, IOException, RecordNotFoundException {
+    public Task editTask(Long taskId, TaskRequest taskRequest) throws BadRequestException, IOException, ResourceNotFoundException {
         Task task = getTask(taskId);
         mapper.map(taskRequest, task);
         String imageUrl = uploadTaskFile(taskRequest);
@@ -126,9 +124,9 @@ public class TaskServiceImpl implements TaskService {
     }
 
     @Cacheable(value = "tasks", key = "#taskId")
-    public Task getTask(Long taskId) throws RecordNotFoundException {
+    public Task getTask(Long taskId) throws ResourceNotFoundException {
         Task task = getTaskInternal(taskId);
-        if (task == null) throw new RecordNotFoundException("Task not found !");
+        if (task == null) throw new ResourceNotFoundException("Task not found !");
         return task;
     }
 
@@ -140,6 +138,11 @@ public class TaskServiceImpl implements TaskService {
             taskRepository.delete(task);
             updateTaskColumnCache(task.getTaskColumn());
         }
+    }
+
+    @Override
+    public List<Task> findTaskContainingNameOrBoardId(String name, String boardId) {
+        return taskRepository.findByNameContainingOrBoardId(name, boardId);
     }
 
     public boolean isTaskCreator(Long taskId, String email) {
@@ -157,6 +160,5 @@ public class TaskServiceImpl implements TaskService {
     public void updateTaskColumnCache(TaskColumn taskColumn) {
         taskColumnRepository.save(taskColumn);
     }
-
 
 }

@@ -5,7 +5,7 @@ import com.thullo.data.model.TaskColumn;
 import com.thullo.data.repository.TaskColumnRepository;
 import com.thullo.data.repository.TaskRepository;
 import com.thullo.web.exception.BadRequestException;
-import com.thullo.web.exception.RecordNotFoundException;
+import com.thullo.web.exception.ResourceNotFoundException;
 import com.thullo.web.payload.request.TaskRequest;
 import org.apache.commons.io.IOUtils;
 import org.junit.jupiter.api.Assertions;
@@ -109,7 +109,7 @@ class TaskServiceImplTest {
     }
 
     @Test
-    void testMoveTask_validTaskColumnIdAndIndex_thenTaskIsMovedToTheNewColumn() throws RecordNotFoundException {
+    void testMoveTask_validTaskColumnIdAndIndex_thenTaskIsMovedToTheNewColumn() throws ResourceNotFoundException {
         TaskColumn todo = new TaskColumn();
         todo.setId(2L);
         todo.setName("Todo");
@@ -174,7 +174,7 @@ class TaskServiceImplTest {
         when(taskRepository.findByTaskColumnOrderByPositionAsc(anyLong()))
                 .thenReturn(Optional.empty());
 
-        assertThrows(RecordNotFoundException.class, () ->
+        assertThrows(ResourceNotFoundException.class, () ->
                 taskService.moveTask(1L, 5L, 2L));
     }
 
@@ -183,12 +183,12 @@ class TaskServiceImplTest {
         when(taskRepository.findById(anyLong()))
                 .thenReturn(Optional.empty());
 
-        assertThrows(RecordNotFoundException.class, () ->
+        assertThrows(ResourceNotFoundException.class, () ->
                 taskService.moveTask(1L, 5L, 2L));
     }
 
     @Test
-    void testMoveTask_indexGreaterThanTasksInTheNewColumn_moveToNewColumnEqualToTheNumberOfTaskInTheColumn() throws RecordNotFoundException {
+    void testMoveTask_indexGreaterThanTasksInTheNewColumn_moveToNewColumnEqualToTheNumberOfTaskInTheColumn() throws ResourceNotFoundException {
 
         TaskColumn backlog = new TaskColumn();
         backlog.setId(1L);
@@ -243,7 +243,7 @@ class TaskServiceImplTest {
 
 
     @Test
-    void testMoveTask_alreadyInTheNewColumn_taskRemainInTheSameColumnAndIndex() throws RecordNotFoundException {
+    void testMoveTask_alreadyInTheNewColumn_taskRemainInTheSameColumnAndIndex() throws ResourceNotFoundException {
 
         TaskColumn todo = new TaskColumn();
         todo.setId(2L);
@@ -281,7 +281,7 @@ class TaskServiceImplTest {
 
 
     @Test
-    void testMoveTask_sameColumnIdAndValidIndex_moveTaskToNewIndexOnTheColumn() throws RecordNotFoundException {
+    void testMoveTask_sameColumnIdAndValidIndex_moveTaskToNewIndexOnTheColumn() throws ResourceNotFoundException {
         TaskColumn todo = new TaskColumn();
         todo.setId(2L);
         todo.setName("Todo");
@@ -328,7 +328,7 @@ class TaskServiceImplTest {
     }
 
     @Test
-    void getTask_withValidId_getTask() throws RecordNotFoundException {
+    void getTask_withValidId_getTask() throws ResourceNotFoundException {
         task.setId(1L);
         when(taskRepository.findById(anyLong()))
                 .thenReturn(Optional.ofNullable(task));
@@ -345,7 +345,7 @@ class TaskServiceImplTest {
         when(taskRepository.findById(anyLong()))
                 .thenReturn(Optional.empty());
 
-        assertThrows(RecordNotFoundException.class,
+        assertThrows(ResourceNotFoundException.class,
                 () -> taskService.getTask(1L));
     }
     @Test

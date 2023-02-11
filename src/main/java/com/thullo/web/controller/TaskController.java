@@ -4,7 +4,7 @@ import com.thullo.annotation.CurrentTaskColumn;
 import com.thullo.data.model.Task;
 import com.thullo.service.TaskService;
 import com.thullo.web.exception.BadRequestException;
-import com.thullo.web.exception.RecordNotFoundException;
+import com.thullo.web.exception.ResourceNotFoundException;
 import com.thullo.web.payload.request.TaskMoveRequest;
 import com.thullo.web.payload.request.TaskRequest;
 import com.thullo.web.payload.response.ApiResponse;
@@ -16,14 +16,15 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
+import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("api/v1/thullo")
+@RequestMapping("api/v1/thullo/tasks")
 public class TaskController {
     private final TaskService taskService;
 
-    @PostMapping(value = "/create-task/{taskColumnId}",
+    @PostMapping(value = "/{taskColumnId}",
             consumes = {MediaType.MULTIPART_FORM_DATA_VALUE},
             produces = {MediaType.APPLICATION_JSON_VALUE})
     @PreAuthorize("@taskServiceImpl.isTaskOwner(#taskColumnId, authentication.principal.email)")
@@ -45,24 +46,24 @@ public class TaskController {
         try {
             Task task = taskService.moveTask(request.getTaskId(), request.getNewColumnId(), request.getPosition());
             return ResponseEntity.ok(new ApiResponse(true, "Task moved successfully", task));
-        } catch (RecordNotFoundException ex) {
+        } catch (ResourceNotFoundException ex) {
             return ResponseEntity.badRequest().body(new ApiResponse(false, ex.getMessage()));
         }
     }
 
-    @GetMapping("/tasks/{taskId}")
+    @GetMapping("/{taskId}")
     @PreAuthorize("@taskServiceImpl.isTaskCreator(#taskId, authentication.principal.email)")
     public ResponseEntity<ApiResponse> getTask(@PathVariable("taskId") Long taskId) {
         try {
             Task task = taskService.getTask(taskId);
             return ResponseEntity.ok(new ApiResponse(true, "Task fetched successfully", task));
-        } catch (RecordNotFoundException ex) {
+        } catch (ResourceNotFoundException ex) {
             return ResponseEntity.badRequest().body(new ApiResponse(false, ex.getMessage()));
         }
     }
 
 
-    @PutMapping(value = "/edit-task/{taskId}",
+    @PutMapping(value = "/{taskId}",
             consumes = {MediaType.MULTIPART_FORM_DATA_VALUE},
             produces = {MediaType.APPLICATION_JSON_VALUE})
     @PreAuthorize("@taskServiceImpl.isTaskCreator(#taskId, authentication.principal.email)")
@@ -71,15 +72,32 @@ public class TaskController {
         try {
             Task task = taskService.editTask(taskId, taskRequest);
             return ResponseEntity.ok(new ApiResponse(true, "Task created successfully", task));
-        } catch (RecordNotFoundException | BadRequestException | IOException ex) {
+        } catch (ResourceNotFoundException | BadRequestException | IOException ex) {
             return ResponseEntity.badRequest().body(new ApiResponse(false, ex.getMessage()));
         }
     }
 
-    @DeleteMapping("tasks/{taskId}")
+    @DeleteMapping("/{taskId}")
     @PreAuthorize("@taskServiceImpl.isTaskCreator(#taskId, authentication.principal.email)")
-    public ResponseEntity<ApiResponse> deleteATask(@PathVariable Long taskId) {
+    public ResponseEntity<ApiResponse> deleteATask(@PathVariable("taskId") Long taskId) {
         taskService.deleteTask(taskId);
         return ResponseEntity.ok(new ApiResponse(true, "Task delete successfully"));
+    }
+
+
+    @GetMapping("/{taskId}/contributors")
+    public ResponseEntity<ApiResponse> getContributors(@PathVariable(value = "taskId") Long taskId) {
+        try {
+            Task task = taskService.getTask(taskId);
+            return ResponseEntity.ok(new ApiResponse(true, "fetch collaborators successfully", task.getContributors()));
+        } catch (ResourceNotFoundException ex) {
+            return ResponseEntity.badRequest()
+                    .body(new ApiResponse(false, ex.getMessage()));
+        }
+    }
+
+    @GetMapping
+    public List<Task> searchTasks(@RequestParam("search") String search ,@RequestParam("boardId") String boardId) {
+        return taskService.findTaskContainingNameOrBoardId(search, boardId);
     }
 }

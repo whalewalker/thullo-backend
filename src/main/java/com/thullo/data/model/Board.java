@@ -25,6 +25,9 @@ public class Board{
 
     private String imageUrl;
 
+    @Column(nullable = false, unique = true)
+    private String boardRef;
+
     @ManyToOne
     @JoinColumn(name = "user_id")
     @JsonBackReference

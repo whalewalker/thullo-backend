@@ -22,12 +22,12 @@ import java.util.Map;
 
 @RestController
 @Slf4j
-@RequestMapping("api/v1/thullo/")
+@RequestMapping("api/v1/thullo/boards")
 @RequiredArgsConstructor
 public class BoardController {
     private final BoardService boardService;
 
-    @PostMapping("/create-board")
+    @PostMapping
     public ResponseEntity<ApiResponse> createBoard(@RequestParam(value = "file", required = false) MultipartFile file, @RequestParam("boardName") String boardName,
                                                    @CurrentUser UserPrincipal principal, HttpServletRequest request) {
         try {
@@ -40,7 +40,7 @@ public class BoardController {
         }
     }
 
-    @GetMapping("/boards/{boardId}")
+    @GetMapping("/{boardId}")
     @PreAuthorize("@boardServiceImpl.isBoardOwner(#boardId, authentication.principal.email)")
     public ResponseEntity<ApiResponse> getABoard(@PathVariable("boardId") Long boardId) {
         try {
@@ -52,7 +52,7 @@ public class BoardController {
         }
     }
 
-    @GetMapping("/boards")
+    @GetMapping
     public ResponseEntity<ApiResponse> getBoards(@CurrentUser UserPrincipal userPrincipal) {
         try {
             return ResponseEntity.ok(new ApiResponse(true, "Board successfully fetched",

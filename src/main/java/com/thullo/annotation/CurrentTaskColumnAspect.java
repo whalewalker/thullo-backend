@@ -10,12 +10,15 @@ import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.springframework.stereotype.Component;
 
+import java.util.concurrent.atomic.AtomicLong;
+
 
 @Aspect
 @Component
 @RequiredArgsConstructor
 public class CurrentTaskColumnAspect {
     private final TaskColumnService taskColumnService;
+    private AtomicLong taskCounter = new AtomicLong(1);
 
     @Around("@annotation(CurrentTaskColumn)")
     public Object retrieveCurrentTaskColumn(ProceedingJoinPoint joinPoint) throws Throwable {
@@ -42,9 +45,12 @@ public class CurrentTaskColumnAspect {
         Task task = new Task();
         task.setName(taskRequest.getName());
         task.setPosition((long) currentTaskColumn.getTasks().size());
+        task.setBoardId(generateTaskId(currentTaskColumn.getBoard().getBoardRef().toUpperCase()));
         task.setTaskColumn(currentTaskColumn);
         return task;
     }
 
-
+    public String generateTaskId(String boardId) {
+        return boardId + "-" + taskCounter.getAndIncrement();
+    }
 }
