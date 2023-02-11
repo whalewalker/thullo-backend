@@ -197,14 +197,14 @@ class BoardServiceImplTest {
     @Test
     void shouldReturnAllBoardWhenValidUser() throws UserException {
         User boardOwner = new User();
-        when(boardRepository.getAllByUserOrderByCreatedAtDesc(any(User.class)))
+        when(boardRepository.getAllByUserOrderByCreatedAtAsc(any(User.class)))
                 .thenReturn(new ArrayList<>(List.of(
                         new Board(), new Board(), new Board() )));
         when(userRepository.findByEmail(anyString()))
                 .thenReturn(Optional.of(boardOwner));
 
         List<Board> boards = boardService.getBoards(userPrincipal);
-        verify(boardRepository).getAllByUserOrderByCreatedAtDesc(boardOwner);
+        verify(boardRepository).getAllByUserOrderByCreatedAtAsc(boardOwner);
         verify(userRepository).findByEmail("ismail@gmail.com");
 
         assertNotNull(boards);

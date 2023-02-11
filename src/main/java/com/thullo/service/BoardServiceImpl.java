@@ -75,7 +75,7 @@ public class BoardServiceImpl implements BoardService {
     @Override
     public List<Board> getBoards(UserPrincipal userPrincipal) throws UserException {
         User user = internalFindUserByEmail(userPrincipal.getEmail());
-        return boardRepository.getAllByUserOrderByCreatedAtDesc(user);
+        return boardRepository.getAllByUserOrderByCreatedAtAsc(user);
     }
 
     public boolean isBoardOwner(Long boardId, String email) {
