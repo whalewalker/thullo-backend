@@ -14,7 +14,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.CachePut;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -123,7 +122,6 @@ public class TaskServiceImpl implements TaskService {
         return taskColumnRepository.findById(taskColumnId).orElse(null);
     }
 
-    @Cacheable(value = "tasks", key = "#taskId")
     public Task getTask(Long taskId) throws ResourceNotFoundException {
         Task task = getTaskInternal(taskId);
         if (task == null) throw new ResourceNotFoundException("Task not found !");

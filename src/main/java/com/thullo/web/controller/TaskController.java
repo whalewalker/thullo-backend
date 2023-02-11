@@ -89,7 +89,7 @@ public class TaskController {
     public ResponseEntity<ApiResponse> getContributors(@PathVariable(value = "taskId") Long taskId) {
         try {
             Task task = taskService.getTask(taskId);
-            return ResponseEntity.ok(new ApiResponse(true, "fetch collaborators successfully", task.getContributors()));
+            return ResponseEntity.ok(new ApiResponse(true, "fetch contributors successfully", task.getContributors()));
         } catch (ResourceNotFoundException ex) {
             return ResponseEntity.badRequest()
                     .body(new ApiResponse(false, ex.getMessage()));
