@@ -108,7 +108,7 @@ public class BoardServiceImpl implements BoardService {
                 .collect(Collectors.toSet());
 
         for (int i = 0; i < boardName.length() - 2; i++) {
-            String threeLetterWord = boardName.substring(i, i + 3);
+            String threeLetterWord = boardName.replace(" ", "").substring(i, i + 3);
             if (!usedThreeLetterWords.contains(threeLetterWord)) {
                 return threeLetterWord;
             }
