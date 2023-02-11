@@ -4,6 +4,7 @@ package com.thullo.controller;
 import com.thullo.data.model.User;
 import com.thullo.service.UserServiceImpl;
 import com.thullo.web.controller.UserController;
+import com.thullo.web.payload.response.UserProfileResponse;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -45,7 +46,7 @@ class UserControllerTest {
     @Test
     void getUserDetails() throws Exception{
         given(userService.getUserDetails(eq("ismail@gmail.com")))
-                .willReturn(userProfile);
+                .willReturn(new UserProfileResponse());
 
         MockHttpServletResponse response = mockMvc.perform(
                 get("api/v1/thullo/user")

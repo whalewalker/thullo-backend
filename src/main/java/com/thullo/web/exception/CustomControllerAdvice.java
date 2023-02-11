@@ -57,10 +57,10 @@ public class CustomControllerAdvice {
         return buildErrorResponse(errors);
     }
 
-    @ExceptionHandler(RecordNotFoundException.class)
+    @ExceptionHandler(ResourceNotFoundException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
     public ErrorResponse handleRecordNotFoundException(
-            RecordNotFoundException e,
+            ResourceNotFoundException e,
             WebRequest request
     ){
         log.error("Failed to find the requested element", e);

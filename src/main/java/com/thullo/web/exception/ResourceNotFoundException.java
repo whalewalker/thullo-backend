@@ -1,6 +1,6 @@
 package com.thullo.web.exception;
 
-public class RecordNotFoundException extends Exception{
+public class ResourceNotFoundException extends Exception{
     /**
      * Constructs a new exception with the specified detail message.  The
      * cause is not initialized, and may subsequently be initialized by
@@ -9,7 +9,7 @@ public class RecordNotFoundException extends Exception{
      * @param message the detail message. The detail message is saved for
      *                later retrieval by the {@link #getMessage()} method.
      */
-    public RecordNotFoundException(String message) {
+    public ResourceNotFoundException(String message) {
         super(message);
     }
 }

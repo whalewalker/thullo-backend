@@ -56,6 +56,9 @@ public class User extends RepresentationModel<User> {
     @JsonManagedReference
     private List<Board> boards = new ArrayList<>();
 
+    @OneToMany(mappedBy = "user")
+    private List<Notification> notifications = new ArrayList<>();
+
     @CreationTimestamp
     @JsonFormat(pattern="yyyy-MM-dd HH:mm:ss")
     private LocalDateTime createdAt;
@@ -64,4 +67,7 @@ public class User extends RepresentationModel<User> {
     @JsonFormat(pattern="yyyy-MM-dd HH:mm:ss")
     private LocalDateTime updatedAt;
 
+    public void addNotification(Notification notification) {
+        notifications.add(notification);
+    }
 }

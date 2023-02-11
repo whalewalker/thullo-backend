@@ -28,6 +28,9 @@ public class Task {
 
     private Long position;
 
+    @Column(nullable = false, unique = true)
+    private String boardId;
+
     @Lob
     @Column(columnDefinition = "TEXT")
     private String description;

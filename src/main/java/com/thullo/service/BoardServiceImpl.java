@@ -20,6 +20,8 @@ import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import static java.lang.String.format;
 
@@ -54,6 +56,7 @@ public class BoardServiceImpl implements BoardService {
         }
         board.setImageUrl(imageUrl);
         createDefaultTaskColumn(board);
+        board.setBoardRef(generateThreeLetterWord(boardRequest.getName().toUpperCase()));
         Board savedBoard = boardRepository.save(board);
         savedBoard.getTaskColumns().forEach(this::updateTaskColumnCache);
         return savedBoard;
@@ -99,4 +102,18 @@ public class BoardServiceImpl implements BoardService {
         taskColumnRepository.save(taskColumn);
     }
 
+    private String generateThreeLetterWord(String boardName) {
+        Set<String> usedThreeLetterWords = boardRepository.findAll().stream()
+                .map(Board::getBoardRef)
+                .collect(Collectors.toSet());
+
+        for (int i = 0; i < boardName.length() - 2; i++) {
+            String threeLetterWord = boardName.substring(i, i + 3);
+            if (!usedThreeLetterWords.contains(threeLetterWord)) {
+                return threeLetterWord;
+            }
+        }
+
+        throw new IllegalStateException("All three-letter substrings have been used. Please choose a different board name.");
+    }
 }
