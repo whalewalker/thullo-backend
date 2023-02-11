@@ -7,8 +7,6 @@ import com.thullo.web.exception.BadRequestException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
-import org.springframework.cache.annotation.CachePut;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -34,8 +32,7 @@ public class FileServiceImpl implements FileService {
         return format("%sthullo/files/%s", baseUrl, fileData.getFileId());
     }
 
-    @CachePut(value = "files", key = "#result.fileId")
-    public FileData uploadFileData(MultipartFile file) throws IOException {
+    private FileData uploadFileData(MultipartFile file) throws IOException {
         String originalFileName = file.getOriginalFilename();
         assert originalFileName != null;
         String fileType = originalFileName.substring(originalFileName.lastIndexOf(".") + 1);
@@ -56,7 +53,6 @@ public class FileServiceImpl implements FileService {
     }
 
     @Override
-    @Cacheable(value = "files", key = "#fileId")
     public FileData getFIle(String fileId) throws IOException {
         FileData dbFile = filesRepository.getFilesByFileId(fileId);
         InputStream is = new ByteArrayInputStream(dbFile.getFileByte());
