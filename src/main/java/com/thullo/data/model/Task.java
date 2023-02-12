@@ -29,7 +29,7 @@ public class Task {
     private Long position;
 
     @Column(nullable = false, unique = true)
-    private String boardId;
+    private String boardRef;
 
     @Lob
     @Column(columnDefinition = "TEXT")

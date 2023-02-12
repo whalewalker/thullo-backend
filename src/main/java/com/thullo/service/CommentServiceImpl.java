@@ -42,7 +42,7 @@ public class CommentServiceImpl implements CommentService {
         comment.setTask(task);
 
         Comment savedComment = commentRepository.save(comment);
-        sendNotificationsToMentionedUsers(mentionedUsers, request.getMessage(), task.getBoardId());
+        sendNotificationsToMentionedUsers(mentionedUsers, request.getMessage(), task.getBoardRef());
         return savedComment;
     }
 

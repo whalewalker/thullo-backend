@@ -1,5 +1,6 @@
 package com.thullo.config;
 
+import com.thullo.data.model.BoardIdWrapper;
 import com.thullo.data.model.UUIDWrapper;
 import com.thullo.security.CustomUserDetailService;
 import lombok.RequiredArgsConstructor;
@@ -10,6 +11,8 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+
+import java.util.concurrent.ConcurrentHashMap;
 
 @Configuration
 @RequiredArgsConstructor
@@ -33,6 +36,12 @@ public class AppBeans {
     @Bean
     public UUIDWrapper uuidWrapper(){
         return  new UUIDWrapper();
+    }
+
+
+    @Bean
+    public BoardIdWrapper boardIdWrapper(){
+        return new BoardIdWrapper(new ConcurrentHashMap<>());
     }
 
     @Bean
