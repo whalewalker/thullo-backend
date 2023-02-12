@@ -1,18 +1,29 @@
 package com.thullo.data.model;
 
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
-import javax.persistence.*;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
 
 @Entity
-@Table(name = "next_board_id")
-@Getter
 @Setter
+@Getter
+@NoArgsConstructor
 public class BoardId {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    private String boardRef;
-    private Long nextId;
+
+
+
+    private  String boardTag;
+    private  Long nextId;
+
+    public BoardId(String boardTag, Long nextId) {
+        this.boardTag = boardTag;
+        this.nextId = nextId;
+    }
 }

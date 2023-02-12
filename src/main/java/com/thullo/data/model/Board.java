@@ -26,7 +26,7 @@ public class Board{
     private String imageUrl;
 
     @Column(nullable = false, unique = true)
-    private String boardRef;
+    private String boardTag;
 
     @ManyToOne
     @JoinColumn(name = "user_id")

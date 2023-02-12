@@ -12,6 +12,6 @@ public class CachingConfig {
 
     @Bean
     public CacheManager cacheManager() {
-        return new ConcurrentMapCacheManager( "taskColumns", "tasks", "files");
+        return new ConcurrentMapCacheManager(  "tasks", "files");
     }
 }

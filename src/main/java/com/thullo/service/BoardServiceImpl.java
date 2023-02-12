@@ -56,7 +56,7 @@ public class BoardServiceImpl implements BoardService {
         }
         board.setImageUrl(imageUrl);
         createDefaultTaskColumn(board);
-        board.setBoardRef(generateThreeLetterWord(boardRequest.getName().toUpperCase()));
+        board.setBoardTag(generateThreeLetterWord(boardRequest.getName().toUpperCase()));
         Board savedBoard = boardRepository.save(board);
         savedBoard.getTaskColumns().forEach(this::updateTaskColumnCache);
         return savedBoard;
@@ -104,7 +104,7 @@ public class BoardServiceImpl implements BoardService {
 
     private String generateThreeLetterWord(String boardName) {
         Set<String> usedThreeLetterWords = boardRepository.findAll().stream()
-                .map(Board::getBoardRef)
+                .map(Board::getBoardTag)
                 .collect(Collectors.toSet());
 
         for (int i = 0; i < boardName.length() - 2; i++) {

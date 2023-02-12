@@ -54,15 +54,15 @@ public class Task {
     @ManyToMany
     private List<Label> labels = new ArrayList<>();
     @CreationTimestamp
-    @JsonFormat(pattern="yyyy-MM-dd HH:mm:ss")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime createdAt;
 
     @UpdateTimestamp
-    @JsonFormat(pattern="yyyy-MM-dd HH:mm:ss")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime updatedAt;
 
     public Task(String name) {
         this.name = name;
-    }
 
+    }
 }

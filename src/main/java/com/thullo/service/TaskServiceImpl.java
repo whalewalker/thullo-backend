@@ -34,9 +34,7 @@ public class TaskServiceImpl implements TaskService {
         Task task = taskRequest.getTask();
         String imageUrl = uploadTaskFile(taskRequest);
         task.setImageUrl(imageUrl);
-        Task savedTask = taskRepository.save(task);
-        updateTaskColumnCache(savedTask.getTaskColumn());
-        return savedTask;
+        return taskRepository.save(task);
     }
 
     private String uploadTaskFile(TaskRequest taskRequest) throws BadRequestException, IOException {
@@ -72,7 +70,6 @@ public class TaskServiceImpl implements TaskService {
 
         task.setPosition(absoluteIndex);
         task.setTaskColumn(getTaskColumn(newColumnId));
-        updateTaskColumnCache(task.getTaskColumn());
         return taskRepository.save(task);
     }
 
@@ -83,7 +80,6 @@ public class TaskServiceImpl implements TaskService {
         mapper.map(taskRequest, task);
         String imageUrl = uploadTaskFile(taskRequest);
         if (imageUrl != null) task.setImageUrl(imageUrl);
-        updateTaskColumnCache(task.getTaskColumn());
         return task;
     }
 
@@ -134,7 +130,6 @@ public class TaskServiceImpl implements TaskService {
         Task task = getTaskInternal(taskId);
         if (task != null) {
             taskRepository.delete(task);
-            updateTaskColumnCache(task.getTaskColumn());
         }
     }
 
@@ -154,9 +149,5 @@ public class TaskServiceImpl implements TaskService {
     }
 
 
-    @CachePut(value = "taskColumns", key = "#taskColumn.id")
-    public void updateTaskColumnCache(TaskColumn taskColumn) {
-        taskColumnRepository.save(taskColumn);
-    }
 
 }
