@@ -97,7 +97,7 @@ public class TaskController {
     }
 
     @GetMapping
-    public List<Task> searchTasks(@RequestParam("search") String search ,@RequestParam("boardId") String boardId) {
-        return taskService.findTaskContainingNameOrBoardId(search, boardId);
+    public List<Task> searchTasks(@RequestParam("search") String search ,@RequestParam("boardRef") String boardRef) {
+        return taskService.findTaskContainingNameOrBoardId(search, boardRef);
     }
 }

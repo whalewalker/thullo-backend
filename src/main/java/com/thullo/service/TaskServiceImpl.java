@@ -134,8 +134,8 @@ public class TaskServiceImpl implements TaskService {
     }
 
     @Override
-    public List<Task> findTaskContainingNameOrBoardId(String name, String boardId) {
-        return taskRepository.findByNameContainingOrBoardId(name, boardId);
+    public List<Task> findTaskContainingNameOrBoardId(String name, String boardRef) {
+        return taskRepository.findByNameContainingOrBoardRef(name, boardRef);
     }
 
     public boolean isTaskCreator(Long taskId, String email) {

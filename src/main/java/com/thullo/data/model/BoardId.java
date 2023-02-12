@@ -2,15 +2,13 @@ package com.thullo.data.model;
 
 import lombok.*;
 
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
+import javax.persistence.*;
 
 @Entity
 @Setter
 @Getter
 @NoArgsConstructor
+@Table(name = "next_board_id")
 public class BoardId {
 
     @Id
