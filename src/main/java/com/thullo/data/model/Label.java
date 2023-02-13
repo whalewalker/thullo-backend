@@ -1,6 +1,7 @@
 package com.thullo.data.model;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
@@ -25,6 +26,7 @@ public class Label {
     private String backgroundCode;
 
     @ManyToMany(mappedBy="labels")
+    @JsonIgnore
     private List<Task> tasks = new ArrayList<>();
 
     @CreationTimestamp
@@ -34,4 +36,9 @@ public class Label {
     @UpdateTimestamp
     @JsonFormat(pattern="yyyy-MM-dd HH:mm:ss")
     private LocalDateTime updatedAt;
+
+
+    public void addTask(Task task){
+        tasks.add(task);
+    }
 }
