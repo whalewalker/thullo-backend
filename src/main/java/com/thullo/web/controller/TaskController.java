@@ -29,9 +29,7 @@ public class TaskController {
     private final TaskService taskService;
     private final LabelService labelService;
 
-    @PostMapping(value = "/{taskColumnId}",
-            consumes = {MediaType.MULTIPART_FORM_DATA_VALUE},
-            produces = {MediaType.APPLICATION_JSON_VALUE})
+    @PostMapping(value = "/{taskColumnId}", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE}, produces = {MediaType.APPLICATION_JSON_VALUE})
     @PreAuthorize("@taskServiceImpl.isTaskOwner(#taskColumnId, authentication.principal.email)")
     @CurrentTaskColumn
     public ResponseEntity<ApiResponse> createTask(@PathVariable Long taskColumnId, TaskRequest taskRequest, HttpServletRequest request) {
@@ -68,9 +66,7 @@ public class TaskController {
     }
 
 
-    @PutMapping(value = "/{taskId}",
-            consumes = {MediaType.MULTIPART_FORM_DATA_VALUE},
-            produces = {MediaType.APPLICATION_JSON_VALUE})
+    @PutMapping(value = "/{taskId}", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE}, produces = {MediaType.APPLICATION_JSON_VALUE})
     @PreAuthorize("@taskServiceImpl.isTaskCreator(#taskId, authentication.principal.email)")
     public ResponseEntity<ApiResponse> editTask(@PathVariable Long taskId, TaskRequest taskRequest, HttpServletRequest request) {
         taskRequest.setRequestUrl(request.getRequestURL().toString());
@@ -96,8 +92,7 @@ public class TaskController {
             Task task = taskService.getTask(taskId);
             return ResponseEntity.ok(new ApiResponse(true, "fetch contributors successfully", task.getContributors()));
         } catch (ResourceNotFoundException ex) {
-            return ResponseEntity.badRequest()
-                    .body(new ApiResponse(false, ex.getMessage()));
+            return ResponseEntity.badRequest().body(new ApiResponse(false, ex.getMessage()));
         }
     }
 
@@ -111,6 +106,16 @@ public class TaskController {
         try {
             Label label = labelService.createLabel(request);
             return ResponseEntity.ok(new ApiResponse(true, "Label successfully created", label));
+        } catch (ResourceNotFoundException ex) {
+            return ResponseEntity.badRequest().body(new ApiResponse(false, ex.getMessage()));
+        }
+    }
+
+    @PutMapping("/labels")
+    public ResponseEntity<ApiResponse> removeLabelFromTask(@RequestParam("labelId") Long labelId, @RequestParam("boardRef") String boardRef) {
+        try {
+            labelService.removeLabelFromTask(labelId, boardRef);
+            return ResponseEntity.ok(new ApiResponse(true, "Label is  successfully removed from task"));
         } catch (ResourceNotFoundException ex) {
             return ResponseEntity.badRequest().body(new ApiResponse(false, ex.getMessage()));
         }

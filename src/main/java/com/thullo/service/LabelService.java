@@ -6,4 +6,5 @@ import com.thullo.web.payload.request.LabelRequest;
 
 public interface LabelService {
     Label createLabel(LabelRequest request) throws ResourceNotFoundException;
+    void removeLabelFromTask(Long labelId, String boardRef) throws ResourceNotFoundException;
 }
