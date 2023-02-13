@@ -1,7 +1,9 @@
 package com.thullo.service;
 
+import com.thullo.data.model.Board;
 import com.thullo.data.model.Label;
 import com.thullo.data.model.Task;
+import com.thullo.data.repository.BoardRepository;
 import com.thullo.data.repository.LabelRepository;
 import com.thullo.data.repository.TaskRepository;
 import com.thullo.web.exception.ResourceNotFoundException;
@@ -11,6 +13,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 import static java.lang.String.format;
 
 @Slf4j
@@ -19,6 +24,8 @@ import static java.lang.String.format;
 public class LabelServiceImpl implements LabelService{
     private final TaskRepository taskRepository;
     private final LabelRepository labelRepository;
+
+    private final BoardRepository boardRepository;
 
     private final ModelMapper mapper;
     @Override
@@ -47,6 +54,18 @@ public class LabelServiceImpl implements LabelService{
 
         labelRepository.save(label);
         taskRepository.save(task);
+    }
+
+    @Override
+    public List<Label> getBoardLabel(Long boardId) throws ResourceNotFoundException {
+        Board board = boardRepository.findById(boardId)
+                .orElseThrow(() -> new ResourceNotFoundException("Board not found"));
+
+        return board.getTaskColumns()
+                .stream()
+                .flatMap(taskColumn -> taskColumn.getTasks().stream())
+                .flatMap(task -> task.getLabels().stream())
+                .collect(Collectors.toList());
     }
 
     private Label getLabel(Long labelId) throws ResourceNotFoundException {
