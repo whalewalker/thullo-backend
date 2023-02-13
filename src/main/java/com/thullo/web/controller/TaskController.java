@@ -120,4 +120,14 @@ public class TaskController {
             return ResponseEntity.badRequest().body(new ApiResponse(false, ex.getMessage()));
         }
     }
+
+    @GetMapping("/labels/{boardId}")
+    public ResponseEntity<ApiResponse> getBoardLabel(@PathVariable Long boardId) {
+        try {
+            List<Label> labels = labelService.getBoardLabel(boardId);
+            return ResponseEntity.ok(new ApiResponse(true, "Labels successfully fetched", labels));
+        } catch (ResourceNotFoundException ex) {
+            return ResponseEntity.badRequest().body(new ApiResponse(false, ex.getMessage()));
+        }
+    }
 }
