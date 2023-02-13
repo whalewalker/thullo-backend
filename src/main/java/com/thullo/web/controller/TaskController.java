@@ -1,10 +1,13 @@
 package com.thullo.web.controller;
 
 import com.thullo.annotation.CurrentTaskColumn;
+import com.thullo.data.model.Label;
 import com.thullo.data.model.Task;
+import com.thullo.service.LabelService;
 import com.thullo.service.TaskService;
 import com.thullo.web.exception.BadRequestException;
 import com.thullo.web.exception.ResourceNotFoundException;
+import com.thullo.web.payload.request.LabelRequest;
 import com.thullo.web.payload.request.TaskMoveRequest;
 import com.thullo.web.payload.request.TaskRequest;
 import com.thullo.web.payload.response.ApiResponse;
@@ -15,6 +18,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.validation.Valid;
 import java.io.IOException;
 import java.util.List;
 
@@ -23,6 +27,7 @@ import java.util.List;
 @RequestMapping("api/v1/thullo/tasks")
 public class TaskController {
     private final TaskService taskService;
+    private final LabelService labelService;
 
     @PostMapping(value = "/{taskColumnId}",
             consumes = {MediaType.MULTIPART_FORM_DATA_VALUE},
@@ -97,7 +102,17 @@ public class TaskController {
     }
 
     @GetMapping
-    public List<Task> searchTasks(@RequestParam("search") String search ,@RequestParam("boardRef") String boardRef) {
+    public List<Task> searchTasks(@RequestParam("search") String search, @RequestParam("boardRef") String boardRef) {
         return taskService.findTaskContainingNameOrBoardId(search, boardRef);
+    }
+
+    @PostMapping("/labels")
+    public ResponseEntity<ApiResponse> createLabel(@RequestBody @Valid LabelRequest request) {
+        try {
+            Label label = labelService.createLabel(request);
+            return ResponseEntity.ok(new ApiResponse(true, "Label successfully created", label));
+        } catch (ResourceNotFoundException ex) {
+            return ResponseEntity.badRequest().body(new ApiResponse(false, ex.getMessage()));
+        }
     }
 }

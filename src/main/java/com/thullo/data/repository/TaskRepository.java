@@ -4,6 +4,7 @@ import com.thullo.data.model.Task;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -15,4 +16,6 @@ public interface TaskRepository extends JpaRepository<Task, Long>{
     List<Task> findByNameContainingOrBoardRef(@Param("search") String search, @Param("boardRef") String boardRef);
     @Query(value = "SELECT * FROM task WHERE task_column_id = ?1 ORDER BY `position` ", nativeQuery = true)
     Optional<List<Task>> findByTaskColumnOrderByPositionAsc(long taskColumnId);
+
+    Optional<Task> findByBoardRef(@NonNull String boardRef);
 }

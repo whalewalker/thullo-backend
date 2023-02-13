@@ -65,4 +65,8 @@ public class Task {
         this.name = name;
 
     }
+
+    public void addLabel(Label label) {
+        labels.add(label);
+    }
 }
