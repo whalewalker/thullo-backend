@@ -3,7 +3,6 @@ package com.thullo.service;
 import com.thullo.data.model.Board;
 import com.thullo.data.model.Label;
 import com.thullo.data.model.Task;
-import com.thullo.data.model.TaskColumn;
 import com.thullo.data.repository.BoardRepository;
 import com.thullo.data.repository.LabelRepository;
 import com.thullo.data.repository.TaskRepository;
@@ -16,8 +15,8 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
+import static com.thullo.util.Helper.isNullOrEmpty;
 import static java.lang.String.format;
 
 @Slf4j
@@ -67,7 +66,13 @@ public class LabelServiceImpl implements LabelService {
     @Override
     public List<Label> getBoardLabel(Long boardId) throws ResourceNotFoundException {
         Board board = findBoardById(boardId);
-        return getAllLabelsOnBoard(board);
+
+        return board.getTaskColumns()
+                .stream()
+                .flatMap(taskColumn -> taskColumn.getTasks().stream())
+                .flatMap(task -> task.getLabels().stream())
+                .distinct()
+                .collect(Collectors.toList());
     }
 
     private Board findBoardById(Long boardId) throws ResourceNotFoundException {
@@ -75,24 +80,13 @@ public class LabelServiceImpl implements LabelService {
                 .orElseThrow(() -> new ResourceNotFoundException("Board not found"));
     }
 
-    private List<Label> getAllLabelsOnBoard(Board board) {
-        return board.getTaskColumns()
-                .stream()
-                .flatMap(this::getAllLabelsInTaskColumn)
-                .collect(Collectors.toList());
-    }
 
-    private Stream<Label> getAllLabelsInTaskColumn(TaskColumn taskColumn) {
-        return taskColumn.getTasks()
-                .stream()
-                .flatMap(task -> task.getLabels().stream());
-    }
 
     public Label updateLabelOnTask(String boardRef, Long labelId, LabelRequest request) throws ResourceNotFoundException {
         Task task = getTask(boardRef);
         Label label = getLabel(labelId);
 
-        if (label.getName().equals(request.getName())) {
+        if (isNullOrEmpty(request.getName()) || label.getName().equals(request.getName())) {
             return label;
         }
 
