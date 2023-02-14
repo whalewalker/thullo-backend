@@ -1,6 +1,7 @@
 package com.thullo.data.model;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -27,7 +28,8 @@ public class Role {
   private String name;
 
   @ManyToMany(mappedBy = "roles")
-  private Collection<User> Users;
+  @JsonManagedReference
+  private Collection<User> users;
 
   @CreationTimestamp
   @JsonFormat(pattern="yyyy-MM-dd HH:mm:ss")

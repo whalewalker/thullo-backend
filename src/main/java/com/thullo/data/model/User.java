@@ -1,7 +1,11 @@
 package com.thullo.data.model;
 
-import com.fasterxml.jackson.annotation.*;
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
@@ -18,6 +22,7 @@ import java.util.List;
 })
 @Getter
 @Setter
+@NoArgsConstructor
 public class User extends RepresentationModel<User> {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -35,7 +40,6 @@ public class User extends RepresentationModel<User> {
 
     private String bio;
 
-    @Column(nullable = false)
     private Boolean emailVerified;
 
     @JsonIgnore
@@ -50,6 +54,7 @@ public class User extends RepresentationModel<User> {
     @JoinTable(name = "user_roles",
             joinColumns = @JoinColumn(name = "user_id"),
             inverseJoinColumns = @JoinColumn(name = "role_id"))
+    @JsonBackReference
     private List<Role> roles = new ArrayList<>();
 
     @OneToMany(mappedBy = "user")
@@ -57,6 +62,7 @@ public class User extends RepresentationModel<User> {
     private List<Board> boards = new ArrayList<>();
 
     @OneToMany(mappedBy = "user")
+    @JsonIgnore
     private List<Notification> notifications = new ArrayList<>();
 
     @CreationTimestamp
@@ -70,4 +76,5 @@ public class User extends RepresentationModel<User> {
     public void addNotification(Notification notification) {
         notifications.add(notification);
     }
+
 }

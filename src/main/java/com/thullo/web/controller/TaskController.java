@@ -96,4 +96,14 @@ public class TaskController {
         return taskService.findTaskContainingNameOrBoardId(search, boardRef);
     }
 
+    @PutMapping("/{boardRef}")
+    public ResponseEntity<ApiResponse> addContributors(@PathVariable String boardRef, @RequestBody List<String> contributors) {
+        try {
+            taskService.addContributors(boardRef, contributors);
+            return ResponseEntity.ok(new ApiResponse(true, "contributor successfully added"));
+        } catch (ResourceNotFoundException ex) {
+            return ResponseEntity.badRequest().body(new ApiResponse(false, ex.getMessage()));
+        }
+    }
+
 }
