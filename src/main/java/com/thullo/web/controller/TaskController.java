@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.*;
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.util.List;
+import java.util.Set;
 
 @RestController
 @RequiredArgsConstructor
@@ -97,10 +98,21 @@ public class TaskController {
     }
 
     @PutMapping("/{boardRef}")
-    public ResponseEntity<ApiResponse> addContributors(@PathVariable String boardRef, @RequestBody List<String> contributors) {
+    public ResponseEntity<ApiResponse> addContributors(@PathVariable String boardRef, @RequestBody Set<String> contributors) {
         try {
             taskService.addContributors(boardRef, contributors);
-            return ResponseEntity.ok(new ApiResponse(true, "contributor successfully added"));
+            return ResponseEntity.ok(new ApiResponse(true, "contributors successfully added"));
+        } catch (ResourceNotFoundException ex) {
+            return ResponseEntity.badRequest().body(new ApiResponse(false, ex.getMessage()));
+        }
+    }
+
+
+    @PutMapping("remove/{boardRef}")
+    public ResponseEntity<ApiResponse> removeContributors(@PathVariable String boardRef, @RequestBody Set<String> contributors) {
+        try {
+            taskService.removeContributors(boardRef, contributors);
+            return ResponseEntity.ok(new ApiResponse(true, "contributors successfully removed"));
         } catch (ResourceNotFoundException ex) {
             return ResponseEntity.badRequest().body(new ApiResponse(false, ex.getMessage()));
         }

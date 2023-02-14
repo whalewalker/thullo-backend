@@ -51,7 +51,7 @@ public class Task {
             joinColumns = @JoinColumn(name = "task_id"),
             inverseJoinColumns = @JoinColumn(name = "user_id")
     )
-    private List<User> contributors = new ArrayList<>();
+    private Set<User> contributors = new HashSet<>();
 
     @ManyToMany(cascade = {
             CascadeType.PERSIST,

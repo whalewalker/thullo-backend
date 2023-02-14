@@ -7,6 +7,7 @@ import com.thullo.web.payload.request.TaskRequest;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Set;
 
 public interface TaskService {
     Task createTask(TaskRequest taskRequest) throws BadRequestException, IOException;
@@ -15,5 +16,6 @@ public interface TaskService {
    Task getTask(Long taskId) throws ResourceNotFoundException;
     void deleteTask(Long taskId);
     List<Task> findTaskContainingNameOrBoardId(String name, String boardId);
-   void addContributors(String boardRef, List<String> contributors) throws ResourceNotFoundException;
+   void addContributors(String boardRef, Set<String> contributors) throws ResourceNotFoundException;
+   void removeContributors(String boardRef, Set<String> contributors) throws ResourceNotFoundException;
 }

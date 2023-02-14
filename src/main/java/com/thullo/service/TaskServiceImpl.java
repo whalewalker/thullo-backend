@@ -19,6 +19,7 @@ import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Set;
 
 import static java.lang.String.format;
 
@@ -143,18 +144,35 @@ public class TaskServiceImpl implements TaskService {
     }
 
     @Override
-    public void addContributors(String boardRef, List<String> contributors) throws ResourceNotFoundException {
+    public void addContributors(String boardRef, Set<String> contributors) throws ResourceNotFoundException {
         String title = "You have been added as a contributor on task: " + boardRef;
-        String message = "You have been mentioned in a comment on task " + boardRef;
+        String message = "You have been added as a contributor on task " + boardRef;
 
         Task task = getTask(boardRef);
-        List<User> users = userRepository.findAllByEmails(contributors);
-        for(User contributor : users){
-            task.getContributors().add(contributor);
-            notificationService.sendNotificationToUser(contributor, message, title,
-                    NotificationType.ADDED_AS_CONTRIBUTOR);
+        Set<User> existingContributors = task.getContributors();
+        List<User> newContributors = userRepository.findAllByEmails(contributors);
+        for (User contributor : newContributors) {
+            if (!existingContributors.contains(contributor)) {
+                existingContributors.add(contributor);
+                notificationService.sendNotificationToUser(contributor, message, title, NotificationType.ADDED_AS_CONTRIBUTOR);
+            }
         }
     }
+
+    @Override
+    public void removeContributors(String boardRef, Set<String> contributors) throws ResourceNotFoundException {
+        String title = "You have been removed as a contributor on task: " + boardRef;
+        String message = "You have been removed as a contributor on task " + boardRef;
+
+        Task task = getTask(boardRef);
+        Set<User> existingContributors = task.getContributors();
+        List<User> usersToRemove = userRepository.findAllByEmails(contributors);
+        for (User contributor : usersToRemove) {
+            existingContributors.remove(contributor);
+            notificationService.sendNotificationToUser(contributor, message, title, NotificationType.REMOVE_AS_CONTRIBUTOR);
+        }
+    }
+
 
     public boolean isTaskCreator(Long taskId, String email) {
         User user = userRepository.findByEmail(email).orElse(null);
