@@ -1,8 +1,9 @@
 package com.thullo.service;
 
-import com.thullo.data.model.*;
+import com.thullo.data.model.Comment;
+import com.thullo.data.model.Task;
+import com.thullo.data.model.User;
 import com.thullo.data.repository.CommentRepository;
-import com.thullo.data.repository.NotificationRepository;
 import com.thullo.data.repository.TaskRepository;
 import com.thullo.data.repository.UserRepository;
 import com.thullo.web.exception.ResourceNotFoundException;
@@ -15,6 +16,8 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static com.thullo.data.model.NotificationType.MENTIONED_IN_COMMENT;
+
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -26,7 +29,7 @@ public class CommentServiceImpl implements CommentService {
 
     private final TaskRepository taskRepository;
 
-    private final NotificationRepository notificationRepository;
+    private final NotificationService notificationService;
 
     @Override
     public Comment createComment(CommentRequest request) throws ResourceNotFoundException {
@@ -42,20 +45,12 @@ public class CommentServiceImpl implements CommentService {
         comment.setTask(task);
 
         Comment savedComment = commentRepository.save(comment);
-        sendNotificationsToMentionedUsers(mentionedUsers, request.getMessage(), task.getBoardRef());
+
+        String title = "You have been mentioned in a comment on task: " + task.getBoardRef();
+        String message = "You have been mentioned in a comment on task " + task.getBoardRef() + ": " + request.getMessage();
+        notificationService.sendNotificationsToUsers(mentionedUsers, message, title, MENTIONED_IN_COMMENT);
         return savedComment;
     }
 
-    private void sendNotificationsToMentionedUsers(List<User> mentionedUsers, String message, String taskName) {
-        for (User user : mentionedUsers) {
-            Notification notification = new Notification(
-                    user,
-                    "You have been mentioned in a comment on task: " + taskName,
-                    "You have been mentioned in a comment on task " + taskName + ": " + message,
-                    NotificationType.MENTIONED_IN_COMMENT
-            );
-            user.addNotification(notification);
-            notificationRepository.save(notification);
-         }
-    }
+
 }

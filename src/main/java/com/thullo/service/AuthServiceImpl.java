@@ -54,30 +54,26 @@ public class AuthServiceImpl implements AuthService {
     @Override
     @Transactional
     public User registerNewUserAccount(UserRequest userRequest) throws AuthException {
-        if (validateEmail(userRequest.getEmail())) {
+        if (Boolean.TRUE.equals(userRepository.existsByEmail(userRequest.getEmail()))) {
             throw new AuthException("Email is already in use");
         }
         User user = modelMapper.map(userRequest, User.class);
         user.setProvider(AuthProvider.LOCAL);
         user.setPassword(passwordEncoder.encode(user.getPassword()));
-        user.setRoles(List.of(roleRepository.findByName("ROLE_USER").get()));
+        user.setRoles(List.of(roleRepository.findByName("ROLE_USER").orElseThrow()));
         return saveAUser(user);
     }
 
-    private boolean validateEmail(String email) {
-        return userRepository.existsByEmail(email);
-    }
 
     private User saveAUser(User user) {
         return userRepository.save(user);
     }
 
-
     @Override
     public void confirmVerificationToken(String verificationToken) throws TokenException {
         Token vToken = getAToken(verificationToken, VERIFICATION.toString());
 
-        if (isValidToken(vToken.getExpiryDate()))
+        if (!isValidToken(vToken.getExpiryDate()))
             throw new TokenException("Token has expired");
 
         User user = vToken.getUser();

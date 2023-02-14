@@ -1,5 +1,6 @@
 package com.thullo.service;
 
+import com.thullo.data.model.NotificationType;
 import com.thullo.data.model.Task;
 import com.thullo.data.model.TaskColumn;
 import com.thullo.data.model.User;
@@ -19,6 +20,8 @@ import org.springframework.stereotype.Service;
 import java.io.IOException;
 import java.util.List;
 
+import static java.lang.String.format;
+
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -28,6 +31,7 @@ public class TaskServiceImpl implements TaskService {
     private final FileService fileService;
     private final TaskColumnRepository taskColumnRepository;
     private final UserRepository userRepository;
+    private final NotificationService notificationService;
     @Override
     @CachePut(value = "tasks", key = "#result.id")
     public Task createTask(TaskRequest taskRequest) throws BadRequestException, IOException {
@@ -138,6 +142,20 @@ public class TaskServiceImpl implements TaskService {
         return taskRepository.findByNameContainingOrBoardRef(name, boardRef);
     }
 
+    @Override
+    public void addContributors(String boardRef, List<String> contributors) throws ResourceNotFoundException {
+        String title = "You have been added as a contributor on task: " + boardRef;
+        String message = "You have been mentioned in a comment on task " + boardRef;
+
+        Task task = getTask(boardRef);
+        List<User> users = userRepository.findAllByEmails(contributors);
+        for(User contributor : users){
+            task.getContributors().add(contributor);
+            notificationService.sendNotificationToUser(contributor, message, title,
+                    NotificationType.ADDED_AS_CONTRIBUTOR);
+        }
+    }
+
     public boolean isTaskCreator(Long taskId, String email) {
         User user = userRepository.findByEmail(email).orElse(null);
         if (user == null) return false;
@@ -148,6 +166,9 @@ public class TaskServiceImpl implements TaskService {
         return task.getTaskColumn().getBoard().getUser().getId().equals(user.getId());
     }
 
-
+    private Task getTask(String boardRef) throws ResourceNotFoundException {
+        return taskRepository.findByBoardRef(boardRef).orElseThrow(
+                () -> new ResourceNotFoundException(format("Task with board ref %s not found", boardRef)));
+    }
 
 }

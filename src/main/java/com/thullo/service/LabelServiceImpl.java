@@ -51,7 +51,7 @@ public class LabelServiceImpl implements LabelService {
 
     private Task getTask(String boardRef) throws ResourceNotFoundException {
         return taskRepository.findByBoardRef(boardRef).orElseThrow(
-                () -> new ResourceNotFoundException(format("Task with board ref %s not found !", boardRef)));
+                () -> new ResourceNotFoundException(format("Task with board ref %s not found", boardRef)));
     }
 
     @Override
