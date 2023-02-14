@@ -7,6 +7,7 @@ import com.thullo.service.LabelService;
 import com.thullo.service.TaskService;
 import com.thullo.web.exception.BadRequestException;
 import com.thullo.web.exception.ResourceNotFoundException;
+import com.thullo.web.exception.ThulloException;
 import com.thullo.web.payload.request.LabelRequest;
 import com.thullo.web.payload.request.TaskMoveRequest;
 import com.thullo.web.payload.request.TaskRequest;
@@ -102,20 +103,30 @@ public class TaskController {
     }
 
     @PostMapping("/labels")
-    public ResponseEntity<ApiResponse> createLabel(@RequestBody @Valid LabelRequest request) {
+    public ResponseEntity<ApiResponse> createLabel( @RequestParam("boardRef") String boardRef, @RequestBody @Valid LabelRequest request) {
         try {
-            Label label = labelService.createLabel(request);
+            Label label = labelService.createLabel(boardRef, request);
             return ResponseEntity.ok(new ApiResponse(true, "Label successfully created", label));
+        } catch (ThulloException | ResourceNotFoundException ex) {
+            return ResponseEntity.badRequest().body(new ApiResponse(false, ex.getMessage()));
+        }
+    }
+
+    @PutMapping("/labels/remove")
+    public ResponseEntity<ApiResponse> removeLabelFromTask(@RequestParam("labelId") Long labelId, @RequestParam("boardRef") String boardRef) {
+        try {
+            labelService.removeLabelFromTask(labelId, boardRef);
+            return ResponseEntity.ok(new ApiResponse(true, "Label is  successfully removed from task"));
         } catch (ResourceNotFoundException ex) {
             return ResponseEntity.badRequest().body(new ApiResponse(false, ex.getMessage()));
         }
     }
 
     @PutMapping("/labels")
-    public ResponseEntity<ApiResponse> removeLabelFromTask(@RequestParam("labelId") Long labelId, @RequestParam("boardRef") String boardRef) {
+    public ResponseEntity<ApiResponse> updateLabel(@RequestParam("labelId") Long labelId, @RequestParam("boardRef") String boardRef, @RequestBody LabelRequest request) {
         try {
-            labelService.removeLabelFromTask(labelId, boardRef);
-            return ResponseEntity.ok(new ApiResponse(true, "Label is  successfully removed from task"));
+            Label label = labelService.updateLabelOnTask(boardRef, labelId, request);
+            return ResponseEntity.ok(new ApiResponse(true, "Label updated successfully", label));
         } catch (ResourceNotFoundException ex) {
             return ResponseEntity.badRequest().body(new ApiResponse(false, ex.getMessage()));
         }

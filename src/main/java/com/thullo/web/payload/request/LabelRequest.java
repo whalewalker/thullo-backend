@@ -14,6 +14,4 @@ public class LabelRequest {
 
     @NotBlank(message = "Label background code cannot be blank")
     private String backgroundCode;
-    @NotBlank(message = "BoardRef cannot be blank")
-    private String boardRef;
 }

@@ -3,6 +3,7 @@ package com.thullo.service;
 import com.thullo.data.model.Board;
 import com.thullo.data.model.Label;
 import com.thullo.data.model.Task;
+import com.thullo.data.model.TaskColumn;
 import com.thullo.data.repository.BoardRepository;
 import com.thullo.data.repository.LabelRepository;
 import com.thullo.data.repository.TaskRepository;
@@ -15,29 +16,39 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static java.lang.String.format;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class LabelServiceImpl implements LabelService{
+public class LabelServiceImpl implements LabelService {
     private final TaskRepository taskRepository;
     private final LabelRepository labelRepository;
 
     private final BoardRepository boardRepository;
 
     private final ModelMapper mapper;
+
     @Override
-    public Label createLabel(LabelRequest request) throws ResourceNotFoundException {
-        Task task = getTask(request.getBoardRef());
-        Label label = mapper.map(request, Label.class);
-        label.addTask(task);
-        Label savedLabel = labelRepository.save(label);
-        task.addLabel(savedLabel);
-        taskRepository.save(task);
-        return savedLabel;
+    public Label createLabel(String boardRef, LabelRequest request) throws ResourceNotFoundException {
+        Task task = getTask(boardRef);
+        Label label = labelRepository.findByName(request.getName())
+                .orElseGet(() -> createNewLabel(request));
+
+        if (!task.getLabels().contains(label)) {
+            task.getLabels().add(label);
+            taskRepository.save(task);
+        }
+        return label;
     }
+
+    private Label createNewLabel(LabelRequest request) {
+        Label label = new Label(request.getName(), request.getColorCode(), request.getBackgroundCode());
+        return labelRepository.save(label);
+    }
+
 
     private Task getTask(String boardRef) throws ResourceNotFoundException {
         return taskRepository.findByBoardRef(boardRef).orElseThrow(
@@ -49,24 +60,58 @@ public class LabelServiceImpl implements LabelService{
         Label label = getLabel(labelId);
         Task task = getTask(boardRef);
 
-        label.getTasks().remove(task);
         task.getLabels().remove(label);
-
-        labelRepository.save(label);
         taskRepository.save(task);
     }
 
     @Override
     public List<Label> getBoardLabel(Long boardId) throws ResourceNotFoundException {
-        Board board = boardRepository.findById(boardId)
-                .orElseThrow(() -> new ResourceNotFoundException("Board not found"));
+        Board board = findBoardById(boardId);
+        return getAllLabelsOnBoard(board);
+    }
 
+    private Board findBoardById(Long boardId) throws ResourceNotFoundException {
+        return boardRepository.findById(boardId)
+                .orElseThrow(() -> new ResourceNotFoundException("Board not found"));
+    }
+
+    private List<Label> getAllLabelsOnBoard(Board board) {
         return board.getTaskColumns()
                 .stream()
-                .flatMap(taskColumn -> taskColumn.getTasks().stream())
-                .flatMap(task -> task.getLabels().stream())
+                .flatMap(this::getAllLabelsInTaskColumn)
                 .collect(Collectors.toList());
     }
+
+    private Stream<Label> getAllLabelsInTaskColumn(TaskColumn taskColumn) {
+        return taskColumn.getTasks()
+                .stream()
+                .flatMap(task -> task.getLabels().stream());
+    }
+
+    public Label updateLabelOnTask(String boardRef, Long labelId, LabelRequest request) throws ResourceNotFoundException {
+        Task task = getTask(boardRef);
+        Label label = getLabel(labelId);
+
+        if (label.getName().equals(request.getName())) {
+            return label;
+        }
+
+        Label existingLabel = labelRepository.findByName(request.getName()).orElse(null);
+        if (existingLabel == null) {
+            existingLabel = new Label();
+            mapper.map(label, existingLabel);
+            mapper.map(request, existingLabel);
+            existingLabel.setId(null);
+            existingLabel = labelRepository.save(existingLabel);
+        }
+
+        task.getLabels().remove(label);
+        task.getLabels().add(existingLabel);
+        taskRepository.save(task);
+
+        return existingLabel;
+    }
+
 
     private Label getLabel(Long labelId) throws ResourceNotFoundException {
         return labelRepository.findById(labelId).orElseThrow(
