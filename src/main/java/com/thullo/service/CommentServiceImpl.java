@@ -15,6 +15,7 @@ import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -76,6 +77,19 @@ public class CommentServiceImpl implements CommentService {
         }
     }
 
+    @Override
+    public void deleteComment(String boardRef, Long commentId) throws ResourceNotFoundException {
+        Task task = getTask(boardRef);
+        Optional<Comment> commentToDelete = task.getComments()
+                .stream()
+                .filter(c -> c.getId().equals(commentId))
+                .findFirst();
+
+        commentToDelete.ifPresent(comment -> {
+            task.getComments().remove(comment);
+            commentRepository.delete(comment);
+        });
+    }
 
 
     private Comment getComment(Long commentId) throws ResourceNotFoundException {

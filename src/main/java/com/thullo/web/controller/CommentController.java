@@ -40,4 +40,15 @@ public class CommentController {
             return ResponseEntity.badRequest().body(new ApiResponse(false, ex.getMessage()));
         }
     }
+
+    @DeleteMapping
+    public ResponseEntity<ApiResponse> deleteComment(@RequestParam("boardRef") String boardRef, @RequestParam("commentId") Long commentId) {
+        try {
+            commentService.deleteComment(boardRef, commentId);
+            ApiResponse response = new ApiResponse(true, "Comment successfully deleted");
+            return ResponseEntity.ok(response);
+        }catch (ResourceNotFoundException ex){
+            return ResponseEntity.badRequest().body(new ApiResponse(false, ex.getMessage()));
+        }
+    }
 }
