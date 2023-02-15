@@ -9,6 +9,4 @@ import java.util.Optional;
 @Repository
 public interface FilesRepository extends JpaRepository<FileData, Long> {
     Optional<FileData> getFilesByFileId(String fileId);
-
-    void deleteByFileId(String fileId);
 }

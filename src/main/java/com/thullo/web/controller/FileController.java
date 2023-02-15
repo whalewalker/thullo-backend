@@ -30,7 +30,8 @@ public class FileController {
                     .contentType(fileService.getMediaTypeForFileType(files.getFileType()))
                     .body(resource);
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body(new ApiResponse(false, "File not found"));        }
+            return ResponseEntity.badRequest().body(new ApiResponse(false, "File not found"));
+        }
     }
 
 
@@ -43,5 +44,11 @@ public class FileController {
         } catch (Exception ex) {
             return ResponseEntity.badRequest().body(new ApiResponse(false, ex.getMessage()));
         }
+    }
+
+    @DeleteMapping("/{fileId}")
+    public ResponseEntity<ApiResponse> deleteFile(@PathVariable("fileId") String fileId) {
+        fileService.deleteFile(fileId);
+        return ResponseEntity.ok(new ApiResponse(true, "File deleted successfully"));
     }
 }
