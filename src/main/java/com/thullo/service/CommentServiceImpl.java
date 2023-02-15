@@ -79,10 +79,13 @@ public class CommentServiceImpl implements CommentService {
     @Override
     public void deleteComment(String boardRef, Long commentId) throws ResourceNotFoundException {
         Task task = getTask(boardRef);
-        task.getComments()
+        Comment comment = task.getComments()
                 .stream()
                 .filter(c -> c.getId().equals(commentId))
-                .findFirst().ifPresent(commentRepository::delete);
+                .findFirst().orElse(null);
+
+        task.getComments().remove(comment);
+        if (comment != null) commentRepository.delete(comment);
     }
 
 
