@@ -12,4 +12,5 @@ public interface FileService {
     byte[] decompressFile(byte[] compressedFile) throws IOException;
     FileData getFIle(String fileId) throws IOException;
     MediaType getMediaTypeForFileType(String fileType);
+    void deleteFile(String fileId);
 }

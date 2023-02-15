@@ -13,6 +13,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
@@ -118,4 +119,13 @@ public class TaskController {
         }
     }
 
+    @PutMapping("/add-cover-image")
+    public ResponseEntity<ApiResponse> addCoverImage(@RequestParam("boardRef") String boardRef, @RequestParam("file") MultipartFile file, HttpServletRequest request) {
+        try {
+            Task task = taskService.updateTaskImage(boardRef, file, request.getRequestURL().toString());
+            return ResponseEntity.ok(new ApiResponse(true, "cover image added successfully", task));
+        } catch (BadRequestException | ResourceNotFoundException | IOException ex) {
+            return ResponseEntity.badRequest().body(new ApiResponse(false, ex.getMessage()));
+        }
+    }
 }
