@@ -21,5 +21,7 @@ public interface TaskService {
    void removeContributors(String boardRef, Set<String> contributors) throws ResourceNotFoundException;
 
    Task updateTaskImage(String boardRef, MultipartFile coverImage, String requestUrl) throws ResourceNotFoundException, BadRequestException, IOException;
+
+    String getTaskImageUrl(String boardRef) throws ResourceNotFoundException;
 }
 

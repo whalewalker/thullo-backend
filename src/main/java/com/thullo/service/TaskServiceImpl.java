@@ -190,6 +190,12 @@ public class TaskServiceImpl implements TaskService {
         return taskRepository.save(task);
     }
 
+    @Override
+    public String getTaskImageUrl(String boardRef) throws ResourceNotFoundException {
+        Task task = getTask(boardRef);
+        return task.getImageUrl();
+    }
+
     private String extractFileIdFromUrl(String imageUrl) {
         return imageUrl.substring(imageUrl.indexOf("files/") + 6);
     }
