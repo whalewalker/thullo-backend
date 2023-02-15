@@ -16,11 +16,11 @@ import javax.servlet.http.HttpServletRequest;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("api/v1/thullo")
+@RequestMapping("api/v1/thullo/files")
 public class FileController {
     private final FileService fileService;
 
-    @GetMapping("/files/{fileId}")
+    @GetMapping("/{fileId}")
     public ResponseEntity<?> getFile(@PathVariable("fileId") String fileId) {
         try {
             FileData files = fileService.getFIle(fileId);
