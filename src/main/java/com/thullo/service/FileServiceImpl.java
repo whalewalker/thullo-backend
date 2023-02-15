@@ -6,12 +6,14 @@ import com.thullo.data.repository.FilesRepository;
 import com.thullo.web.exception.BadRequestException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.io.IOUtils;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.*;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
@@ -54,11 +56,12 @@ public class FileServiceImpl implements FileService {
 
     @Override
     public FileData getFIle(String fileId) throws IOException {
-        FileData dbFile = filesRepository.getFilesByFileId(fileId);
-        InputStream is = new ByteArrayInputStream(dbFile.getFileByte());
-        byte[] compressedFile = IOUtils.toByteArray(is);
-        byte[] decompressedFile = decompressFile(compressedFile);
-        dbFile.setFileByte(decompressedFile);
+        FileData dbFile = filesRepository.getFilesByFileId(fileId).orElse(null);
+        if (dbFile != null) {
+            byte[] compressedFile = dbFile.getFileByte();
+            byte[] decompressedFile = decompressFile(compressedFile);
+            dbFile.setFileByte(decompressedFile);
+        }
         return dbFile;
     }
 
@@ -101,6 +104,12 @@ public class FileServiceImpl implements FileService {
             default:
                 return MediaType.APPLICATION_OCTET_STREAM;
         }
+    }
+
+    @Override
+    public void deleteFile(String fileId) {
+        filesRepository.getFilesByFileId(fileId)
+                .ifPresent(filesRepository::delete);
     }
 
 }

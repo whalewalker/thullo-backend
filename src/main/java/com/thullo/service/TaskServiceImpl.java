@@ -16,6 +16,7 @@ import org.modelmapper.ModelMapper;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.CachePut;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.util.List;
@@ -172,6 +173,37 @@ public class TaskServiceImpl implements TaskService {
             notificationService.sendNotificationToUser(contributor, message, title, NotificationType.REMOVE_AS_CONTRIBUTOR);
         }
     }
+
+    @Override
+    public Task updateTaskImage(String boardRef, MultipartFile coverImage, String requestUrl) throws ResourceNotFoundException, IOException, BadRequestException {
+        Task task = getTask(boardRef);
+
+        String imageUrl = task.getImageUrl();
+        if (imageUrl != null) {
+            String fileId = extractFileIdFromUrl(imageUrl);
+            fileService.deleteFile(fileId);
+        }
+
+        String newImageUrl = uploadCoverImage(coverImage, requestUrl);
+        task.setImageUrl(newImageUrl);
+
+        return taskRepository.save(task);
+    }
+
+    @Override
+    public String getTaskImageUrl(String boardRef) throws ResourceNotFoundException {
+        Task task = getTask(boardRef);
+        return task.getImageUrl();
+    }
+
+    private String extractFileIdFromUrl(String imageUrl) {
+        return imageUrl.substring(imageUrl.indexOf("files/") + 6);
+    }
+
+    private String uploadCoverImage(MultipartFile coverImage, String requestUrl) throws IOException, BadRequestException {
+        return fileService.uploadFile(coverImage, requestUrl);
+    }
+
 
 
     public boolean isTaskCreator(Long taskId, String email) {
