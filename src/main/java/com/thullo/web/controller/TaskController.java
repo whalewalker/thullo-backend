@@ -120,7 +120,7 @@ public class TaskController {
         }
     }
 
-    @PutMapping("/add-cover-image")
+    @PutMapping("/cover-image")
     public ResponseEntity<ApiResponse> addCoverImage(@RequestParam("boardRef") String boardRef, @RequestParam("file") MultipartFile file, HttpServletRequest request) {
         try {
             Task task = taskService.updateTaskImage(boardRef, file, request.getRequestURL().toString());
@@ -131,7 +131,7 @@ public class TaskController {
     }
 
 
-    @GetMapping
+    @GetMapping("/cover-image")
     public ResponseEntity<ApiResponse> getTaskCoverImage(@RequestParam("boardRef") String boardRef) {
         try {
             String taskImageUrl = taskService.getTaskImageUrl(boardRef);
