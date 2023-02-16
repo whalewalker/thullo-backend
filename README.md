@@ -7,7 +7,10 @@ Thullo is a digital platform that helps individuals and organizations manage the
 
 ## Thullo Board Layout
 
+![App Screenshot](src/main/resources/static/screenshot2.png)
 ![App Screenshot](src/main/resources/static/screenshot.png)
+![App Screenshot](src/main/resources/static/screenshot3.png)
+![App Screenshot](src/main/resources/static/screenshot4.png)
 
 ## Technologies Used
 - Java (Programming language)
