@@ -56,6 +56,3 @@ tasks.named('test') {
 bootJar {
     launchScript()
 }
-
-
-
