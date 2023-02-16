@@ -35,6 +35,23 @@ public class FileController {
     }
 
 
+    @GetMapping("/files/download/{fileId}")
+    public ResponseEntity<?> downloadFile(@PathVariable("fileId") String fileId) {
+        try {
+            FileData files = fileService.getFIle(fileId);
+            ByteArrayResource resource = new ByteArrayResource(files.getFileByte());
+            HttpHeaders headers = new HttpHeaders();
+            headers.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + files.getFileName());
+            headers.setContentType(fileService.getMediaTypeForFileType(files.getFileType()));
+            return ResponseEntity.ok()
+                    .headers(headers)
+                    .body(resource);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(new ApiResponse(false, "File not found"));
+        }
+    }
+
+
     @PostMapping(value = "/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<ApiResponse> uploadFile(@RequestParam("file") MultipartFile file, HttpServletRequest request) {
         String url = request.getRequestURL().toString();
