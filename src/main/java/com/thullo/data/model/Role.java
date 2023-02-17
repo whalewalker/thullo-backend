@@ -12,6 +12,7 @@ import org.hibernate.annotations.UpdateTimestamp;
 import javax.persistence.*;
 import java.time.LocalDateTime;
 import java.util.Collection;
+import java.util.List;
 
 @Entity
 @Setter
@@ -30,6 +31,12 @@ public class Role {
   @ManyToMany(mappedBy = "roles")
   @JsonManagedReference
   private Collection<User> users;
+
+  @ManyToMany
+  @JoinTable(name = "roles_privileges",
+          joinColumns = @JoinColumn(name = "role_id", referencedColumnName = "id"),
+          inverseJoinColumns = @JoinColumn(name = "privilege_id", referencedColumnName = "id"))
+  private List<Privilege> privileges;
 
   @CreationTimestamp
   @JsonFormat(pattern="yyyy-MM-dd HH:mm:ss")

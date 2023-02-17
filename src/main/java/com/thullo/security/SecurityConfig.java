@@ -11,7 +11,6 @@ import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
@@ -36,10 +35,8 @@ public class SecurityConfig {
     private final HttpCookieOAuth2AuthorizationRequestRepository httpCookieOAuth2AuthorizationRequestRepository;
 
     private static final String[] AUTH_WHITELIST = {
-            // other public endpoints of your API may be appended to this array
             "/api/v1/thullo/auth/**",
-            "/oauth2/**",
-            "/api/v1/thullo/files/**"
+            "/oauth2/**"
     };
 
     /**§
@@ -69,8 +66,9 @@ public class SecurityConfig {
                 .authorizeRequests()
                 .antMatchers(AUTH_WHITELIST)
                 .permitAll()
-                .antMatchers(HttpMethod.GET, "/api/v1/thullo/users/**")
+                .antMatchers(HttpMethod.GET, "/api/v1/thullo/users/**", "/api/v1/thullo/files/**")
                 .permitAll()
+                .antMatchers("/board/create", "/board/delete").hasAnyRole("OWNER", "ADMIN")
                 .anyRequest()
                 .authenticated()
                 .and()
@@ -93,14 +91,11 @@ public class SecurityConfig {
     }
 
 
-
-
-
-    @Bean
-    public WebSecurityCustomizer securityCustomizer() {
-        return (web -> web.debug(false)
-                .ignoring()
-                .antMatchers("/css/**", "/js/**", "/img/**",
-                        "/lib/**", "/favicon.ico"));
-    }
+//    @Bean
+//    public WebSecurityCustomizer securityCustomizer() {
+//        return (web -> web.debug(false)
+//                .ignoring()
+//                .antMatchers("/css/**", "/js/**", "/img/**",
+//                        "/lib/**", "/favicon.ico"));
+//    }
 }
