@@ -17,7 +17,6 @@ import org.springframework.security.web.access.expression.DefaultWebSecurityExpr
 
 @Configuration
 @RequiredArgsConstructor
-
 public class AppBeans {
     private final CustomUserDetailService customUserDetailService;
 

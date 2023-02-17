@@ -51,9 +51,10 @@ public class SetupRoleAndPrivileges implements ApplicationListener<ContextRefres
         Optional<Role> adminRole = roleRepository.findByName("ROLE_ADMIN");
         Privilege readPrivilege = createPrivilegeIfNotFound("READ_PRIVILEGE");
         Privilege writePrivilege = createPrivilegeIfNotFound("WRITE_PRIVILEGE");
+        Privilege deletePrivilege = createPrivilegeIfNotFound("DELETE_PRIVILEGE");
 
         List<Privilege> adminPrivileges = Arrays.asList(
-                readPrivilege, writePrivilege);
+                readPrivilege, writePrivilege, deletePrivilege);
 
 
         if (adminRole.isPresent() && userRepository.findByEmail("admin@gmail.com").isEmpty()) {
