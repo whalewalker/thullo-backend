@@ -216,7 +216,7 @@ public class TaskServiceImpl implements TaskService {
         return task.getTaskColumn().getBoard().getUser().getId().equals(user.getId());
     }
 
-    private Task getTask(String boardRef) throws ResourceNotFoundException {
+    public Task getTask(String boardRef) throws ResourceNotFoundException {
         return taskRepository.findByBoardRef(boardRef).orElseThrow(
                 () -> new ResourceNotFoundException(format("Task with board ref %s not found", boardRef)));
     }

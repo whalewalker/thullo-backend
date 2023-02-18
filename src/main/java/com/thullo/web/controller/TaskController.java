@@ -52,11 +52,10 @@ public class TaskController {
         }
     }
 
-    @GetMapping("/{taskId}")
-    @PreAuthorize("@taskServiceImpl.isTaskCreator(#taskId, authentication.principal.email)")
-    public ResponseEntity<ApiResponse> getTask(@PathVariable("taskId") Long taskId) {
+    @GetMapping()
+    public ResponseEntity<ApiResponse> getTask(@RequestParam("boardRef") String boardRef) {
         try {
-            Task task = taskService.getTask(taskId);
+            Task task = taskService.getTask(boardRef);
             return ResponseEntity.ok(new ApiResponse(true, "Task fetched successfully", task));
         } catch (ResourceNotFoundException ex) {
             return ResponseEntity.badRequest().body(new ApiResponse(false, ex.getMessage()));
@@ -94,8 +93,8 @@ public class TaskController {
         }
     }
 
-    @GetMapping
-    public List<Task> searchTasks(@RequestParam("search") String search, @RequestParam("boardRef") String boardRef) {
+    @GetMapping("/search")
+    public List<Task> searchTasks(@RequestParam("params") String search, @RequestParam("boardRef") String boardRef) {
         return taskService.findTaskContainingNameOrBoardId(search, boardRef);
     }
 
