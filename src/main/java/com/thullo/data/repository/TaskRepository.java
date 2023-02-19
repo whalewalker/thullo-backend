@@ -20,4 +20,6 @@ public interface TaskRepository extends JpaRepository<Task, Long> {
     Optional<Task> findByBoardRef(@NonNull String boardRef);
 
     long countByBoardAndStatus(Board board, Status status);
+
+    List<Task> findAllByBoardAndStatus(Board board, Status status);
 }

@@ -39,7 +39,7 @@ public class TaskController {
     @PutMapping("/move")
     public ResponseEntity<ApiResponse> moveTask(@RequestBody TaskMoveRequest request) {
         try {
-            Task task = taskService.moveTask(request.getTaskId(), request.getNewColumnId(), request.getPosition());
+            Task task = taskService.moveTask(request.getBoardRef(), request.getStatus(), request.getPosition());
             return ResponseEntity.ok(new ApiResponse(true, "Task moved successfully", task));
         } catch (ResourceNotFoundException ex) {
             return ResponseEntity.badRequest().body(new ApiResponse(false, ex.getMessage()));

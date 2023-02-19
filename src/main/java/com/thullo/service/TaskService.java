@@ -13,7 +13,7 @@ import java.util.Set;
 public interface TaskService {
     Task createTask(String boardTag, TaskRequest taskRequest) throws BadRequestException, IOException, ResourceNotFoundException;
 
-    Task moveTask(Long taskId, Long newColumnId, Long index) throws ResourceNotFoundException;
+    Task moveTask(String boardRef, String status, Long index) throws ResourceNotFoundException;
 
     Task editTask(Long taskId, TaskRequest taskRequest) throws BadRequestException, IOException, ResourceNotFoundException;
 
