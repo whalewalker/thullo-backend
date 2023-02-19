@@ -39,20 +39,20 @@ public class Board{
             inverseJoinColumns = @JoinColumn(name = "user_id"))
     private List<User> collaborators = new ArrayList<>();
 
-    @ManyToMany(mappedBy = "contributors")
-    private List<Task> tasks = new ArrayList<>();
-
     @OneToMany(mappedBy = "board", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     @JsonManagedReference
-    private List<TaskColumn> taskColumns = new ArrayList<>();
+    private List<Task> tasks = new ArrayList<>();
 
     @CreationTimestamp
-    @JsonFormat(pattern="yyyy-MM-dd HH:mm:ss")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime createdAt;
 
     @UpdateTimestamp
-    @JsonFormat(pattern="yyyy-MM-dd HH:mm:ss")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime updatedAt;
 
-
+    public List<Task> getTasks() {
+        tasks.sort((o1, o2) -> (int) (o1.getPosition() - o2.getPosition()));
+        return tasks;
+    }
 }

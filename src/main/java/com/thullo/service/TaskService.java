@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.Set;
 
 public interface TaskService {
-    Task createTask(TaskRequest taskRequest) throws BadRequestException, IOException;
+    Task createTask(String boardTag, TaskRequest taskRequest) throws BadRequestException, IOException, ResourceNotFoundException;
 
     Task moveTask(Long taskId, Long newColumnId, Long index) throws ResourceNotFoundException;
 

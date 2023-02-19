@@ -30,6 +30,9 @@ public class Task {
 
     private Long position;
 
+    @Enumerated(EnumType.STRING)
+    private Status status;
+
     @Column(nullable = false, unique = true)
     private String boardRef;
 
@@ -38,9 +41,9 @@ public class Task {
     private String description;
 
     @ManyToOne
-    @JoinColumn(name = "task_column_id")
+    @JoinColumn(name = "board_id")
     @JsonBackReference
-    private TaskColumn taskColumn;
+    private Board board;
 
     @OneToMany(mappedBy = "task", cascade = CascadeType.ALL)
     private List<Comment> comments = new ArrayList<>();

@@ -1,7 +1,6 @@
 package com.thullo.config;
 
 
-import com.thullo.data.model.UUIDWrapper;
 import com.thullo.security.CustomUserDetailService;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
@@ -32,12 +31,6 @@ public class AppBeans {
         mapper.getConfiguration().setSkipNullEnabled(true);
         return mapper;
     }
-
-    @Bean
-    public UUIDWrapper uuidWrapper(){
-        return  new UUIDWrapper();
-    }
-
 
     @Bean
     public RoleHierarchy roleHierarchy() {

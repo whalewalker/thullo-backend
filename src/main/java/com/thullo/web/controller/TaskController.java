@@ -1,6 +1,5 @@
 package com.thullo.web.controller;
 
-import com.thullo.annotation.CurrentTaskColumn;
 import com.thullo.data.model.Task;
 import com.thullo.service.TaskService;
 import com.thullo.web.exception.BadRequestException;
@@ -11,7 +10,6 @@ import com.thullo.web.payload.response.ApiResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -27,22 +25,18 @@ import java.util.Set;
 public class TaskController {
     private final TaskService taskService;
 
-    @PostMapping(value = "/{taskColumnId}", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE}, produces = {MediaType.APPLICATION_JSON_VALUE})
-    @PreAuthorize("@taskServiceImpl.isTaskOwner(#taskColumnId, authentication.principal.email)")
-    @CurrentTaskColumn
-    public ResponseEntity<ApiResponse> createTask(@PathVariable Long taskColumnId, TaskRequest taskRequest, HttpServletRequest request) {
+    @PostMapping(value = "/{boardTag}", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE}, produces = {MediaType.APPLICATION_JSON_VALUE})
+    public ResponseEntity<ApiResponse> createTask(@PathVariable String boardTag, TaskRequest taskRequest, HttpServletRequest request) {
         taskRequest.setRequestUrl(request.getRequestURL().toString());
-        taskRequest.setTaskColumnId(taskColumnId);
         try {
-            Task task = taskService.createTask(taskRequest);
+            Task task = taskService.createTask(boardTag, taskRequest);
             return ResponseEntity.ok(new ApiResponse(true, "Task created successfully", task));
-        } catch (BadRequestException | IOException ex) {
+        } catch (BadRequestException | ResourceNotFoundException | IOException ex) {
             return ResponseEntity.badRequest().body(new ApiResponse(false, ex.getMessage()));
         }
     }
 
     @PutMapping("/move")
-    @PreAuthorize("@taskServiceImpl.isTaskOwnedByUser(#request.taskId, #request.newColumnId, authentication.principal.email)")
     public ResponseEntity<ApiResponse> moveTask(@RequestBody TaskMoveRequest request) {
         try {
             Task task = taskService.moveTask(request.getTaskId(), request.getNewColumnId(), request.getPosition());
@@ -64,7 +58,6 @@ public class TaskController {
 
 
     @PutMapping(value = "/{taskId}", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE}, produces = {MediaType.APPLICATION_JSON_VALUE})
-    @PreAuthorize("@taskServiceImpl.isTaskCreator(#taskId, authentication.principal.email)")
     public ResponseEntity<ApiResponse> editTask(@PathVariable Long taskId, TaskRequest taskRequest, HttpServletRequest request) {
         taskRequest.setRequestUrl(request.getRequestURL().toString());
         try {
@@ -76,7 +69,6 @@ public class TaskController {
     }
 
     @DeleteMapping("/{taskId}")
-    @PreAuthorize("@taskServiceImpl.isTaskCreator(#taskId, authentication.principal.email)")
     public ResponseEntity<ApiResponse> deleteATask(@PathVariable("taskId") Long taskId) {
         taskService.deleteTask(taskId);
         return ResponseEntity.ok(new ApiResponse(true, "Task delete successfully"));

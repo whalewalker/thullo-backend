@@ -1,6 +1,5 @@
 package com.thullo.web.payload.request;
 
-import com.thullo.data.model.Task;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -13,8 +12,6 @@ public class TaskRequest {
     private String name;
     private String requestUrl;
     private MultipartFile file;
-    private Long taskColumnId;
     private String description;
-    private Task task;
-
+    private String status;
 }

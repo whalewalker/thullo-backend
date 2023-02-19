@@ -1,6 +1,8 @@
 package com.thullo.data.model;
 
-import lombok.*;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import javax.persistence.*;
 
@@ -10,13 +12,9 @@ import javax.persistence.*;
 @NoArgsConstructor
 @Table(name = "next_board_id")
 public class BoardId {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
-
-
     private  String boardTag;
     private  Long nextId;
 

@@ -1,7 +1,6 @@
 package com.thullo.service;
 
 import com.thullo.data.model.FileData;
-import com.thullo.data.model.UUIDWrapper;
 import com.thullo.data.repository.FilesRepository;
 import com.thullo.web.exception.BadRequestException;
 import lombok.RequiredArgsConstructor;
@@ -14,6 +13,7 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.UUID;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
@@ -24,7 +24,6 @@ import static java.lang.String.format;
 @RequiredArgsConstructor
 public class FileServiceImpl implements FileService {
     private final FilesRepository filesRepository;
-    private final UUIDWrapper uuidWrapper;
 
     @Override
     public String uploadFile(MultipartFile file, String url) throws BadRequestException, IOException {
@@ -39,7 +38,7 @@ public class FileServiceImpl implements FileService {
         assert originalFileName != null;
         String fileType = originalFileName.substring(originalFileName.lastIndexOf(".") + 1);
         byte[] compressedFile = compressFile(file.getBytes());
-        String fileId = uuidWrapper.getUUID();
+        String fileId = UUID.randomUUID().toString();
         InputStream is = new ByteArrayInputStream(compressedFile);
         FileData fileData = new FileData(fileId, originalFileName, fileType, is.readAllBytes());
         return filesRepository.save(fileData);

@@ -67,9 +67,8 @@ public class LabelServiceImpl implements LabelService {
     public List<Label> getBoardLabel(Long boardId) throws ResourceNotFoundException {
         Board board = findBoardById(boardId);
 
-        return board.getTaskColumns()
+        return board.getTasks()
                 .stream()
-                .flatMap(taskColumn -> taskColumn.getTasks().stream())
                 .flatMap(task -> task.getLabels().stream())
                 .distinct()
                 .collect(Collectors.toList());
