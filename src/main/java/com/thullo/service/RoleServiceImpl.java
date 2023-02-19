@@ -34,11 +34,7 @@ public class RoleServiceImpl {
                 "BOARD_VIEW_PRIVILEGE",
                 "BOARD_UPDATE_TASK_PRIVILEGE",
                 "BOARD_DELETE_TASK_PRIVILEGE",
-                "BOARD_ADD_MEMBER_PRIVILEGE",
-                "TASK_CREATE_TASK_PRIVILEGE",
-                "TASK_UPDATE_TASK_PRIVILEGE",
-                "TASK_DELETE_TASK_PRIVILEGE",
-                "TASK_VIEW_PRIVILEGE"
+                "BOARD_ADD_MEMBER_PRIVILEGE"
         ));
         boardRole.setPrivileges(boardPrivileges);
         return roleRepository.save(boardRole);
@@ -47,9 +43,7 @@ public class RoleServiceImpl {
     public Role createTaskRole(String boardRef) {
         Role taskRole = new Role("TASK_" + boardRef);
         List<Privilege> boardPrivileges = privilegeRepository.findAllByNameIn(Arrays.asList(
-                "TASK_CREATE_TASK_PRIVILEGE",
                 "TASK_UPDATE_TASK_PRIVILEGE",
-                "TASK_DELETE_TASK_PRIVILEGE",
                 "TASK_VIEW_PRIVILEGE"
         ));
         taskRole.setPrivileges(boardPrivileges);
@@ -101,6 +95,16 @@ public class RoleServiceImpl {
         if (boardRole != null) {
             user.getRoles().remove(boardRole);
             roleRepository.delete(boardRole);
+        }
+    }
+
+    public void removeTaskRoleFromUser(User user, Task task) {
+        String boardRef = task.getBoardRef();
+        String roleName = "ROLE_TASK_" + boardRef;
+        Role taskRole = roleRepository.findByName(roleName).orElse(null);
+        if (taskRole != null) {
+            user.getRoles().remove(taskRole);
+            roleRepository.delete(taskRole);
         }
     }
 }

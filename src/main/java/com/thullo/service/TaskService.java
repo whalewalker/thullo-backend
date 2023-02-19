@@ -15,13 +15,13 @@ public interface TaskService {
 
     Task moveTask(String boardRef, String status, Long index) throws ResourceNotFoundException;
 
-    Task editTask(Long taskId, TaskRequest taskRequest) throws BadRequestException, IOException, ResourceNotFoundException;
+    Task editTask(String boardRef, TaskRequest taskRequest) throws BadRequestException, IOException, ResourceNotFoundException;
 
     Task getTask(String boardRef) throws ResourceNotFoundException;
 
     Task getTask(Long taskId) throws ResourceNotFoundException;
 
-    void deleteTask(Long taskId);
+    void deleteTask(String boardRef) throws ResourceNotFoundException;
 
     List<Task> findTaskContainingNameOrBoardId(String name, String boardId);
 

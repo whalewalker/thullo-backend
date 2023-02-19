@@ -98,8 +98,8 @@ public class TaskServiceImpl implements TaskService {
 
 
     @Override
-    public Task editTask(Long taskId, TaskRequest taskRequest) throws BadRequestException, IOException, ResourceNotFoundException {
-        Task task = getTask(taskId);
+    public Task editTask(String boardRef, TaskRequest taskRequest) throws BadRequestException, IOException, ResourceNotFoundException {
+        Task task = getTask(boardRef);
         mapper.map(taskRequest, task);
         String imageUrl = uploadTaskFile(taskRequest.getFile(), taskRequest.getRequestUrl());
         if (imageUrl != null) task.setImageUrl(imageUrl);
@@ -118,8 +118,8 @@ public class TaskServiceImpl implements TaskService {
     }
 
     @Override
-    public void deleteTask(Long taskId) {
-        Task task = getTaskInternal(taskId);
+    public void deleteTask(String boardRef) throws ResourceNotFoundException {
+        Task task = getTask(boardRef);
         if (task != null) {
             taskRepository.delete(task);
         }
