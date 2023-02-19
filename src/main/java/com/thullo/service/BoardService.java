@@ -9,6 +9,7 @@ import com.thullo.web.payload.response.BoardResponse;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Set;
 
 public interface BoardService {
     /**
@@ -19,7 +20,11 @@ public interface BoardService {
      */
     Board createBoard(BoardRequest boardRequest, UserPrincipal principal) throws UserException, BadRequestException, IOException;
 
-    BoardResponse getBoard(Long id) throws BadRequestException;
+    BoardResponse getBoard(String boardTag) throws BadRequestException;
 
     List<BoardResponse> getBoards(UserPrincipal userPrincipal) throws UserException;
+
+    void addCollaboratorToBoard(String boardTag, Set<String> collaborators) throws BadRequestException;
+
+    void removeCollaboratorsFromBoard(String boardTag, Set<String> emails) throws BadRequestException;
 }

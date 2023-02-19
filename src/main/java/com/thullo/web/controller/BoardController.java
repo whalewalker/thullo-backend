@@ -19,6 +19,7 @@ import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 @RestController
 @Slf4j
@@ -28,6 +29,7 @@ public class BoardController {
     private final BoardService boardService;
 
     @PostMapping
+    @PreAuthorize("hasRole('OWNER') and hasAnyAuthority('WRITE')")
     public ResponseEntity<ApiResponse> createBoard(@RequestParam(value = "file", required = false) MultipartFile file, @RequestParam("boardName") String boardName,
                                                    @CurrentUser UserPrincipal principal, HttpServletRequest request) {
         try {
@@ -40,12 +42,12 @@ public class BoardController {
         }
     }
 
-    @GetMapping("/{boardId}")
-    @PreAuthorize("@boardServiceImpl.isBoardOwner(#boardId, authentication.principal.email)")
-    public ResponseEntity<ApiResponse> getABoard(@PathVariable("boardId") Long boardId) {
+    @GetMapping("/{boardTag}")
+    @PreAuthorize("hasRole('BOARD_' + #boardTag  + '_' + #principal.email) or hasRole('BOARD_' + #boardTag) and hasAuthority('BOARD_VIEW')")
+    public ResponseEntity<ApiResponse> getABoard(@PathVariable String boardTag, @CurrentUser UserPrincipal principal) {
         try {
             return ResponseEntity.ok(new ApiResponse(true, "Board successfully fetched",
-                    boardService.getBoard(boardId)));
+                    boardService.getBoard(boardTag)));
         } catch (BadRequestException ex) {
             return ResponseEntity.badRequest().body(new ApiResponse(false, ex.getMessage(),
                     new HashMap<>(Map.of("message", ex.getMessage()))));
@@ -58,9 +60,31 @@ public class BoardController {
             return ResponseEntity.ok(new ApiResponse(true, "Board successfully fetched",
                     boardService.getBoards(userPrincipal)));
         } catch (UserException ex) {
-            return ResponseEntity.badRequest().body(new ApiResponse(false, "Bad request, check your request data"));
+            return ResponseEntity.badRequest().body(new ApiResponse(false, ex.getMessage()));
         }
     }
 
+    @PostMapping("/{boardTag}/collaborators")
+    @PreAuthorize("hasRole('BOARD_' + #boardTag  + '_' + #principal.email) or hasRole('BOARD_' + #boardTag) and hasAuthority('BOARD_ADD_MEMBER')")
+    public ResponseEntity<ApiResponse> addCollaboratorToBoard(@PathVariable String boardTag, Set<String> collaborators, @CurrentUser UserPrincipal principal) {
+        try {
+            boardService.addCollaboratorToBoard(boardTag, collaborators);
+            return ResponseEntity.ok(new ApiResponse(true, "collaborators successfully added"));
+        } catch (BadRequestException ex) {
+            return ResponseEntity.badRequest().body(new ApiResponse(false, ex.getMessage()));
+        }
+    }
+
+
+    @PostMapping("/{boardTag}/remove/collaborators")
+    @PreAuthorize("hasRole('BOARD_' + #boardTag  + '_' + #principal.email) or hasRole('BOARD_' + #boardTag) and hasAuthority('BOARD_ADD_MEMBER')")
+    public ResponseEntity<ApiResponse> removeCollaboratorToBoard(@PathVariable String boardTag, Set<String> collaborators, @CurrentUser UserPrincipal principal) {
+        try {
+            boardService.removeCollaboratorsFromBoard(boardTag, collaborators);
+            return ResponseEntity.ok(new ApiResponse(true, "collaborators successfully added"));
+        } catch (BadRequestException ex) {
+            return ResponseEntity.badRequest().body(new ApiResponse(false, ex.getMessage()));
+        }
+    }
 
 }

@@ -1,6 +1,8 @@
 package com.thullo.web.controller;
 
+import com.thullo.annotation.CurrentUser;
 import com.thullo.data.model.Task;
+import com.thullo.security.UserPrincipal;
 import com.thullo.service.TaskService;
 import com.thullo.web.exception.BadRequestException;
 import com.thullo.web.exception.ResourceNotFoundException;
@@ -10,6 +12,7 @@ import com.thullo.web.payload.response.ApiResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -26,7 +29,8 @@ public class TaskController {
     private final TaskService taskService;
 
     @PostMapping(value = "/{boardTag}", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE}, produces = {MediaType.APPLICATION_JSON_VALUE})
-    public ResponseEntity<ApiResponse> createTask(@PathVariable String boardTag, TaskRequest taskRequest, HttpServletRequest request) {
+    @PreAuthorize("hasRole('OWNER_' + #principal.email) or hasRole('BOARD_' + #boardTag) and hasAuthority('BOARD_VIEW')")
+    public ResponseEntity<ApiResponse> createTask(@PathVariable String boardTag, TaskRequest taskRequest, HttpServletRequest request, @CurrentUser UserPrincipal principal) {
         taskRequest.setRequestUrl(request.getRequestURL().toString());
         try {
             Task task = taskService.createTask(boardTag, taskRequest);
@@ -90,7 +94,7 @@ public class TaskController {
         return taskService.findTaskContainingNameOrBoardId(search, boardRef);
     }
 
-    @PutMapping("/{boardRef}")
+    @PutMapping("/{boardRef}/contributors")
     public ResponseEntity<ApiResponse> addContributors(@PathVariable String boardRef, @RequestBody Set<String> contributors) {
         try {
             taskService.addContributors(boardRef, contributors);
@@ -101,7 +105,7 @@ public class TaskController {
     }
 
 
-    @PutMapping("remove/{boardRef}")
+    @PutMapping("/{boardRef}/remove/contributors")
     public ResponseEntity<ApiResponse> removeContributors(@PathVariable String boardRef, @RequestBody Set<String> contributors) {
         try {
             taskService.removeContributors(boardRef, contributors);

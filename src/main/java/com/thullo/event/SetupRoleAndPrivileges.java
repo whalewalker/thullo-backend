@@ -15,7 +15,6 @@ import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
@@ -42,19 +41,24 @@ public class SetupRoleAndPrivileges implements ApplicationListener<ContextRefres
     public void createDefaultRoles() {
         createRoleIfNotFound("ROLE_ADMIN");
         createRoleIfNotFound("ROLE_OWNER");
-        createRoleIfNotFound("ROLE_COLLABORATOR");
-        createRoleIfNotFound("ROLE_CONTRIBUTOR");
     }
 
     @Transactional
     public void createAdminUserIfNotFound() {
         Optional<Role> adminRole = roleRepository.findByName("ROLE_ADMIN");
-        Privilege readPrivilege = createPrivilegeIfNotFound("READ_PRIVILEGE");
-        Privilege writePrivilege = createPrivilegeIfNotFound("WRITE_PRIVILEGE");
-        Privilege deletePrivilege = createPrivilegeIfNotFound("DELETE_PRIVILEGE");
+        createPrivilegeIfNotFound("BOARD_CREATE_TASK_PRIVILEGE");
+        createPrivilegeIfNotFound("BOARD_VIEW_PRIVILEGE");
+        createPrivilegeIfNotFound("BOARD_UPDATE_TASK_PRIVILEGE");
+        createPrivilegeIfNotFound("BOARD_DELETE_TASK_PRIVILEGE");
+        createPrivilegeIfNotFound("BOARD_ADD_MEMBER_PRIVILEGE");
+        createPrivilegeIfNotFound("TASK_ADD_MEMBER_PRIVILEGE");
+        createPrivilegeIfNotFound("TASK_CREATE_TASK_PRIVILEGE");
+        createPrivilegeIfNotFound("TASK_UPDATE_TASK_PRIVILEGE");
+        createPrivilegeIfNotFound("TASK_DELETE_TASK_PRIVILEGE");
+        Privilege read = createPrivilegeIfNotFound("READ_PRIVILEGE");
+        Privilege write = createPrivilegeIfNotFound("WRITE_PRIVILEGE");
 
-        List<Privilege> adminPrivileges = Arrays.asList(
-                readPrivilege, writePrivilege, deletePrivilege);
+        List<Privilege> adminPrivileges = List.of(read, write);
 
 
         if (adminRole.isPresent() && userRepository.findByEmail("admin@gmail.com").isEmpty()) {

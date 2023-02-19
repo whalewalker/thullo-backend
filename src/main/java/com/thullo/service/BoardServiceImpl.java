@@ -1,10 +1,7 @@
 package com.thullo.service;
 
 
-import com.thullo.data.model.Board;
-import com.thullo.data.model.Status;
-import com.thullo.data.model.Task;
-import com.thullo.data.model.User;
+import com.thullo.data.model.*;
 import com.thullo.data.repository.BoardRepository;
 import com.thullo.data.repository.UserRepository;
 import com.thullo.security.UserPrincipal;
@@ -36,6 +33,11 @@ public class BoardServiceImpl implements BoardService {
 
     private final UserRepository userRepository;
 
+    private final RoleServiceImpl roleService;
+
+    private final NotificationService notificationService;
+
+
     /**
      * Creates a new board based on the provided board request.
      *
@@ -54,13 +56,18 @@ public class BoardServiceImpl implements BoardService {
         }
         board.setImageUrl(imageUrl);
         board.setBoardTag(generateThreeLetterWord(boardRequest.getName().toUpperCase()));
+        roleService.addBoardRoleToBoardCreator(user, board.getBoardTag());
         return boardRepository.save(board);
     }
 
     @Override
-    public BoardResponse getBoard(Long id) throws BadRequestException {
-        Board board = boardRepository.findById(id).orElseThrow(() -> new BadRequestException("Board not found!"));
+    public BoardResponse getBoard(String boardTag) throws BadRequestException {
+        Board board = getBoardInternal(boardTag);
         return getBoardResponse(board);
+    }
+
+    private Board getBoardInternal(String boardTag) throws BadRequestException {
+        return boardRepository.findByBoardTag(boardTag).orElseThrow(() -> new BadRequestException("Board not found!"));
     }
 
     private BoardResponse getBoardResponse(Board board) {
@@ -90,11 +97,6 @@ public class BoardServiceImpl implements BoardService {
         return boardResponse;
     }
 
-
-    private Board getBoardInternal(Long id) {
-        return boardRepository.findById(id).orElse(null);
-    }
-
     @Override
     public List<BoardResponse> getBoards(UserPrincipal userPrincipal) throws UserException {
         User user = internalFindUserByEmail(userPrincipal.getEmail());
@@ -108,12 +110,41 @@ public class BoardServiceImpl implements BoardService {
         return boardResponses;
     }
 
+    @Override
+    public void addCollaboratorToBoard(String boardTag, Set<String> collaborators) throws BadRequestException {
+        String title = "You have been added as a collaborator on board: " + boardTag;
+        String message = "You have been added as a collaborator on board " + boardTag;
 
-    public boolean isBoardOwner(Long boardId, String email) {
-        Board board = getBoardInternal(boardId);
-        if (board == null) return false;
-        return board.getUser().getEmail().equals(email);
+        Board board = getBoardInternal(boardTag);
+        Set<User> existingCollaborators = board.getCollaborators();
+        List<User> newCollaborators = userRepository.findAllByEmails(collaborators);
+        for (User contributor : newCollaborators) {
+            if (!existingCollaborators.contains(contributor)) {
+                existingCollaborators.add(contributor);
+                roleService.addBoardRoleToUser(contributor, board);
+                notificationService.sendNotificationToUser(contributor, message, title, NotificationType.ADDED_AS_COLLABORATOR);
+            }
+        }
     }
+
+
+    @Override
+    public void removeCollaboratorsFromBoard(String boardTag, Set<String> emails) throws BadRequestException {
+        String title = "You have been removed as a collaborator on board: " + boardTag;
+        String message = "You have been removed as a collaborator on board " + boardTag;
+
+        Board board = getBoardInternal(boardTag);
+        Set<User> existingCollaborators = board.getCollaborators();
+        List<User> usersToRemove = userRepository.findAllByEmails(emails);
+        for (User userToRemove : usersToRemove) {
+            if (existingCollaborators.contains(userToRemove)) {
+                existingCollaborators.remove(userToRemove);
+                roleService.removeBoardRoleFromUser(userToRemove, board);
+                notificationService.sendNotificationToUser(userToRemove, message, title, NotificationType.REMOVED_AS_COLLABORATOR);
+            }
+        }
+    }
+
 
     private User internalFindUserByEmail(String email) throws UserException {
         return userRepository.findByEmail(email).orElseThrow(() -> new UserException(format("user not found with email %s", email)));
