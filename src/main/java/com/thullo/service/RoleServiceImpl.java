@@ -28,7 +28,11 @@ public class RoleServiceImpl {
     }
 
     public Role createBoardRole(String boardTag) {
-        Role boardRole = new Role("ROLE_BOARD_" + boardTag);
+        String roleName = "ROLE_BOARD_" + boardTag;
+        Role boardRole = roleRepository.findByName(roleName).orElse(null);
+        if (boardRole == null) {
+            boardRole = new Role(roleName);
+        }
         List<Privilege> boardPrivileges = privilegeRepository.findAllByNameIn(Arrays.asList(
                 "BOARD_CREATE_TASK_PRIVILEGE",
                 "BOARD_VIEW_PRIVILEGE",
@@ -41,7 +45,11 @@ public class RoleServiceImpl {
     }
 
     public Role createTaskRole(String boardRef) {
-        Role taskRole = new Role("TASK_" + boardRef);
+        String roleName = "ROLE_TASK_" + boardRef;
+        Role taskRole = roleRepository.findByName(roleName).orElse(null);
+        if (taskRole == null) {
+            taskRole = new Role(roleName);
+        }
         List<Privilege> boardPrivileges = privilegeRepository.findAllByNameIn(Arrays.asList(
                 "TASK_UPDATE_TASK_PRIVILEGE",
                 "TASK_VIEW_PRIVILEGE"
@@ -50,16 +58,16 @@ public class RoleServiceImpl {
         return roleRepository.save(taskRole);
     }
 
-    public void addBoardRoleToUser(User user, Board board) {
+    public void addTaskRoleToUser(User user, Board board) {
         String boardTag = board.getBoardTag();
         Role boardRole = createBoardRole(boardTag);
         user.getRoles().add(boardRole);
         roleRepository.save(boardRole);
     }
 
-    public void addBoardRoleToUser(User user, Task task) {
+    public void addTaskRoleToUser(User user, Task task) {
         String boardRef = task.getBoardRef();
-        Role taskRole = createBoardRole(boardRef);
+        Role taskRole = createTaskRole(boardRef);
         user.getRoles().add(taskRole);
         roleRepository.save(taskRole);
     }
@@ -90,21 +98,13 @@ public class RoleServiceImpl {
 
     public void removeBoardRoleFromUser(User user, Board board) {
         String boardTag = board.getBoardTag();
-        String roleName = "ROLE_BOARD_" + boardTag;
-        Role boardRole = roleRepository.findByName(roleName).orElse(null);
-        if (boardRole != null) {
-            user.getRoles().remove(boardRole);
-            roleRepository.delete(boardRole);
-        }
+        String roleName = "ROLE_TASK_" + boardTag;
+        roleRepository.findByName(roleName).ifPresent(boardRole -> user.getRoles().remove(boardRole));
     }
 
     public void removeTaskRoleFromUser(User user, Task task) {
         String boardRef = task.getBoardRef();
         String roleName = "ROLE_TASK_" + boardRef;
-        Role taskRole = roleRepository.findByName(roleName).orElse(null);
-        if (taskRole != null) {
-            user.getRoles().remove(taskRole);
-            roleRepository.delete(taskRole);
-        }
+        roleRepository.findByName(roleName).ifPresent(taskRole -> user.getRoles().remove(taskRole));
     }
 }

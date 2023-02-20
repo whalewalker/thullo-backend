@@ -29,14 +29,14 @@ public class TaskServiceImpl implements TaskService {
     private final UserRepository userRepository;
     private final NotificationService notificationService;
     private final BoardRefGenerator boardRefGenerator;
-
+    private final RoleServiceImpl roleService;
     private final BoardRepository boardRepository;
 
     @Override
     public Task createTask(String boardTag, TaskRequest taskRequest) throws BadRequestException, IOException, ResourceNotFoundException {
         Task task = mapper.map(taskRequest, Task.class);
         Board board = getBoard(boardTag);
-        task.setBoardRef(boardRefGenerator.generateBoardRef(board));
+
         task.setBoard(board);
         Status status = Status.getStatus(taskRequest.getStatus().toLowerCase());
         long position = taskRepository.countByBoardAndStatus(board, status);
@@ -46,6 +46,7 @@ public class TaskServiceImpl implements TaskService {
 
         String imageUrl = uploadTaskFile(taskRequest.getFile(), taskRequest.getRequestUrl());
         task.setImageUrl(imageUrl);
+        task.setBoardRef(boardRefGenerator.generateBoardRef(board));
         return taskRepository.save(task);
     }
 
@@ -141,6 +142,7 @@ public class TaskServiceImpl implements TaskService {
         for (User contributor : newContributors) {
             if (!existingContributors.contains(contributor)) {
                 existingContributors.add(contributor);
+                roleService.addTaskRoleToUser(contributor, task);
                 notificationService.sendNotificationToUser(contributor, message, title, NotificationType.ADDED_AS_CONTRIBUTOR);
             }
         }
@@ -156,6 +158,7 @@ public class TaskServiceImpl implements TaskService {
         List<User> usersToRemove = userRepository.findAllByEmails(contributors);
         for (User contributor : usersToRemove) {
             existingContributors.remove(contributor);
+            roleService.removeTaskRoleFromUser(contributor, task);
             notificationService.sendNotificationToUser(contributor, message, title, NotificationType.REMOVE_AS_CONTRIBUTOR);
         }
     }

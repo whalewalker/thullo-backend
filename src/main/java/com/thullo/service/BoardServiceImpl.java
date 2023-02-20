@@ -121,7 +121,7 @@ public class BoardServiceImpl implements BoardService {
         for (User contributor : newCollaborators) {
             if (!existingCollaborators.contains(contributor)) {
                 existingCollaborators.add(contributor);
-                roleService.addBoardRoleToUser(contributor, board);
+                roleService.addTaskRoleToUser(contributor, board);
                 notificationService.sendNotificationToUser(contributor, message, title, NotificationType.ADDED_AS_COLLABORATOR);
             }
         }

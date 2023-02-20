@@ -29,7 +29,7 @@ public class TaskController {
     private final TaskService taskService;
 
     @PostMapping(value = "/{boardTag}", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE}, produces = {MediaType.APPLICATION_JSON_VALUE})
-    @PreAuthorize("hasRole('BOARD_' + #boardTag  + '_' + #principal.email) or hasRole('BOARD_' + #boardTag) and hasAuthority('BOARD_CREATE_TASK')")
+    @PreAuthorize("hasRole('BOARD_' + #boardTag  + '_' + #principal.email) or hasRole('BOARD_' + #boardTag)")
     public ResponseEntity<ApiResponse> createTask(@PathVariable String boardTag, TaskRequest taskRequest, HttpServletRequest request, @CurrentUser UserPrincipal principal) {
         taskRequest.setRequestUrl(request.getRequestURL().toString());
         try {
@@ -41,7 +41,7 @@ public class TaskController {
     }
 
     @PutMapping("{boardTag}/move")
-    @PreAuthorize("hasRole('BOARD_' + #boardTag  + '_' + #principal.email) or hasRole('BOARD_' + #boardTag) and hasRole('TASK_' + #request.boardRef) and  hasAuthority('TASK_UPDATE_TASK')")
+    @PreAuthorize("hasRole('BOARD_' + #boardTag  + '_' + #principal.email) or hasRole('BOARD_' + #boardTag) or hasRole('TASK_' + #request.boardRef)")
     public ResponseEntity<ApiResponse> moveTask(@PathVariable String boardTag, @RequestBody TaskMoveRequest request, @CurrentUser UserPrincipal principal) {
         try {
             Task task = taskService.moveTask(request.getBoardRef(), request.getStatus(), request.getPosition());
@@ -51,9 +51,9 @@ public class TaskController {
         }
     }
 
-    @GetMapping("{boardTag}")
-    @PreAuthorize("hasRole('BOARD_' + #boardTag  + '_' + #principal.email) or hasRole('BOARD_' + #boardTag) and hasRole('TASK_' + #boardRef) and  hasAuthority('TASK_VIEW')")
-    public ResponseEntity<ApiResponse> getTask(@PathVariable String boardTag, @RequestParam("boardRef") String boardRef, @CurrentUser UserPrincipal principal) {
+    @GetMapping("{boardTag}/{boardRef}")
+    @PreAuthorize("hasRole('BOARD_' + #boardTag  + '_' + #principal.email) or hasRole('BOARD_' + #boardTag) or hasRole('TASK_' + #boardRef)")
+    public ResponseEntity<ApiResponse> getTask(@PathVariable String boardTag, @PathVariable String boardRef, @CurrentUser UserPrincipal principal) {
         try {
             Task task = taskService.getTask(boardRef);
             return ResponseEntity.ok(new ApiResponse(true, "Task fetched successfully", task));
@@ -64,7 +64,7 @@ public class TaskController {
 
 
     @PutMapping(value = "{boardTag}/{boardRef}", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE}, produces = {MediaType.APPLICATION_JSON_VALUE})
-    @PreAuthorize("hasRole('BOARD_' + #boardTag  + '_' + #principal.email) or hasRole('BOARD_' + #boardTag) and hasRole('TASK_' + #boardRef) and  hasAuthority('TASK_UPDATE_TASK')")
+    @PreAuthorize("hasRole('BOARD_' + #boardTag  + '_' + #principal.email) or hasRole('BOARD_' + #boardTag) or hasRole('TASK_' + #boardRef)")
     public ResponseEntity<ApiResponse> editTask(@PathVariable String boardTag, @PathVariable String boardRef, TaskRequest taskRequest, HttpServletRequest request, @CurrentUser UserPrincipal principal) {
         taskRequest.setRequestUrl(request.getRequestURL().toString());
         try {
@@ -76,7 +76,7 @@ public class TaskController {
     }
 
     @DeleteMapping("{boardTag}/{boardRef}")
-    @PreAuthorize("hasRole('BOARD_' + #boardTag  + '_' + #principal.email) or hasRole('BOARD_' + #boardTag) and hasAuthority('BOARD_DELETE_TASK')")
+    @PreAuthorize("hasRole('BOARD_' + #boardTag  + '_' + #principal.email) or hasRole('BOARD_' + #boardTag)")
     public ResponseEntity<ApiResponse> deleteATask(@PathVariable String boardTag, @PathVariable String boardRef, @CurrentUser UserPrincipal principal) {
         try {
             taskService.deleteTask(boardRef);
@@ -88,7 +88,7 @@ public class TaskController {
 
 
     @GetMapping("{boardTag}/{boardRef}/contributors")
-    @PreAuthorize("hasRole('BOARD_' + #boardTag  + '_' + #principal.email) or hasRole('BOARD_' + #boardTag) and hasRole('TASK_' + #boardRef) and  hasAuthority('TASK_VIEW')")
+    @PreAuthorize("hasRole('BOARD_' + #boardTag  + '_' + #principal.email) or hasRole('BOARD_' + #boardTag) or hasRole('TASK_' + #boardRef)")
     public ResponseEntity<ApiResponse> getContributors(@PathVariable String boardTag, @PathVariable String boardRef, @CurrentUser UserPrincipal principal) {
         try {
             Task task = taskService.getTask(boardRef);
@@ -104,7 +104,7 @@ public class TaskController {
     }
 
     @PutMapping("{boardTag}/{boardRef}/contributors")
-    @PreAuthorize("hasRole('BOARD_' + #boardTag  + '_' + #principal.email) or hasRole('BOARD_' + #boardTag) and hasAuthority('BOARD_ADD_MEMBER')")
+    @PreAuthorize("hasRole('BOARD_' + #boardTag  + '_' + #principal.email) or hasRole('BOARD_' + #boardTag)")
     public ResponseEntity<ApiResponse> addContributors(@PathVariable String boardTag, @PathVariable String boardRef, @RequestBody Set<String> contributors, @CurrentUser UserPrincipal principal) {
         try {
             taskService.addContributors(boardRef, contributors);
@@ -116,7 +116,7 @@ public class TaskController {
 
 
     @PutMapping("{boardTag}/{boardRef}/remove/contributors")
-    @PreAuthorize("hasRole('BOARD_' + #boardTag  + '_' + #principal.email) or hasRole('BOARD_' + #boardTag) and hasAuthority('BOARD_ADD_MEMBER')")
+    @PreAuthorize("hasRole('BOARD_' + #boardTag  + '_' + #principal.email) or hasRole('BOARD_' + #boardTag)")
     public ResponseEntity<ApiResponse> removeContributors(@PathVariable String boardTag, @PathVariable String boardRef, @RequestBody Set<String> contributors, @CurrentUser UserPrincipal principal) {
         try {
             taskService.removeContributors(boardRef, contributors);
@@ -127,7 +127,7 @@ public class TaskController {
     }
 
     @PutMapping("{boardTag}/{boardRef}/cover-image")
-    @PreAuthorize("hasRole('BOARD_' + #boardTag  + '_' + #principal.email) or hasRole('BOARD_' + #boardTag) and hasRole('TASK_' + #boardRef) and  hasAuthority('TASK_UPDATE_TASK')")
+    @PreAuthorize("hasRole('BOARD_' + #boardTag  + '_' + #principal.email) or hasRole('BOARD_' + #boardTag) or hasRole('TASK_' + #boardRef)")
     public ResponseEntity<ApiResponse> addCoverImage(@PathVariable String boardTag, @PathVariable String boardRef, @RequestParam("file") MultipartFile file, HttpServletRequest request, @CurrentUser UserPrincipal principal) {
         try {
             Task task = taskService.updateTaskImage(boardRef, file, request.getRequestURL().toString());
@@ -139,7 +139,7 @@ public class TaskController {
 
 
     @GetMapping("{boardTag}/{boardRef}/cover-image")
-    @PreAuthorize("hasRole('BOARD_' + #boardTag  + '_' + #principal.email) or hasRole('BOARD_' + #boardTag) and hasRole('TASK_' + #boardRef) and  hasAuthority('TASK_VIEW')")
+    @PreAuthorize("hasRole('BOARD_' + #boardTag  + '_' + #principal.email) or hasRole('BOARD_' + #boardTag) or hasRole('TASK_' + #boardRef)")
     public ResponseEntity<ApiResponse> getTaskCoverImage(@PathVariable String boardTag, @PathVariable String boardRef, @CurrentUser UserPrincipal principal) {
         try {
             String taskImageUrl = taskService.getTaskImageUrl(boardRef);
