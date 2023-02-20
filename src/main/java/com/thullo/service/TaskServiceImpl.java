@@ -33,9 +33,10 @@ public class TaskServiceImpl implements TaskService {
     private final BoardRepository boardRepository;
 
     @Override
-    public Task createTask(String boardTag, TaskRequest taskRequest) throws BadRequestException, IOException, ResourceNotFoundException {
+    public Task createTask(String boardTag, String email, TaskRequest taskRequest) throws BadRequestException, IOException, ResourceNotFoundException {
         Task task = mapper.map(taskRequest, Task.class);
         Board board = getBoard(boardTag);
+        User createdBy = userRepository.findUserByEmail(email);
 
         task.setBoard(board);
         Status status = Status.getStatus(taskRequest.getStatus().toLowerCase());
@@ -47,6 +48,7 @@ public class TaskServiceImpl implements TaskService {
         String imageUrl = uploadTaskFile(taskRequest.getFile(), taskRequest.getRequestUrl());
         task.setImageUrl(imageUrl);
         task.setBoardRef(boardRefGenerator.generateBoardRef(board));
+        task.setCreatedBy(createdBy);
         return taskRepository.save(task);
     }
 
@@ -106,18 +108,6 @@ public class TaskServiceImpl implements TaskService {
         if (imageUrl != null) task.setImageUrl(imageUrl);
         return task;
     }
-
-    private Task getTaskInternal(Long taskId) {
-        return taskRepository.findById(taskId).orElse(null);
-    }
-
-
-    public Task getTask(Long taskId) throws ResourceNotFoundException {
-        Task task = getTaskInternal(taskId);
-        if (task == null) throw new ResourceNotFoundException("Task not found !");
-        return task;
-    }
-
     @Override
     public void deleteTask(String boardRef) throws ResourceNotFoundException {
         Task task = getTask(boardRef);

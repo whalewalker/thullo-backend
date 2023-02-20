@@ -11,16 +11,13 @@ import java.util.List;
 import java.util.Set;
 
 public interface TaskService {
-    Task createTask(String boardTag, TaskRequest taskRequest) throws BadRequestException, IOException, ResourceNotFoundException;
+    Task createTask(String boardTag, String createdBy, TaskRequest taskRequest) throws BadRequestException, IOException, ResourceNotFoundException;
 
     Task moveTask(String boardRef, String status, Long index) throws ResourceNotFoundException;
 
     Task editTask(String boardRef, TaskRequest taskRequest) throws BadRequestException, IOException, ResourceNotFoundException;
 
     Task getTask(String boardRef) throws ResourceNotFoundException;
-
-    Task getTask(Long taskId) throws ResourceNotFoundException;
-
     void deleteTask(String boardRef) throws ResourceNotFoundException;
 
     List<Task> findTaskContainingNameOrBoardId(String name, String boardId);

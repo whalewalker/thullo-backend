@@ -41,6 +41,10 @@ public class Task {
     private String description;
 
     @ManyToOne
+    @JoinColumn(name = "user_id")
+    private User createdBy;
+
+    @ManyToOne
     @JoinColumn(name = "board_id")
     @JsonBackReference
     private Board board;
@@ -64,6 +68,7 @@ public class Task {
             joinColumns = @JoinColumn(name = "task_id"),
             inverseJoinColumns = @JoinColumn(name = "label_id"))
     private Set<Label> labels = new HashSet<>();
+
     @CreationTimestamp
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime createdAt;

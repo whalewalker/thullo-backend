@@ -33,7 +33,7 @@ public class TaskController {
     public ResponseEntity<ApiResponse> createTask(@PathVariable String boardTag, TaskRequest taskRequest, HttpServletRequest request, @CurrentUser UserPrincipal principal) {
         taskRequest.setRequestUrl(request.getRequestURL().toString());
         try {
-            Task task = taskService.createTask(boardTag, taskRequest);
+            Task task = taskService.createTask(boardTag, principal.getEmail(), taskRequest);
             return ResponseEntity.ok(new ApiResponse(true, "Task created successfully", task));
         } catch (BadRequestException | ResourceNotFoundException | IOException ex) {
             return ResponseEntity.badRequest().body(new ApiResponse(false, ex.getMessage()));
