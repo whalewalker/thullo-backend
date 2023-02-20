@@ -26,7 +26,6 @@ import java.util.stream.Collectors;
 public class CommentServiceImpl implements CommentService {
     private final CommentRepository commentRepository;
     private final ModelMapper mapper;
-
     private final UserRepository userRepository;
 
     private final TaskRepository taskRepository;
