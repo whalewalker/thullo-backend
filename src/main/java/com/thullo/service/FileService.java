@@ -9,7 +9,6 @@ import java.io.IOException;
 
 public interface FileService {
     String  uploadFile(MultipartFile file, String url) throws BadRequestException, IOException;
-    byte[] decompressFile(byte[] compressedFile) throws IOException;
     FileData getFIle(String fileId) throws IOException;
     MediaType getMediaTypeForFileType(String fileType);
     void deleteFile(String fileId);

@@ -5,6 +5,7 @@ import com.thullo.data.repository.FilesRepository;
 import com.thullo.web.exception.BadRequestException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -45,9 +46,7 @@ public class FileServiceImpl implements FileService {
     }
 
 
-
-    @Override
-    public byte[] decompressFile(byte[] compressedFile) throws IOException {
+    private byte[] decompressFile(byte[] compressedFile) throws IOException {
         ByteArrayInputStream bais = new ByteArrayInputStream(compressedFile);
         GZIPInputStream gzipIn = new GZIPInputStream(bais);
         return getBytes(gzipIn);
@@ -55,7 +54,7 @@ public class FileServiceImpl implements FileService {
 
     @Override
     public FileData getFIle(String fileId) throws IOException {
-        FileData dbFile = filesRepository.getFilesByFileId(fileId).orElse(null);
+        FileData dbFile = filesRepository.findFileDataByFileId(fileId).orElse(null);
         if (dbFile != null) {
             byte[] compressedFile = dbFile.getFileByte();
             byte[] decompressedFile = decompressFile(compressedFile);
@@ -106,9 +105,11 @@ public class FileServiceImpl implements FileService {
     }
 
     @Override
+    @CacheEvict(key = "#fileId", value = "files")
     public void deleteFile(String fileId) {
-        filesRepository.getFilesByFileId(fileId)
+        filesRepository.findFileDataByFileId(fileId)
                 .ifPresent(filesRepository::delete);
     }
+
 
 }
