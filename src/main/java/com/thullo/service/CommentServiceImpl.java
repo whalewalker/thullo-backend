@@ -56,7 +56,7 @@ public class CommentServiceImpl implements CommentService {
     }
 
     @Override
-    public Comment editComment(String boardRef, Long commentId, CommentRequest request) throws ResourceNotFoundException {
+    public CommentResponse editComment(String boardRef, Long commentId, CommentRequest request) throws ResourceNotFoundException {
         Comment comment = getComment(commentId);
         mapper.map(request, comment);
 
@@ -67,18 +67,22 @@ public class CommentServiceImpl implements CommentService {
         Set<String> newMentionedUserEmails = request.getMentionedUsers();
         existingMentionedUserEmails.forEach(newMentionedUserEmails::remove);
         if (newMentionedUserEmails.isEmpty()) {
-            return  commentRepository.save(comment);
+            comment = commentRepository.save(comment);
         } else {
             List<User> newMentionedUsers = userRepository.findAllByEmails(newMentionedUserEmails);
             comment.setMentionedUsers(newMentionedUsers);
-            Comment savedComment = commentRepository.save(comment);
+            comment = commentRepository.save(comment);
 
             String title = "You have been mentioned in a comment on task: " + boardRef;
             String message = "You have been mentioned in a comment on task " + boardRef + ": " + request.getMessage();
             notificationService.sendNotificationsToUsers(newMentionedUsers, message, title, NotificationType.MENTIONED_IN_COMMENT);
-
-            return savedComment;
         }
+
+        CommentResponse response = mapper.map(comment, CommentResponse.class);
+        response.setCreatedBy(comment.getCreatedBy().getName());
+        response.setImageUrl(comment.getCreatedBy().getImageUrl());
+
+        return response;
     }
 
     @Override

@@ -1,7 +1,6 @@
 package com.thullo.web.controller;
 
 import com.thullo.annotation.CurrentUser;
-import com.thullo.data.model.Comment;
 import com.thullo.security.UserPrincipal;
 import com.thullo.service.CommentService;
 import com.thullo.web.exception.ResourceNotFoundException;
@@ -36,7 +35,7 @@ public class CommentController {
     @PutMapping
     public ResponseEntity<ApiResponse> editComment(@RequestParam("boardRef") String boardRef, @RequestParam("commentId") Long commentId,  @Valid @RequestBody CommentRequest commentRequest) {
         try {
-            Comment comment = commentService.editComment(boardRef, commentId, commentRequest);
+            CommentResponse comment = commentService.editComment(boardRef, commentId, commentRequest);
             ApiResponse response = new ApiResponse(true, "Comment successfully updated", comment);
             return ResponseEntity.ok(response);
         }catch (ResourceNotFoundException ex){
