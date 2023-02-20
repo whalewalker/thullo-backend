@@ -9,6 +9,7 @@ import com.thullo.data.repository.TaskRepository;
 import com.thullo.data.repository.UserRepository;
 import com.thullo.web.exception.ResourceNotFoundException;
 import com.thullo.web.payload.request.CommentRequest;
+import com.thullo.web.payload.response.CommentResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
@@ -33,22 +34,25 @@ public class CommentServiceImpl implements CommentService {
     private final NotificationService notificationService;
 
     @Override
-    public Comment createComment(String boardRef, CommentRequest request) throws ResourceNotFoundException {
+    public CommentResponse createComment(String boardRef, String email, CommentRequest request) throws ResourceNotFoundException {
         Comment comment = mapper.map(request, Comment.class);
-
+        User createdBy = userRepository.findUserByEmail(email);
         Task task = getTask(boardRef);
-
         List<User> mentionedUsers = userRepository.findAllByEmails(request.getMentionedUsers());
-
         comment.setMentionedUsers(mentionedUsers);
         comment.setTask(task);
-
-        Comment savedComment = commentRepository.save(comment);
+        comment.setCreatedBy(createdBy);
+        commentRepository.save(comment);
 
         String title = "You have been mentioned in a comment on task: " + task.getBoardRef();
         String message = "You have been mentioned in a comment on task " + task.getBoardRef() + ": " + request.getMessage();
         notificationService.sendNotificationsToUsers(mentionedUsers, message, title, NotificationType.MENTIONED_IN_COMMENT);
-        return savedComment;
+
+        CommentResponse response = mapper.map(comment, CommentResponse.class);
+        response.setCreatedBy(createdBy.getName());
+        response.setImageUrl(createdBy.getImageUrl());
+
+        return response;
     }
 
     @Override
