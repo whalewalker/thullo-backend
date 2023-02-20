@@ -37,6 +37,8 @@ public class BoardServiceImpl implements BoardService {
 
     private final NotificationService notificationService;
 
+    private static final String boardNotFound = "Board not found";
+
 
     /**
      * Creates a new board based on the provided board request.
@@ -56,19 +58,20 @@ public class BoardServiceImpl implements BoardService {
         }
         board.setImageUrl(imageUrl);
         board.setBoardTag(generateThreeLetterWord(boardRequest.getName().toUpperCase()));
-        roleService.addBoardRoleToBoardCreator(user, board.getBoardTag());
         return boardRepository.save(board);
     }
 
     @Override
     public BoardResponse getBoard(String boardTag) throws BadRequestException {
         Board board = getBoardInternal(boardTag);
+        if (board == null) throw new BadRequestException(boardNotFound);
         return getBoardResponse(board);
     }
 
-    private Board getBoardInternal(String boardTag) throws BadRequestException {
-        return boardRepository.findByBoardTag(boardTag).orElseThrow(() -> new BadRequestException("Board not found!"));
+    private Board getBoardInternal(String boardTag) {
+        return boardRepository.findByBoardTag(boardTag).orElse(null);
     }
+
 
     private BoardResponse getBoardResponse(Board board) {
         BoardResponse boardResponse = mapper.map(board, BoardResponse.class);
@@ -116,6 +119,7 @@ public class BoardServiceImpl implements BoardService {
         String message = "You have been added as a collaborator on board " + boardTag;
 
         Board board = getBoardInternal(boardTag);
+        if (board == null) throw new BadRequestException(boardNotFound);
         Set<User> existingCollaborators = board.getCollaborators();
         List<User> newCollaborators = userRepository.findAllByEmails(collaborators);
         for (User contributor : newCollaborators) {
@@ -134,6 +138,7 @@ public class BoardServiceImpl implements BoardService {
         String message = "You have been removed as a collaborator on board " + boardTag;
 
         Board board = getBoardInternal(boardTag);
+        if (board == null) throw new BadRequestException(boardNotFound);
         Set<User> existingCollaborators = board.getCollaborators();
         List<User> usersToRemove = userRepository.findAllByEmails(emails);
         for (User userToRemove : usersToRemove) {
@@ -163,5 +168,11 @@ public class BoardServiceImpl implements BoardService {
         }
 
         throw new IllegalStateException("All three-letter substrings have been used. Please choose a different board name.");
+    }
+
+    public boolean hasBoardRole(String boardOwner, String boardTag) {
+        Board board = getBoardInternal(boardTag);
+        if (board == null) return false;
+        return board.getUser().getEmail().equals(boardOwner);
     }
 }

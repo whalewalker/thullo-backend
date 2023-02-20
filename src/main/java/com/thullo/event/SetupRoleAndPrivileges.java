@@ -40,7 +40,6 @@ public class SetupRoleAndPrivileges implements ApplicationListener<ContextRefres
     @Transactional
     public void createDefaultRoles() {
         createRoleIfNotFound("ROLE_ADMIN");
-        createRoleIfNotFound("ROLE_OWNER");
     }
 
     @Transactional
