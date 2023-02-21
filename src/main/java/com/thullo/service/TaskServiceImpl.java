@@ -106,7 +106,7 @@ public class TaskServiceImpl implements TaskService {
         mapper.map(taskRequest, task);
         String imageUrl = uploadTaskFile(taskRequest.getFile(), taskRequest.getRequestUrl());
         if (imageUrl != null) task.setImageUrl(imageUrl);
-        return task;
+        return taskRepository.save(task);
     }
     @Override
     public void deleteTask(String boardRef) throws ResourceNotFoundException {
@@ -117,8 +117,8 @@ public class TaskServiceImpl implements TaskService {
     }
 
     @Override
-    public List<Task> findTaskContainingNameOrBoardId(String name, String boardRef) {
-        return taskRepository.findByNameContainingOrBoardRef(name, boardRef);
+    public List<Task> searchTask(String params) {
+        return taskRepository.findByParams(params);
     }
 
     @Override
@@ -182,7 +182,6 @@ public class TaskServiceImpl implements TaskService {
     private String uploadCoverImage(MultipartFile coverImage, String requestUrl) throws IOException, BadRequestException {
         return fileService.uploadFile(coverImage, requestUrl);
     }
-
 
     public Task getTask(String boardRef) throws ResourceNotFoundException {
         return taskRepository.findByBoardRef(boardRef).orElseThrow(

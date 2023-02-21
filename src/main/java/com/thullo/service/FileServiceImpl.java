@@ -5,7 +5,6 @@ import com.thullo.data.repository.FilesRepository;
 import com.thullo.web.exception.BadRequestException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -105,7 +104,6 @@ public class FileServiceImpl implements FileService {
     }
 
     @Override
-    @CacheEvict(key = "#fileId", value = "files")
     public void deleteFile(String fileId) {
         filesRepository.findFileDataByFileId(fileId)
                 .ifPresent(filesRepository::delete);

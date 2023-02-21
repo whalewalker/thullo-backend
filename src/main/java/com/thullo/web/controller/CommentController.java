@@ -10,6 +10,7 @@ import com.thullo.web.payload.response.CommentResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
@@ -44,6 +45,7 @@ public class CommentController {
     }
 
     @DeleteMapping
+    @PreAuthorize("@commentServiceImpl.isCommentOwner(#commentId, authentication.principal.email)")
     public ResponseEntity<ApiResponse> deleteComment(@RequestParam("boardRef") String boardRef, @RequestParam("commentId") Long commentId) {
         try {
             commentService.deleteComment(boardRef, commentId);

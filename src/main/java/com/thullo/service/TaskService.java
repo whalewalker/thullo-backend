@@ -20,7 +20,7 @@ public interface TaskService {
     Task getTask(String boardRef) throws ResourceNotFoundException;
     void deleteTask(String boardRef) throws ResourceNotFoundException;
 
-    List<Task> findTaskContainingNameOrBoardId(String name, String boardId);
+    List<Task> searchTask(String params);
 
     void addContributors(String boardRef, Set<String> contributors) throws ResourceNotFoundException;
 

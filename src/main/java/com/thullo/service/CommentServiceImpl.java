@@ -104,8 +104,19 @@ public class CommentServiceImpl implements CommentService {
                 .orElseThrow(() -> new ResourceNotFoundException("Comment not found"));
     }
 
+    private Comment getCommentInternal(Long commentId) {
+        return commentRepository.findById(commentId).orElse(null);
+    }
+
+
     private Task getTask(String boardRef) throws ResourceNotFoundException {
         return taskRepository.findByBoardRef(boardRef)
                 .orElseThrow(() -> new ResourceNotFoundException("Task not found"));
+    }
+
+    public boolean isCommentOwner(Long commentId, String email) {
+        Comment comment = getCommentInternal(commentId);
+        if (comment == null) return false;
+        return comment.getCreatedBy().getEmail().equals(email);
     }
 }

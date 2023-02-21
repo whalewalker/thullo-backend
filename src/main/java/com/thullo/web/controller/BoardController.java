@@ -27,7 +27,6 @@ import java.util.Set;
 @RequiredArgsConstructor
 public class BoardController {
     private final BoardService boardService;
-
     @PostMapping
     public ResponseEntity<ApiResponse> createBoard(@RequestParam(value = "file", required = false) MultipartFile file, @RequestParam("boardName") String boardName,
                                                    @CurrentUser UserPrincipal principal, HttpServletRequest request) {
@@ -42,8 +41,8 @@ public class BoardController {
     }
 
     @GetMapping("/{boardTag}")
-    @PreAuthorize("#boardServiceImpl.hasBoardRole(#principal.email, #boardTag) or hasRole('BOARD_' + #boardTag)")
-    public ResponseEntity<ApiResponse> getABoard(@PathVariable String boardTag, @CurrentUser UserPrincipal principal) {
+    @PreAuthorize("@boardServiceImpl.hasBoardRole(authentication.principal.email, #boardTag) or hasRole('BOARD_' + #boardTag)")
+    public ResponseEntity<ApiResponse> getABoard(@PathVariable String boardTag) {
         try {
             return ResponseEntity.ok(new ApiResponse(true, "Board successfully fetched",
                     boardService.getBoard(boardTag)));
@@ -64,8 +63,8 @@ public class BoardController {
     }
 
     @PostMapping("/{boardTag}/collaborators")
-    @PreAuthorize("#boardServiceImpl.hasBoardRole(#principal.email, #boardTag) or hasRole('BOARD_' + #boardTag)")
-    public ResponseEntity<ApiResponse> addCollaboratorToBoard(@PathVariable String boardTag, @RequestBody Set<String> collaborators, @CurrentUser UserPrincipal principal) {
+    @PreAuthorize("@boardServiceImpl.hasBoardRole(authentication.principal.email, #boardTag) or hasRole('BOARD_' + #boardTag)")
+    public ResponseEntity<ApiResponse> addCollaboratorToBoard(@PathVariable String boardTag, @RequestBody Set<String> collaborators) {
         try {
             boardService.addCollaboratorToBoard(boardTag, collaborators);
             return ResponseEntity.ok(new ApiResponse(true, "collaborators successfully added"));
@@ -76,8 +75,8 @@ public class BoardController {
 
 
     @PostMapping("/{boardTag}/remove/collaborators")
-    @PreAuthorize("#boardServiceImpl.hasBoardRole(#principal.email, #boardTag) or hasRole('BOARD_' + #boardTag)")
-    public ResponseEntity<ApiResponse> removeCollaboratorToBoard(@PathVariable String boardTag, @RequestBody Set<String> collaborators, @CurrentUser UserPrincipal principal) {
+    @PreAuthorize("@boardServiceImpl.hasBoardRole(authentication.principal.email, #boardTag) or hasRole('BOARD_' + #boardTag)")
+    public ResponseEntity<ApiResponse> removeCollaboratorToBoard(@PathVariable String boardTag, @RequestBody Set<String> collaborators) {
         try {
             boardService.removeCollaboratorsFromBoard(boardTag, collaborators);
             return ResponseEntity.ok(new ApiResponse(true, "collaborators successfully added"));
