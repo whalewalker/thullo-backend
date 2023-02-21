@@ -11,16 +11,22 @@ import java.util.List;
 import java.util.Set;
 
 public interface TaskService {
-    Task createTask(TaskRequest taskRequest) throws BadRequestException, IOException;
-    Task moveTask(Long taskId, Long newColumnId, Long index) throws ResourceNotFoundException;
-    Task editTask(Long taskId, TaskRequest taskRequest) throws BadRequestException, IOException, ResourceNotFoundException;
-   Task getTask(Long taskId) throws ResourceNotFoundException;
-    void deleteTask(Long taskId);
-    List<Task> findTaskContainingNameOrBoardId(String name, String boardId);
-   void addContributors(String boardRef, Set<String> contributors) throws ResourceNotFoundException;
-   void removeContributors(String boardRef, Set<String> contributors) throws ResourceNotFoundException;
+    Task createTask(String boardTag, String createdBy, TaskRequest taskRequest) throws BadRequestException, IOException, ResourceNotFoundException;
 
-   Task updateTaskImage(String boardRef, MultipartFile coverImage, String requestUrl) throws ResourceNotFoundException, BadRequestException, IOException;
+    Task moveTask(String boardRef, String status, Long index) throws ResourceNotFoundException;
+
+    Task editTask(String boardRef, TaskRequest taskRequest) throws BadRequestException, IOException, ResourceNotFoundException;
+
+    Task getTask(String boardRef) throws ResourceNotFoundException;
+    void deleteTask(String boardRef) throws ResourceNotFoundException;
+
+    List<Task> searchTask(String params);
+
+    void addContributors(String boardRef, Set<String> contributors) throws ResourceNotFoundException;
+
+    void removeContributors(String boardRef, Set<String> contributors) throws ResourceNotFoundException;
+
+    Task updateTaskImage(String boardRef, MultipartFile coverImage, String requestUrl) throws ResourceNotFoundException, BadRequestException, IOException;
 
     String getTaskImageUrl(String boardRef) throws ResourceNotFoundException;
 }

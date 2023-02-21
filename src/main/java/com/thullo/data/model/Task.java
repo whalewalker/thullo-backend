@@ -30,6 +30,9 @@ public class Task {
 
     private Long position;
 
+    @Enumerated(EnumType.STRING)
+    private Status status;
+
     @Column(nullable = false, unique = true)
     private String boardRef;
 
@@ -38,11 +41,16 @@ public class Task {
     private String description;
 
     @ManyToOne
-    @JoinColumn(name = "task_column_id")
+    @JoinColumn(name = "user_id")
     @JsonBackReference
-    private TaskColumn taskColumn;
+    private User createdBy;
 
-    @OneToMany(mappedBy = "task", cascade = CascadeType.ALL)
+    @ManyToOne
+    @JoinColumn(name = "board_id")
+    @JsonBackReference
+    private Board board;
+
+    @OneToMany(mappedBy = "task", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Comment> comments = new ArrayList<>();
 
     @ManyToMany
@@ -61,6 +69,7 @@ public class Task {
             joinColumns = @JoinColumn(name = "task_id"),
             inverseJoinColumns = @JoinColumn(name = "label_id"))
     private Set<Label> labels = new HashSet<>();
+
     @CreationTimestamp
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime createdAt;

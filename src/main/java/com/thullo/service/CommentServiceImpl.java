@@ -9,6 +9,7 @@ import com.thullo.data.repository.TaskRepository;
 import com.thullo.data.repository.UserRepository;
 import com.thullo.web.exception.ResourceNotFoundException;
 import com.thullo.web.payload.request.CommentRequest;
+import com.thullo.web.payload.response.CommentResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
@@ -25,7 +26,6 @@ import java.util.stream.Collectors;
 public class CommentServiceImpl implements CommentService {
     private final CommentRepository commentRepository;
     private final ModelMapper mapper;
-
     private final UserRepository userRepository;
 
     private final TaskRepository taskRepository;
@@ -33,26 +33,29 @@ public class CommentServiceImpl implements CommentService {
     private final NotificationService notificationService;
 
     @Override
-    public Comment createComment(String boardRef, CommentRequest request) throws ResourceNotFoundException {
+    public CommentResponse createComment(String boardRef, String email, CommentRequest request) throws ResourceNotFoundException {
         Comment comment = mapper.map(request, Comment.class);
-
+        User createdBy = userRepository.findUserByEmail(email);
         Task task = getTask(boardRef);
-
         List<User> mentionedUsers = userRepository.findAllByEmails(request.getMentionedUsers());
-
         comment.setMentionedUsers(mentionedUsers);
         comment.setTask(task);
-
-        Comment savedComment = commentRepository.save(comment);
+        comment.setCreatedBy(createdBy);
+        commentRepository.save(comment);
 
         String title = "You have been mentioned in a comment on task: " + task.getBoardRef();
         String message = "You have been mentioned in a comment on task " + task.getBoardRef() + ": " + request.getMessage();
         notificationService.sendNotificationsToUsers(mentionedUsers, message, title, NotificationType.MENTIONED_IN_COMMENT);
-        return savedComment;
+
+        CommentResponse response = mapper.map(comment, CommentResponse.class);
+        response.setCreatedBy(createdBy.getName());
+        response.setImageUrl(createdBy.getImageUrl());
+
+        return response;
     }
 
     @Override
-    public Comment editComment(String boardRef, Long commentId, CommentRequest request) throws ResourceNotFoundException {
+    public CommentResponse editComment(String boardRef, Long commentId, CommentRequest request) throws ResourceNotFoundException {
         Comment comment = getComment(commentId);
         mapper.map(request, comment);
 
@@ -63,18 +66,22 @@ public class CommentServiceImpl implements CommentService {
         Set<String> newMentionedUserEmails = request.getMentionedUsers();
         existingMentionedUserEmails.forEach(newMentionedUserEmails::remove);
         if (newMentionedUserEmails.isEmpty()) {
-            return  commentRepository.save(comment);
+            comment = commentRepository.save(comment);
         } else {
             List<User> newMentionedUsers = userRepository.findAllByEmails(newMentionedUserEmails);
             comment.setMentionedUsers(newMentionedUsers);
-            Comment savedComment = commentRepository.save(comment);
+            comment = commentRepository.save(comment);
 
             String title = "You have been mentioned in a comment on task: " + boardRef;
             String message = "You have been mentioned in a comment on task " + boardRef + ": " + request.getMessage();
             notificationService.sendNotificationsToUsers(newMentionedUsers, message, title, NotificationType.MENTIONED_IN_COMMENT);
-
-            return savedComment;
         }
+
+        CommentResponse response = mapper.map(comment, CommentResponse.class);
+        response.setCreatedBy(comment.getCreatedBy().getName());
+        response.setImageUrl(comment.getCreatedBy().getImageUrl());
+
+        return response;
     }
 
     @Override
@@ -97,8 +104,19 @@ public class CommentServiceImpl implements CommentService {
                 .orElseThrow(() -> new ResourceNotFoundException("Comment not found"));
     }
 
+    private Comment getCommentInternal(Long commentId) {
+        return commentRepository.findById(commentId).orElse(null);
+    }
+
+
     private Task getTask(String boardRef) throws ResourceNotFoundException {
         return taskRepository.findByBoardRef(boardRef)
                 .orElseThrow(() -> new ResourceNotFoundException("Task not found"));
+    }
+
+    public boolean isCommentOwner(Long commentId, String email) {
+        Comment comment = getCommentInternal(commentId);
+        if (comment == null) return false;
+        return comment.getCreatedBy().getEmail().equals(email);
     }
 }

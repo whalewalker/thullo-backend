@@ -1,7 +1,6 @@
 package com.thullo.config;
 
 
-import com.thullo.data.model.UUIDWrapper;
 import com.thullo.security.CustomUserDetailService;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
@@ -34,19 +33,12 @@ public class AppBeans {
     }
 
     @Bean
-    public UUIDWrapper uuidWrapper(){
-        return  new UUIDWrapper();
-    }
-
-
-    @Bean
     public RoleHierarchy roleHierarchy() {
         RoleHierarchyImpl roleHierarchy = new RoleHierarchyImpl();
-        String hierarchy = "ROLE_ADMIN > ROLE_OWNER";
+        String hierarchy = "ROLE_ADMIN > ROLE_OWNER\nROLE_COLLABORATOR > ROLE_CONTRIBUTOR";
         roleHierarchy.setHierarchy(hierarchy);
         return roleHierarchy;
     }
-
 
     @Bean
     public DefaultWebSecurityExpressionHandler webSecurityExpressionHandler() {
@@ -62,4 +54,6 @@ public class AppBeans {
                 .passwordEncoder(passwordEncoder());
         return authenticationManagerBuilder.build();
     }
+
+
 }

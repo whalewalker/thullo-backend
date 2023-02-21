@@ -1,26 +1,22 @@
 package com.thullo.service;
 
 
-import com.thullo.data.model.Board;
-import com.thullo.data.model.TaskColumn;
-import com.thullo.data.model.User;
+import com.thullo.data.model.*;
 import com.thullo.data.repository.BoardRepository;
-import com.thullo.data.repository.TaskColumnRepository;
 import com.thullo.data.repository.UserRepository;
 import com.thullo.security.UserPrincipal;
 import com.thullo.util.Helper;
 import com.thullo.web.exception.BadRequestException;
 import com.thullo.web.exception.UserException;
 import com.thullo.web.payload.request.BoardRequest;
+import com.thullo.web.payload.response.BoardResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
-import org.springframework.cache.annotation.CachePut;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static java.lang.String.format;
@@ -36,7 +32,13 @@ public class BoardServiceImpl implements BoardService {
     private final FileService fileService;
 
     private final UserRepository userRepository;
-    private final TaskColumnRepository taskColumnRepository;
+
+    private final RoleServiceImpl roleService;
+
+    private final NotificationService notificationService;
+
+    private static final String boardNotFound = "Board not found";
+
 
     /**
      * Creates a new board based on the provided board request.
@@ -46,60 +48,111 @@ public class BoardServiceImpl implements BoardService {
      */
 
     public Board createBoard(BoardRequest boardRequest, UserPrincipal userPrincipal) throws UserException, BadRequestException, IOException {
-        if(Helper.isNullOrEmpty(boardRequest.getName())) throw new BadRequestException("Board name cannot be empty");
+        if (Helper.isNullOrEmpty(boardRequest.getName())) throw new BadRequestException("Board name cannot be empty");
         User user = internalFindUserByEmail(userPrincipal.getEmail());
         Board board = mapper.map(boardRequest, Board.class);
         board.setUser(user);
         String imageUrl = null;
-        if (boardRequest.getFile() != null){
+        if (boardRequest.getFile() != null) {
             imageUrl = fileService.uploadFile(boardRequest.getFile(), boardRequest.getRequestUrl());
         }
         board.setImageUrl(imageUrl);
-        createDefaultTaskColumn(board);
         board.setBoardTag(generateThreeLetterWord(boardRequest.getName().toUpperCase()));
-        Board savedBoard = boardRepository.save(board);
-        savedBoard.getTaskColumns().forEach(this::updateTaskColumnCache);
-        return savedBoard;
+        return boardRepository.save(board);
     }
 
     @Override
-    public Board getBoard(Long id) throws BadRequestException {
-        return boardRepository.findById(id).orElseThrow(()-> new BadRequestException ("Board not found!"));
+    public BoardResponse getBoard(String boardTag) throws BadRequestException {
+        Board board = getBoardInternal(boardTag);
+        if (board == null) throw new BadRequestException(boardNotFound);
+        return getBoardResponse(board);
+    }
+
+    private Board getBoardInternal(String boardTag) {
+        return boardRepository.findByBoardTag(boardTag).orElse(null);
     }
 
 
-    private Board getBoardInternal(Long id){
-        return boardRepository.findById(id).orElse(null);
+    private BoardResponse getBoardResponse(Board board) {
+        BoardResponse boardResponse = mapper.map(board, BoardResponse.class);
+
+        List<Task> tasks = board.getTasks();
+        Map<Status, List<Task>> columns = tasks.stream()
+                .collect(Collectors.groupingBy(Task::getStatus));
+
+        if (columns.isEmpty()) {
+            Arrays.stream(Status.values()).forEach(columnName -> {
+                BoardResponse.Column column = new BoardResponse.Column();
+                column.setName(columnName.getContent());
+                column.setTasks(Collections.emptyList());
+                boardResponse.getTaskColumn().add(column);
+            });
+        } else {
+            Arrays.stream(Status.values()).forEach(columnName -> {
+                BoardResponse.Column column = new BoardResponse.Column();
+                column.setName(columnName.getContent());
+                List<Task> columnTasks = columns.getOrDefault(columnName, Collections.emptyList());
+                column.setTasks(columnTasks);
+                boardResponse.getTaskColumn().add(column);
+            });
+        }
+
+        return boardResponse;
     }
 
     @Override
-    public List<Board> getBoards(UserPrincipal userPrincipal) throws UserException {
+    public List<BoardResponse> getBoards(UserPrincipal userPrincipal) throws UserException {
         User user = internalFindUserByEmail(userPrincipal.getEmail());
-        return boardRepository.getAllByUserOrderByCreatedAtAsc(user);
+        List<Board> allUserBoards = boardRepository.getAllByUserOrderByCreatedAtAsc(user);
+        List<BoardResponse> boardResponses = new ArrayList<>(allUserBoards.size());
+
+        for (Board board : allUserBoards) {
+            boardResponses.add(getBoardResponse(board));
+        }
+
+        return boardResponses;
     }
 
-    public boolean isBoardOwner(Long boardId, String email) {
-        Board board = getBoardInternal(boardId);
-        if (board == null) return false;
-        return board.getUser().getEmail().equals(email);
+    @Override
+    public void addCollaboratorToBoard(String boardTag, Set<String> collaborators) throws BadRequestException {
+        String title = "You have been added as a collaborator on board: " + boardTag;
+        String message = "You have been added as a collaborator on board " + boardTag;
+
+        Board board = getBoardInternal(boardTag);
+        if (board == null) throw new BadRequestException(boardNotFound);
+        Set<User> existingCollaborators = board.getCollaborators();
+        List<User> newCollaborators = userRepository.findAllByEmails(collaborators);
+        for (User contributor : newCollaborators) {
+            if (!existingCollaborators.contains(contributor)) {
+                existingCollaborators.add(contributor);
+                roleService.addTaskRoleToUser(contributor, board);
+                notificationService.sendNotificationToUser(contributor, message, title, NotificationType.ADDED_AS_COLLABORATOR);
+            }
+        }
     }
 
-    private void createDefaultTaskColumn(Board board) {
-        board.setTaskColumns(List.of(
-                new TaskColumn("Backlog \uD83E\uDD14", board),
-                new TaskColumn("In Progress \uD83D\uDCDA", board),
-                new TaskColumn("In Review ⚙️", board),
-                new TaskColumn("Completed \uD83D\uDE4C\uD83C\uDFFD", board))
-        );
+
+    @Override
+    public void removeCollaboratorsFromBoard(String boardTag, Set<String> emails) throws BadRequestException {
+        String title = "You have been removed as a collaborator on board: " + boardTag;
+        String message = "You have been removed as a collaborator on board " + boardTag;
+
+        Board board = getBoardInternal(boardTag);
+        if (board == null) throw new BadRequestException(boardNotFound);
+        Set<User> existingCollaborators = board.getCollaborators();
+        List<User> usersToRemove = userRepository.findAllByEmails(emails);
+        for (User userToRemove : usersToRemove) {
+            if (existingCollaborators.contains(userToRemove)) {
+                existingCollaborators.remove(userToRemove);
+                roleService.removeBoardRoleFromUser(userToRemove, board);
+                notificationService.sendNotificationToUser(userToRemove, message, title, NotificationType.REMOVED_AS_COLLABORATOR);
+            }
+        }
     }
+
 
     private User internalFindUserByEmail(String email) throws UserException {
         return userRepository.findByEmail(email).orElseThrow(() -> new UserException(format("user not found with email %s", email)));
-    }
-
-    @CachePut(value = "taskColumns", key = "#taskColumn.id")
-    public void updateTaskColumnCache(TaskColumn taskColumn) {
-        taskColumnRepository.save(taskColumn);
     }
 
     private String generateThreeLetterWord(String boardName) {
@@ -115,5 +168,11 @@ public class BoardServiceImpl implements BoardService {
         }
 
         throw new IllegalStateException("All three-letter substrings have been used. Please choose a different board name.");
+    }
+
+    public boolean hasBoardRole(String boardOwner, String boardTag) {
+        Board board = getBoardInternal(boardTag);
+        if (board == null) return false;
+        return board.getUser().getEmail().equals(boardOwner);
     }
 }

@@ -1,7 +1,8 @@
 package com.thullo.web.controller;
 
-import com.thullo.annotation.CurrentTaskColumn;
+import com.thullo.annotation.CurrentUser;
 import com.thullo.data.model.Task;
+import com.thullo.security.UserPrincipal;
 import com.thullo.service.TaskService;
 import com.thullo.web.exception.BadRequestException;
 import com.thullo.web.exception.ResourceNotFoundException;
@@ -27,36 +28,34 @@ import java.util.Set;
 public class TaskController {
     private final TaskService taskService;
 
-    @PostMapping(value = "/{taskColumnId}", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE}, produces = {MediaType.APPLICATION_JSON_VALUE})
-    @PreAuthorize("@taskServiceImpl.isTaskOwner(#taskColumnId, authentication.principal.email)")
-    @CurrentTaskColumn
-    public ResponseEntity<ApiResponse> createTask(@PathVariable Long taskColumnId, TaskRequest taskRequest, HttpServletRequest request) {
+    @PostMapping(value = "/{boardTag}", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE}, produces = {MediaType.APPLICATION_JSON_VALUE})
+    @PreAuthorize("@boardServiceImpl.hasBoardRole(authentication.principal.email, #boardTag) or hasRole('BOARD_' + #boardTag)")
+    public ResponseEntity<ApiResponse> createTask(@PathVariable String boardTag, TaskRequest taskRequest, HttpServletRequest request, @CurrentUser UserPrincipal principal) {
         taskRequest.setRequestUrl(request.getRequestURL().toString());
-        taskRequest.setTaskColumnId(taskColumnId);
         try {
-            Task task = taskService.createTask(taskRequest);
+            Task task = taskService.createTask(boardTag, principal.getEmail(), taskRequest);
             return ResponseEntity.ok(new ApiResponse(true, "Task created successfully", task));
-        } catch (BadRequestException | IOException ex) {
+        } catch (BadRequestException | ResourceNotFoundException | IOException ex) {
             return ResponseEntity.badRequest().body(new ApiResponse(false, ex.getMessage()));
         }
     }
 
-    @PutMapping("/move")
-    @PreAuthorize("@taskServiceImpl.isTaskOwnedByUser(#request.taskId, #request.newColumnId, authentication.principal.email)")
-    public ResponseEntity<ApiResponse> moveTask(@RequestBody TaskMoveRequest request) {
+    @PutMapping("{boardTag}/move")
+    @PreAuthorize("@boardServiceImpl.hasBoardRole(authentication.principal.email, #boardTag) or hasRole('BOARD_' + #boardTag) or hasRole('TASK_' + #request.boardRef)")
+    public ResponseEntity<ApiResponse> moveTask(@PathVariable String boardTag, @RequestBody TaskMoveRequest request) {
         try {
-            Task task = taskService.moveTask(request.getTaskId(), request.getNewColumnId(), request.getPosition());
+            Task task = taskService.moveTask(request.getBoardRef(), request.getStatus(), request.getPosition());
             return ResponseEntity.ok(new ApiResponse(true, "Task moved successfully", task));
         } catch (ResourceNotFoundException ex) {
             return ResponseEntity.badRequest().body(new ApiResponse(false, ex.getMessage()));
         }
     }
 
-    @GetMapping("/{taskId}")
-    @PreAuthorize("@taskServiceImpl.isTaskCreator(#taskId, authentication.principal.email)")
-    public ResponseEntity<ApiResponse> getTask(@PathVariable("taskId") Long taskId) {
+    @GetMapping("{boardTag}/{boardRef}")
+    @PreAuthorize("@boardServiceImpl.hasBoardRole(authentication.principal.email, #boardTag) or hasRole('BOARD_' + #boardTag) or hasRole('TASK_' + #boardRef)")
+    public ResponseEntity<ApiResponse> getTask(@PathVariable String boardTag, @PathVariable String boardRef) {
         try {
-            Task task = taskService.getTask(taskId);
+            Task task = taskService.getTask(boardRef);
             return ResponseEntity.ok(new ApiResponse(true, "Task fetched successfully", task));
         } catch (ResourceNotFoundException ex) {
             return ResponseEntity.badRequest().body(new ApiResponse(false, ex.getMessage()));
@@ -64,43 +63,49 @@ public class TaskController {
     }
 
 
-    @PutMapping(value = "/{taskId}", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE}, produces = {MediaType.APPLICATION_JSON_VALUE})
-    @PreAuthorize("@taskServiceImpl.isTaskCreator(#taskId, authentication.principal.email)")
-    public ResponseEntity<ApiResponse> editTask(@PathVariable Long taskId, TaskRequest taskRequest, HttpServletRequest request) {
+    @PutMapping(value = "{boardTag}/{boardRef}", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE}, produces = {MediaType.APPLICATION_JSON_VALUE})
+    @PreAuthorize("@boardServiceImpl.hasBoardRole(authentication.principal.email, #boardTag) or hasRole('BOARD_' + #boardTag) or hasRole('TASK_' + #boardRef)")
+    public ResponseEntity<ApiResponse> editTask(@PathVariable String boardTag, @PathVariable String boardRef, TaskRequest taskRequest, HttpServletRequest request) {
         taskRequest.setRequestUrl(request.getRequestURL().toString());
         try {
-            Task task = taskService.editTask(taskId, taskRequest);
+            Task task = taskService.editTask(boardRef, taskRequest);
             return ResponseEntity.ok(new ApiResponse(true, "Task created successfully", task));
         } catch (ResourceNotFoundException | BadRequestException | IOException ex) {
             return ResponseEntity.badRequest().body(new ApiResponse(false, ex.getMessage()));
         }
     }
 
-    @DeleteMapping("/{taskId}")
-    @PreAuthorize("@taskServiceImpl.isTaskCreator(#taskId, authentication.principal.email)")
-    public ResponseEntity<ApiResponse> deleteATask(@PathVariable("taskId") Long taskId) {
-        taskService.deleteTask(taskId);
-        return ResponseEntity.ok(new ApiResponse(true, "Task delete successfully"));
+    @DeleteMapping("{boardTag}/{boardRef}")
+    @PreAuthorize("@boardServiceImpl.hasBoardRole(authentication.principal.email, #boardTag) or hasRole('BOARD_' + #boardTag)")
+    public ResponseEntity<ApiResponse> deleteATask(@PathVariable String boardTag, @PathVariable String boardRef) {
+        try {
+            taskService.deleteTask(boardRef);
+            return ResponseEntity.ok(new ApiResponse(true, "Task delete successfully"));
+        } catch (ResourceNotFoundException ex) {
+            return ResponseEntity.badRequest().body(new ApiResponse(false, ex.getMessage()));
+        }
     }
 
 
-    @GetMapping("/{taskId}/contributors")
-    public ResponseEntity<ApiResponse> getContributors(@PathVariable(value = "taskId") Long taskId) {
+    @GetMapping("{boardTag}/{boardRef}/contributors")
+    @PreAuthorize("@boardServiceImpl.hasBoardRole(authentication.principal.email, #boardTag) or hasRole('BOARD_' + #boardTag) or hasRole('TASK_' + #boardRef)")
+    public ResponseEntity<ApiResponse> getContributors(@PathVariable String boardTag, @PathVariable String boardRef) {
         try {
-            Task task = taskService.getTask(taskId);
+            Task task = taskService.getTask(boardRef);
             return ResponseEntity.ok(new ApiResponse(true, "fetch contributors successfully", task.getContributors()));
         } catch (ResourceNotFoundException ex) {
             return ResponseEntity.badRequest().body(new ApiResponse(false, ex.getMessage()));
         }
     }
 
-    @GetMapping
-    public List<Task> searchTasks(@RequestParam("search") String search, @RequestParam("boardRef") String boardRef) {
-        return taskService.findTaskContainingNameOrBoardId(search, boardRef);
+    @GetMapping("/search")
+    public List<Task> searchTasks(@RequestParam("params") String searchParams) {
+        return taskService.searchTask(searchParams);
     }
 
-    @PutMapping("/{boardRef}")
-    public ResponseEntity<ApiResponse> addContributors(@PathVariable String boardRef, @RequestBody Set<String> contributors) {
+    @PutMapping("{boardTag}/{boardRef}/contributors")
+    @PreAuthorize("@boardServiceImpl.hasBoardRole(authentication.principal.email, #boardTag) or hasRole('BOARD_' + #boardTag) or hasRole('BOARD_' + #boardTag)")
+    public ResponseEntity<ApiResponse> addContributors(@PathVariable String boardTag, @PathVariable String boardRef, @RequestBody Set<String> contributors) {
         try {
             taskService.addContributors(boardRef, contributors);
             return ResponseEntity.ok(new ApiResponse(true, "contributors successfully added"));
@@ -110,8 +115,9 @@ public class TaskController {
     }
 
 
-    @PutMapping("remove/{boardRef}")
-    public ResponseEntity<ApiResponse> removeContributors(@PathVariable String boardRef, @RequestBody Set<String> contributors) {
+    @PutMapping("{boardTag}/{boardRef}/remove/contributors")
+    @PreAuthorize("@boardServiceImpl.hasBoardRole(authentication.principal.email, #boardTag) or hasRole('BOARD_' + #boardTag)")
+    public ResponseEntity<ApiResponse> removeContributors(@PathVariable String boardTag, @PathVariable String boardRef, @RequestBody Set<String> contributors) {
         try {
             taskService.removeContributors(boardRef, contributors);
             return ResponseEntity.ok(new ApiResponse(true, "contributors successfully removed"));
@@ -120,8 +126,9 @@ public class TaskController {
         }
     }
 
-    @PutMapping("/cover-image")
-    public ResponseEntity<ApiResponse> addCoverImage(@RequestParam("boardRef") String boardRef, @RequestParam("file") MultipartFile file, HttpServletRequest request) {
+    @PutMapping("{boardTag}/{boardRef}/cover-image")
+    @PreAuthorize("@boardServiceImpl.hasBoardRole(authentication.principal.email, #boardTag) or hasRole('BOARD_' + #boardTag) or hasRole('TASK_' + #boardRef)")
+    public ResponseEntity<ApiResponse> addCoverImage(@PathVariable String boardTag, @PathVariable String boardRef, @RequestParam("file") MultipartFile file, HttpServletRequest request) {
         try {
             Task task = taskService.updateTaskImage(boardRef, file, request.getRequestURL().toString());
             return ResponseEntity.ok(new ApiResponse(true, "cover image added successfully", task));
@@ -131,8 +138,9 @@ public class TaskController {
     }
 
 
-    @GetMapping("/cover-image")
-    public ResponseEntity<ApiResponse> getTaskCoverImage(@RequestParam("boardRef") String boardRef) {
+    @GetMapping("{boardTag}/{boardRef}/cover-image")
+    @PreAuthorize("@boardServiceImpl.hasBoardRole(authentication.principal.email, #boardTag) or hasRole('BOARD_' + #boardTag) or hasRole('TASK_' + #boardRef)")
+    public ResponseEntity<ApiResponse> getTaskCoverImage(@PathVariable String boardTag, @PathVariable String boardRef) {
         try {
             String taskImageUrl = taskService.getTaskImageUrl(boardRef);
             return ResponseEntity.ok(new ApiResponse(true, "cover image fetched successfully", Map.of("imageUrl", taskImageUrl)));

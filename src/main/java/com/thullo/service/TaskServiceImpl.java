@@ -1,10 +1,7 @@
 package com.thullo.service;
 
-import com.thullo.data.model.NotificationType;
-import com.thullo.data.model.Task;
-import com.thullo.data.model.TaskColumn;
-import com.thullo.data.model.User;
-import com.thullo.data.repository.TaskColumnRepository;
+import com.thullo.data.model.*;
+import com.thullo.data.repository.BoardRepository;
 import com.thullo.data.repository.TaskRepository;
 import com.thullo.data.repository.UserRepository;
 import com.thullo.web.exception.BadRequestException;
@@ -13,8 +10,6 @@ import com.thullo.web.payload.request.TaskRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
-import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.cache.annotation.CachePut;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -31,117 +26,99 @@ public class TaskServiceImpl implements TaskService {
     private final TaskRepository taskRepository;
     private final ModelMapper mapper;
     private final FileService fileService;
-    private final TaskColumnRepository taskColumnRepository;
     private final UserRepository userRepository;
     private final NotificationService notificationService;
+    private final BoardRefGenerator boardRefGenerator;
+    private final RoleServiceImpl roleService;
+    private final BoardRepository boardRepository;
+
     @Override
-    @CachePut(value = "tasks", key = "#result.id")
-    public Task createTask(TaskRequest taskRequest) throws BadRequestException, IOException {
-        Task task = taskRequest.getTask();
-        String imageUrl = uploadTaskFile(taskRequest);
+    public Task createTask(String boardTag, String email, TaskRequest taskRequest) throws BadRequestException, IOException, ResourceNotFoundException {
+        Task task = mapper.map(taskRequest, Task.class);
+        Board board = getBoard(boardTag);
+        User createdBy = userRepository.findUserByEmail(email);
+
+        task.setBoard(board);
+        Status status = Status.getStatus(taskRequest.getStatus().toLowerCase());
+        long position = taskRepository.countByBoardAndStatus(board, status);
+
+        task.setStatus(status);
+        task.setPosition(position);
+
+        String imageUrl = uploadTaskFile(taskRequest.getFile(), taskRequest.getRequestUrl());
         task.setImageUrl(imageUrl);
+        task.setBoardRef(boardRefGenerator.generateBoardRef(board));
+        task.setCreatedBy(createdBy);
         return taskRepository.save(task);
     }
 
-    private String uploadTaskFile(TaskRequest taskRequest) throws BadRequestException, IOException {
+    private Board getBoard(String boardTag) throws ResourceNotFoundException {
+        return boardRepository.findByBoardTag(boardTag)
+                .orElseThrow(() -> new ResourceNotFoundException("Board not found"));
+    }
+
+    private String uploadTaskFile(MultipartFile file, String requestUrl) throws BadRequestException, IOException {
         String imageUrl = null;
-        if (taskRequest.getFile() != null) {
-            imageUrl = fileService.uploadFile(taskRequest.getFile(), taskRequest.getRequestUrl());
+        if (file != null) {
+            imageUrl = fileService.uploadFile(file, requestUrl);
         }
         return imageUrl;
     }
 
     @Override
-    @CachePut(value = "tasks", key = "#taskId")
-    public Task moveTask(Long taskId, Long newColumnId, Long index) throws ResourceNotFoundException {
-        Long absoluteIndex = Math.abs(index);
-        Task task = taskRepository.findById(taskId)
-                .orElseThrow(() -> new ResourceNotFoundException("Task not found !"));
+    public Task moveTask(String boardRef, String status, Long position) throws ResourceNotFoundException {
+        Status statusToUpdateTo = Status.getStatus(status);
+        Task task = taskRepository.findByBoardRef(boardRef)
+                .orElseThrow(() -> new ResourceNotFoundException("Task not found"));
 
-        List<Task> tasksInColumn = taskRepository.findByTaskColumnOrderByPositionAsc(newColumnId).orElseThrow(
-                () -> new ResourceNotFoundException("Task column not found !"));
+        List<Task> tasksInStatus = taskRepository.findAllByBoardAndStatus(task.getBoard(), statusToUpdateTo);
 
-        if (absoluteIndex > tasksInColumn.size())
-            absoluteIndex = (long) tasksInColumn.size();
+        long index = Math.max(Math.min(position, tasksInStatus.size()), 0);
+        boolean isSameStatus = task.getStatus().getContent().equalsIgnoreCase(status);
+        long currentIndex = task.getPosition();
 
-        if (task.getTaskColumn().getId().equals(newColumnId) && task.getPosition() < absoluteIndex) {
-            absoluteIndex--;
+        if (index > currentIndex && isSameStatus) {
+            index--;
         }
 
+        if (tasksInStatus.isEmpty()) {
+            task.setPosition(0L);
+        } else {
+            for (Task t : tasksInStatus) {
+                long tIndex = t.getPosition();
+                if (tIndex >= index && tIndex < currentIndex) {
+                    t.setPosition(tIndex + 1);
+                } else if (tIndex <= index && tIndex > currentIndex) {
+                    t.setPosition(tIndex - 1);
+                }
+            }
+            task.setPosition(index);
+        }
 
-        Long finalIndex = absoluteIndex;
-        tasksInColumn.stream()
-                .filter(t -> t.getPosition() >= finalIndex)
-                .forEach(t -> t.setPosition(t.getPosition() + 1));
-
-        task.setPosition(absoluteIndex);
-        task.setTaskColumn(getTaskColumn(newColumnId));
+        task.setStatus(statusToUpdateTo);
         return taskRepository.save(task);
     }
 
+
     @Override
-    @CachePut(value = "tasks", key = "#taskId")
-    public Task editTask(Long taskId, TaskRequest taskRequest) throws BadRequestException, IOException, ResourceNotFoundException {
-        Task task = getTask(taskId);
+    public Task editTask(String boardRef, TaskRequest taskRequest) throws BadRequestException, IOException, ResourceNotFoundException {
+        Task task = getTask(boardRef);
         mapper.map(taskRequest, task);
-        String imageUrl = uploadTaskFile(taskRequest);
+        String imageUrl = uploadTaskFile(taskRequest.getFile(), taskRequest.getRequestUrl());
         if (imageUrl != null) task.setImageUrl(imageUrl);
-        return task;
+        return taskRepository.save(task);
     }
-
-
-    public boolean isTaskOwner(Long taskColumnId, String email) {
-        TaskColumn taskColumn = getTaskColumn(taskColumnId);
-        if (taskColumn == null) return false;
-        return taskColumn.getBoard().getUser().getEmail().equals(email);
-    }
-
-    public boolean isTaskOwnedByUser(Long taskId, Long newColumnId, String email) {
-        Task task = getTaskInternal(taskId);
-        if (task == null) {
-            return false;
-        }
-        TaskColumn column = taskColumnRepository.findById(newColumnId).orElse(null);
-        if (column == null) {
-            return false;
-        }
-        User user = userRepository.findByEmail(email).orElse(null);
-        if (user == null) {
-            return false;
-        }
-        if (!task.getTaskColumn().getBoard().getUser().getId().equals(user.getId())) {
-            return false;
-        }
-        return column.getBoard().getUser().getId().equals(user.getId());
-    }
-
-    private Task getTaskInternal(Long taskId) {
-        return taskRepository.findById(taskId).orElse(null);
-    }
-
-
-    private TaskColumn getTaskColumn(Long taskColumnId) {
-        return taskColumnRepository.findById(taskColumnId).orElse(null);
-    }
-
-    public Task getTask(Long taskId) throws ResourceNotFoundException {
-        Task task = getTaskInternal(taskId);
-        if (task == null) throw new ResourceNotFoundException("Task not found !");
-        return task;
-    }
-
     @Override
-    @CacheEvict(value = "tasks", key = "#taskId")
-    public void deleteTask(Long taskId) {
-        Task task = getTaskInternal(taskId);
+    public void deleteTask(String boardRef) throws ResourceNotFoundException {
+        Task task = getTask(boardRef);
         if (task != null) {
             taskRepository.delete(task);
         }
     }
 
     @Override
-    public List<Task> findTaskContainingNameOrBoardId(String name, String boardRef) {
-        return taskRepository.findByNameContainingOrBoardRef(name, boardRef);
+    public List<Task> searchTask(String params) {
+        return taskRepository.findByParams(params);
     }
 
     @Override
@@ -155,6 +132,7 @@ public class TaskServiceImpl implements TaskService {
         for (User contributor : newContributors) {
             if (!existingContributors.contains(contributor)) {
                 existingContributors.add(contributor);
+                roleService.addTaskRoleToUser(contributor, task);
                 notificationService.sendNotificationToUser(contributor, message, title, NotificationType.ADDED_AS_CONTRIBUTOR);
             }
         }
@@ -170,6 +148,7 @@ public class TaskServiceImpl implements TaskService {
         List<User> usersToRemove = userRepository.findAllByEmails(contributors);
         for (User contributor : usersToRemove) {
             existingContributors.remove(contributor);
+            roleService.removeTaskRoleFromUser(contributor, task);
             notificationService.sendNotificationToUser(contributor, message, title, NotificationType.REMOVE_AS_CONTRIBUTOR);
         }
     }
@@ -204,19 +183,7 @@ public class TaskServiceImpl implements TaskService {
         return fileService.uploadFile(coverImage, requestUrl);
     }
 
-
-
-    public boolean isTaskCreator(Long taskId, String email) {
-        User user = userRepository.findByEmail(email).orElse(null);
-        if (user == null) return false;
-
-        Task task = getTaskInternal(taskId);
-        if (task == null) return false;
-
-        return task.getTaskColumn().getBoard().getUser().getId().equals(user.getId());
-    }
-
-    private Task getTask(String boardRef) throws ResourceNotFoundException {
+    public Task getTask(String boardRef) throws ResourceNotFoundException {
         return taskRepository.findByBoardRef(boardRef).orElseThrow(
                 () -> new ResourceNotFoundException(format("Task with board ref %s not found", boardRef)));
     }

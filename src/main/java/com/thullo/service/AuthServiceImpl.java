@@ -28,7 +28,6 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -50,6 +49,8 @@ public class AuthServiceImpl implements AuthService {
     private final AuthenticationManager authenticationManager;
     private final JwtTokenProvider tokenProvider;
 
+    private final RoleServiceImpl roleService;
+
 
     @Override
     @Transactional
@@ -60,7 +61,6 @@ public class AuthServiceImpl implements AuthService {
         User user = modelMapper.map(userRequest, User.class);
         user.setProvider(AuthProvider.LOCAL);
         user.setPassword(passwordEncoder.encode(user.getPassword()));
-        user.setRoles(List.of(roleRepository.findByName("ROLE_OWNER").orElseThrow()));
         return saveAUser(user);
     }
 

@@ -1,13 +1,16 @@
 package com.thullo.web.controller;
 
-import com.thullo.data.model.Comment;
+import com.thullo.annotation.CurrentUser;
+import com.thullo.security.UserPrincipal;
 import com.thullo.service.CommentService;
 import com.thullo.web.exception.ResourceNotFoundException;
 import com.thullo.web.payload.request.CommentRequest;
 import com.thullo.web.payload.response.ApiResponse;
+import com.thullo.web.payload.response.CommentResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
@@ -20,12 +23,12 @@ public class CommentController {
     private final CommentService commentService;
 
     @PostMapping("/{boardRef}")
-    public ResponseEntity<ApiResponse> createComment(@PathVariable String boardRef,  @Valid @RequestBody CommentRequest commentRequest) {
+    public ResponseEntity<ApiResponse> createComment(@PathVariable String boardRef, @Valid @RequestBody CommentRequest commentRequest, @CurrentUser UserPrincipal principal) {
         try {
-            Comment comment = commentService.createComment(boardRef, commentRequest);
+            CommentResponse comment = commentService.createComment(boardRef, principal.getEmail(), commentRequest);
             ApiResponse response = new ApiResponse(true, "Comment created successfully", comment);
             return ResponseEntity.ok(response);
-        }catch (ResourceNotFoundException ex){
+        } catch (ResourceNotFoundException ex) {
             return ResponseEntity.badRequest().body(new ApiResponse(false, ex.getMessage()));
         }
     }
@@ -33,7 +36,7 @@ public class CommentController {
     @PutMapping
     public ResponseEntity<ApiResponse> editComment(@RequestParam("boardRef") String boardRef, @RequestParam("commentId") Long commentId,  @Valid @RequestBody CommentRequest commentRequest) {
         try {
-            Comment comment = commentService.editComment(boardRef, commentId, commentRequest);
+            CommentResponse comment = commentService.editComment(boardRef, commentId, commentRequest);
             ApiResponse response = new ApiResponse(true, "Comment successfully updated", comment);
             return ResponseEntity.ok(response);
         }catch (ResourceNotFoundException ex){
@@ -42,6 +45,7 @@ public class CommentController {
     }
 
     @DeleteMapping
+    @PreAuthorize("@commentServiceImpl.isCommentOwner(#commentId, authentication.principal.email)")
     public ResponseEntity<ApiResponse> deleteComment(@RequestParam("boardRef") String boardRef, @RequestParam("commentId") Long commentId) {
         try {
             commentService.deleteComment(boardRef, commentId);

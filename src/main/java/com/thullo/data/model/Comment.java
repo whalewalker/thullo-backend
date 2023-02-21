@@ -24,6 +24,10 @@ public class Comment {
     @Column(columnDefinition = "TEXT")
     private String message;
 
+    @ManyToOne
+    @JoinColumn(name = "user_id")
+    private User createdBy;
+
     @ManyToMany
     @JoinTable(name = "comment_mentioned_users",
             joinColumns = @JoinColumn(name = "comment_id"),

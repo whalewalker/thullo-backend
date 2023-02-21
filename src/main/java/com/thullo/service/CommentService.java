@@ -1,12 +1,13 @@
 package com.thullo.service;
 
-import com.thullo.data.model.Comment;
 import com.thullo.web.exception.ResourceNotFoundException;
 import com.thullo.web.payload.request.CommentRequest;
+import com.thullo.web.payload.response.CommentResponse;
 
 public interface CommentService {
-    Comment createComment(String boardRef, CommentRequest request) throws ResourceNotFoundException;
-    Comment editComment(String boardRef, Long commentId,  CommentRequest request) throws ResourceNotFoundException;
+    CommentResponse createComment(String boardRef, String createdBy, CommentRequest request) throws ResourceNotFoundException;
+
+    CommentResponse editComment(String boardRef, Long commentId, CommentRequest request) throws ResourceNotFoundException;
 
     void deleteComment(String boardRef, Long commentId) throws ResourceNotFoundException;
 }

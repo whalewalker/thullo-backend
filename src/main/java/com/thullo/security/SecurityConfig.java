@@ -68,7 +68,6 @@ public class SecurityConfig {
                 .permitAll()
                 .antMatchers(HttpMethod.GET, "/api/v1/thullo/users/**", "/api/v1/thullo/files/**")
                 .permitAll()
-                .antMatchers("/board/create", "/board/delete").hasAnyRole("OWNER", "ADMIN")
                 .anyRequest()
                 .authenticated()
                 .and()

@@ -8,7 +8,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class TaskMoveRequest {
-    private Long taskId;
-    private Long newColumnId;
+    private String boardRef;
+    private String status;
     private Long position;
 }

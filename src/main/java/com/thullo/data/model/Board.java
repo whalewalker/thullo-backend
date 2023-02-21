@@ -11,7 +11,9 @@ import org.hibernate.annotations.UpdateTimestamp;
 import javax.persistence.*;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Getter
 @Setter
@@ -37,22 +39,22 @@ public class Board{
     @JoinTable(name = "board_collaborators",
             joinColumns = @JoinColumn(name = "board_id"),
             inverseJoinColumns = @JoinColumn(name = "user_id"))
-    private List<User> collaborators = new ArrayList<>();
-
-    @ManyToMany(mappedBy = "contributors")
-    private List<Task> tasks = new ArrayList<>();
+    private Set<User> collaborators = new HashSet<>();
 
     @OneToMany(mappedBy = "board", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     @JsonManagedReference
-    private List<TaskColumn> taskColumns = new ArrayList<>();
+    private List<Task> tasks = new ArrayList<>();
 
     @CreationTimestamp
-    @JsonFormat(pattern="yyyy-MM-dd HH:mm:ss")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime createdAt;
 
     @UpdateTimestamp
-    @JsonFormat(pattern="yyyy-MM-dd HH:mm:ss")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime updatedAt;
 
-
+    public List<Task> getTasks() {
+        tasks.sort((o1, o2) -> (int) (o1.getPosition() - o2.getPosition()));
+        return tasks;
+    }
 }

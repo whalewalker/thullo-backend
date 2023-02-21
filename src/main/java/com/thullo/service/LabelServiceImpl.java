@@ -67,11 +67,9 @@ public class LabelServiceImpl implements LabelService {
     public List<Label> getBoardLabel(Long boardId) throws ResourceNotFoundException {
         Board board = findBoardById(boardId);
 
-        return board.getTaskColumns()
+        return board.getTasks()
                 .stream()
-                .flatMap(taskColumn -> taskColumn.getTasks().stream())
                 .flatMap(task -> task.getLabels().stream())
-                .distinct()
                 .collect(Collectors.toList());
     }
 
@@ -81,29 +79,42 @@ public class LabelServiceImpl implements LabelService {
     }
 
 
-
     public Label updateLabelOnTask(String boardRef, Long labelId, LabelRequest request) throws ResourceNotFoundException {
         Task task = getTask(boardRef);
         Label label = getLabel(labelId);
 
-        if (isNullOrEmpty(request.getName()) || label.getName().equals(request.getName())) {
+        if (!isNullOrEmpty(request.getName()) && !label.getName().equals(request.getName())) {
+            // Request has a new name different from the existing label name.
+            Label existingLabel = labelRepository.findByName(request.getName()).orElse(null);
+            if (existingLabel == null) {
+                // Create a new label with the new name.
+                existingLabel = new Label();
+                mapper.map(label, existingLabel);
+                mapper.map(request, existingLabel);
+                existingLabel.setId(null);
+                existingLabel = labelRepository.save(existingLabel);
+            }
+            // Update the task label to the existing label with the new name.
+            task.getLabels().remove(label);
+            task.getLabels().add(existingLabel);
+            taskRepository.save(task);
+            return existingLabel;
+        } else if (!isNullOrEmpty(request.getColorCode()) || !isNullOrEmpty(request.getBackgroundCode())) {
+            // Request has a new color code or background code, but the name is the same as the existing label name.
+            Label newLabel = new Label();
+            mapper.map(label, newLabel);
+            mapper.map(request, newLabel);
+            newLabel.setId(null);
+            newLabel = labelRepository.save(newLabel);
+            // Update the task label to the new label with the new color code or background code.
+            task.getLabels().remove(label);
+            task.getLabels().add(newLabel);
+            taskRepository.save(task);
+            return newLabel;
+        } else {
+            // Request has no changes to the name, color code, or background code.
             return label;
         }
-
-        Label existingLabel = labelRepository.findByName(request.getName()).orElse(null);
-        if (existingLabel == null) {
-            existingLabel = new Label();
-            mapper.map(label, existingLabel);
-            mapper.map(request, existingLabel);
-            existingLabel.setId(null);
-            existingLabel = labelRepository.save(existingLabel);
-        }
-
-        task.getLabels().remove(label);
-        task.getLabels().add(existingLabel);
-        taskRepository.save(task);
-
-        return existingLabel;
     }
 
 
