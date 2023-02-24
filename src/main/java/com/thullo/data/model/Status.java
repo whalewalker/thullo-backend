@@ -17,7 +17,7 @@ public enum Status {
 
     public static Status getStatus(String content) {
         for (Status status : Status.values())
-            if (status.getContent().equals(content))
+            if (status.getContent().equalsIgnoreCase(content))
                 return status;
         return Status.BACKLOG;
     }
