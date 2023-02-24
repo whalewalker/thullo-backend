@@ -17,6 +17,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Set;
 
+import static com.thullo.util.Helper.isNullOrEmpty;
 import static java.lang.String.format;
 
 @Slf4j
@@ -39,7 +40,8 @@ public class TaskServiceImpl implements TaskService {
         User createdBy = userRepository.findUserByEmail(email);
 
         task.setBoard(board);
-        Status status = Status.getStatus(taskRequest.getStatus().toLowerCase());
+        String taskStatus = taskRequest.getStatus();
+        Status status = isNullOrEmpty(taskStatus) ? Status.BACKLOG : Status.getStatus(taskStatus.toLowerCase());
         long position = taskRepository.countByBoardAndStatus(board, status);
 
         task.setStatus(status);
