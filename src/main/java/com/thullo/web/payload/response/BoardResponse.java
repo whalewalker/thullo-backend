@@ -1,11 +1,14 @@
 package com.thullo.web.payload.response;
 
 import com.thullo.data.model.Task;
+import com.thullo.data.model.User;
 import lombok.Data;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Data
 public class BoardResponse {
@@ -23,6 +26,7 @@ public class BoardResponse {
 
     private LocalDateTime createdAt;
 
+    private Set<User> collaborators = new HashSet<>();
 
     @Data
     public static class Column {
