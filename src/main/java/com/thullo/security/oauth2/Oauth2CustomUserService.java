@@ -27,8 +27,6 @@ public class Oauth2CustomUserService extends DefaultOAuth2UserService {
 
     private final UserRepository userRepository;
 
-    private final RoleRepository roleRepository;
-
 
     @Override
     public OAuth2User loadUser(OAuth2UserRequest userRequest) throws OAuth2AuthenticationException {
@@ -73,7 +71,6 @@ public class Oauth2CustomUserService extends DefaultOAuth2UserService {
         userToSave.setName(oauth2UserData.getName());
         userToSave.setProvider(AuthProvider.valueOf(userRequest.getClientRegistration().getRegistrationId().toUpperCase()));
         userToSave.setProviderId(oauth2UserData.getUserId());
-        userToSave.setRoles(List.of(roleRepository.findByName("ROLE_USER").get()));
         return userRepository.save(userToSave);
     }
 
