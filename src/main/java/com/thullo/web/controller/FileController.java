@@ -5,6 +5,8 @@ import com.thullo.service.FileService;
 import com.thullo.web.payload.response.ApiResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.ByteArrayResource;
+import org.springframework.core.io.InputStreamResource;
+import org.springframework.http.ContentDisposition;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -12,6 +14,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletRequest;
+import java.io.ByteArrayInputStream;
 
 
 @RestController
@@ -21,14 +24,16 @@ public class FileController {
     private final FileService fileService;
 
     @GetMapping("/{fileId}")
-    public ResponseEntity<?> getFile(@PathVariable("fileId") String fileId) {
+    public ResponseEntity<?> getFile(@PathVariable("fileId") String fileId, @RequestParam(required = false, defaultValue = "false") boolean asAttachment) {
         try {
-            FileData files = fileService.getFIle(fileId);
-            ByteArrayResource resource = new ByteArrayResource(files.getFileByte());
-            return ResponseEntity.ok()
-                    .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=" + files.getFileName())
-                    .contentType(fileService.getMediaTypeForFileType(files.getFileType()))
-                    .body(resource);
+            FileData file = fileService.getFIle(fileId);
+            byte[] fileContent = file.getFileByte();
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(fileService.getMediaTypeForFileType(file.getFileType()));
+            headers.setContentLength(fileContent.length);
+            headers.setContentDisposition(ContentDisposition.builder(asAttachment ? "attachment" : "inline").filename(file.getFileName()).build());
+            InputStreamResource resource = new InputStreamResource(new ByteArrayInputStream(fileContent));
+            return ResponseEntity.ok().headers(headers).body(resource);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(new ApiResponse(false, "File not found"));
         }
