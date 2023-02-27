@@ -13,6 +13,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @Slf4j
 @RequestMapping("api/v1/thullo/users")
@@ -41,5 +43,11 @@ public class UserController {
             return ResponseEntity.badRequest().body(new ApiResponse(false, "Bad request, check your request data"));
         }
 
+    }
+
+    @GetMapping("/search")
+    public ResponseEntity<ApiResponse> searchTasks(@RequestParam("params") String searchParams) {
+        List<UserProfileResponse> userProfiles = userService.searchUserProfiles(searchParams);
+        return ResponseEntity.ok(new ApiResponse(true, "Successfully fetch user profiles", userProfiles));
     }
 }

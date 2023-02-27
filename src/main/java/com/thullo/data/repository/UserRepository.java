@@ -11,9 +11,12 @@ import java.util.Optional;
 import java.util.Set;
 
 @Repository
-public interface UserRepository extends JpaRepository<User,Long> {
+public interface UserRepository extends JpaRepository<User, Long> {
     @Query("SELECT u FROM User u WHERE u.email IN :emails")
     List<User> findAllByEmails(@Param("emails") Set<String> emails);
+
+    @Query("SELECT u FROM User u WHERE u.name LIKE %:params% OR u.email LIKE %:params%")
+    List<User> findByParams(@Param("params") String params);
 
     Optional<User> findByEmail(String email);
 

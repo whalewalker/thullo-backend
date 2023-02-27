@@ -10,6 +10,9 @@ import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import static java.lang.String.format;
 
 @Service
@@ -43,8 +46,25 @@ public class UserServiceImpl implements UserService {
         userRepository.save(user);
     }
 
+    /**
+     * Searches for user profiles by email or name.
+     *
+     * @param searchQuery A string containing either the email or name to search for.
+     * @return A list of UserProfileResponse objects that match the search criteria.
+     */
+    @Override
+    public List<UserProfileResponse> searchUserProfiles(String searchQuery) {
+        List<User> users = userRepository.findByParams(searchQuery);
+        List<UserProfileResponse> profiles = new ArrayList<>();
+        users.forEach(user -> {
+            UserProfileResponse profile = mapper.map(user, UserProfileResponse.class);
+            profiles.add(profile);
+        });
+        return profiles;
+    }
+
 
     private User internalFindUserByEmail(String email) throws UserException {
-        return userRepository.findByEmail(email).orElseThrow(()-> new UserException(format( "user not found with email %s", email)));
+        return userRepository.findByEmail(email).orElseThrow(() -> new UserException(format("user not found with email %s", email)));
     }
 }
