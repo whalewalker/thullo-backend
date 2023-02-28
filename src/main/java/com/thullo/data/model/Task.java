@@ -40,6 +40,9 @@ public class Task {
     @Column(columnDefinition = "TEXT")
     private String description;
 
+    @OneToMany(mappedBy = "task", cascade = CascadeType.ALL)
+    private List<Attachment> attachments = new ArrayList<>();
+
     @ManyToOne
     @JoinColumn(name = "user_id")
     @JsonBackReference

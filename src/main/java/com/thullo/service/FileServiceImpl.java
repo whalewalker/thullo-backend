@@ -17,8 +17,6 @@ import java.util.UUID;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
-import static java.lang.String.format;
-
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -27,10 +25,10 @@ public class FileServiceImpl implements FileService {
 
     @Override
     public String uploadFile(MultipartFile file, String url) throws BadRequestException, IOException {
-        if(file.isEmpty()) throw new BadRequestException("File cannot be empty");
+        if (file.isEmpty()) throw new BadRequestException("File cannot be empty");
         String baseUrl = url.substring(0, url.lastIndexOf("thullo"));
         FileData fileData = uploadFileData(file);
-        return format("%sthullo/files/%s", baseUrl, fileData.getFileId());
+        return String.format("%s%s%s", baseUrl, "thullo/files/", fileData.getFileId()) + "." + fileData.getFileType();
     }
 
     private FileData uploadFileData(MultipartFile file) throws IOException {
@@ -52,7 +50,7 @@ public class FileServiceImpl implements FileService {
     }
 
     @Override
-    public FileData getFIle(String fileId) throws IOException {
+    public FileData getFile(String fileId) throws IOException {
         FileData dbFile = filesRepository.findFileDataByFileId(fileId).orElse(null);
         if (dbFile != null) {
             byte[] compressedFile = dbFile.getFileByte();
@@ -81,7 +79,7 @@ public class FileServiceImpl implements FileService {
         return baos.toByteArray();
     }
 
-    public  MediaType getMediaTypeForFileType(String fileType) {
+    public MediaType getMediaTypeForFileType(String fileType) {
         switch (fileType) {
             case "pdf":
                 return MediaType.APPLICATION_PDF;

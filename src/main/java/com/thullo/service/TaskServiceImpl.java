@@ -1,6 +1,7 @@
 package com.thullo.service;
 
 import com.thullo.data.model.*;
+import com.thullo.data.repository.AttachmentRepository;
 import com.thullo.data.repository.BoardRepository;
 import com.thullo.data.repository.TaskRepository;
 import com.thullo.data.repository.UserRepository;
@@ -17,7 +18,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Set;
 
-import static com.thullo.util.Helper.isNullOrEmpty;
+import static com.thullo.util.Helper.*;
 import static java.lang.String.format;
 
 @Slf4j
@@ -32,6 +33,7 @@ public class TaskServiceImpl implements TaskService {
     private final BoardRefGenerator boardRefGenerator;
     private final RoleServiceImpl roleService;
     private final BoardRepository boardRepository;
+    private final AttachmentRepository attachmentRepository;
 
     @Override
     public Task createTask(String boardTag, String email, TaskRequest taskRequest) throws BadRequestException, IOException, ResourceNotFoundException {
@@ -110,6 +112,7 @@ public class TaskServiceImpl implements TaskService {
         if (imageUrl != null) task.setImageUrl(imageUrl);
         return taskRepository.save(task);
     }
+
     @Override
     public void deleteTask(String boardRef) throws ResourceNotFoundException {
         Task task = getTask(boardRef);
@@ -177,8 +180,29 @@ public class TaskServiceImpl implements TaskService {
         return task.getImageUrl();
     }
 
-    private String extractFileIdFromUrl(String imageUrl) {
-        return imageUrl.substring(imageUrl.indexOf("files/") + 6);
+    @Override
+    public Attachment addAttachmentToTask(String boardRef, String url, MultipartFile file)
+            throws ResourceNotFoundException, BadRequestException, IOException {
+        Task task = getTask(boardRef);
+
+        Attachment attachment = new Attachment();
+        attachment.setTask(task);
+        attachment.setFileName(file.getOriginalFilename());
+        attachment.setFileSize(calculateFileSize(file.getSize()));
+        String fileUrl = fileService.uploadFile(file, url);
+        attachment.setFileUrl(fileUrl);
+
+        Attachment savedAttachment = attachmentRepository.save(attachment);
+        task.getAttachments().add(savedAttachment);
+        taskRepository.save(task);
+
+        return savedAttachment;
+    }
+
+    @Override
+    public void deleteAttachmentFromTask(String fileUrl, Long attachmentId) {
+        fileService.deleteFile(extractFileIdFromUrl(fileUrl));
+        attachmentRepository.findById(attachmentId).ifPresent(attachmentRepository::delete);
     }
 
     private String uploadCoverImage(MultipartFile coverImage, String requestUrl) throws IOException, BadRequestException {

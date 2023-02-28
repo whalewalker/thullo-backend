@@ -1,6 +1,7 @@
 package com.thullo.web.controller;
 
 import com.thullo.annotation.CurrentUser;
+import com.thullo.data.model.Attachment;
 import com.thullo.data.model.Task;
 import com.thullo.security.UserPrincipal;
 import com.thullo.service.TaskService;
@@ -147,6 +148,24 @@ public class TaskController {
         } catch (ResourceNotFoundException ex) {
             return ResponseEntity.badRequest().body(new ApiResponse(false, ex.getMessage()));
         }
+    }
+
+    @PostMapping("{boardTag}/{boardRef}/add-attachment")
+    @PreAuthorize("@boardServiceImpl.hasBoardRole(authentication.principal.email, #boardTag) or hasRole('BOARD_' + #boardTag) or hasRole('TASK_' + #boardRef)")
+    public ResponseEntity<ApiResponse> addAttachment(@PathVariable String boardTag, @PathVariable String boardRef, @RequestParam("file") MultipartFile file, HttpServletRequest request) {
+        try {
+            Attachment attachment = taskService.addAttachmentToTask(boardRef, request.getRequestURL().toString(), file);
+            return ResponseEntity.ok(new ApiResponse(true, "Attachment added successfully", attachment));
+        } catch (BadRequestException | ResourceNotFoundException | IOException ex) {
+            return ResponseEntity.badRequest().body(new ApiResponse(false, ex.getMessage()));
+        }
+    }
+
+    @DeleteMapping("{boardTag}/{boardRef}/{attachmentId}")
+    @PreAuthorize("@boardServiceImpl.hasBoardRole(authentication.principal.email, #boardTag) or hasRole('BOARD_' + #boardTag) or hasRole('TASK_' + #boardRef)")
+    public ResponseEntity<ApiResponse> addAttachment(@PathVariable String boardTag, @PathVariable String boardRef, @PathVariable Long attachmentId, HttpServletRequest request) {
+        taskService.deleteAttachmentFromTask(request.getRequestURL().toString(), attachmentId);
+        return ResponseEntity.ok(new ApiResponse(true, "Attachment is  successfully deleted"));
     }
 
 }

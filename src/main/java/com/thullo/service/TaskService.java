@@ -1,5 +1,6 @@
 package com.thullo.service;
 
+import com.thullo.data.model.Attachment;
 import com.thullo.data.model.Task;
 import com.thullo.web.exception.BadRequestException;
 import com.thullo.web.exception.ResourceNotFoundException;
@@ -29,5 +30,9 @@ public interface TaskService {
     Task updateTaskImage(String boardRef, MultipartFile coverImage, String requestUrl) throws ResourceNotFoundException, BadRequestException, IOException;
 
     String getTaskImageUrl(String boardRef) throws ResourceNotFoundException;
+
+    Attachment addAttachmentToTask(String boardRef, String url, MultipartFile file) throws ResourceNotFoundException, BadRequestException, IOException;
+
+    void deleteAttachmentFromTask(String fileId, Long attachmentId);
 }
 
