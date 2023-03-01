@@ -1,5 +1,6 @@
 package com.thullo.data.model;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Getter;
@@ -26,13 +27,13 @@ public class Comment {
 
     @ManyToOne
     @JoinColumn(name = "user_id")
+    @JsonBackReference
     private User createdBy;
 
     @ManyToMany
     @JoinTable(name = "comment_mentioned_users",
             joinColumns = @JoinColumn(name = "comment_id"),
             inverseJoinColumns = @JoinColumn(name = "user_id"))
-    @JsonIgnore
     private List<User> mentionedUsers = new ArrayList<>();
 
     @ManyToOne

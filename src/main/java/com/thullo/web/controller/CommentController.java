@@ -10,6 +10,8 @@ import com.thullo.web.payload.response.CommentResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.messaging.handler.annotation.MessageMapping;
+import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
@@ -22,8 +24,9 @@ import javax.validation.Valid;
 public class CommentController {
     private final CommentService commentService;
 
-    @PostMapping("/{boardRef}")
-    public ResponseEntity<ApiResponse> createComment(@PathVariable String boardRef, @Valid @RequestBody CommentRequest commentRequest, @CurrentUser UserPrincipal principal) {
+    @MessageMapping("{boardTag}/{boardRef}")
+    @PreAuthorize("@boardServiceImpl.hasBoardRole(authentication.principal.email, #boardTag) or hasRole('BOARD_' + #boardTag) or hasRole('TASK_' + #boardRef)")
+    public ResponseEntity<ApiResponse> createComment(@PathVariable String boardTag, @PathVariable String boardRef, @Valid @Payload CommentRequest commentRequest, @CurrentUser UserPrincipal principal) {
         try {
             CommentResponse comment = commentService.createComment(boardRef, principal.getEmail(), commentRequest);
             ApiResponse response = new ApiResponse(true, "Comment created successfully", comment);
@@ -34,6 +37,7 @@ public class CommentController {
     }
 
     @PutMapping
+    @PreAuthorize("@commentServiceImpl.isCommentOwner(#commentId, authentication.principal.email)")
     public ResponseEntity<ApiResponse> editComment(@RequestParam("boardRef") String boardRef, @RequestParam("commentId") Long commentId,  @Valid @RequestBody CommentRequest commentRequest) {
         try {
             CommentResponse comment = commentService.editComment(boardRef, commentId, commentRequest);
