@@ -6,6 +6,7 @@ import java.time.LocalDateTime;
 
 @Data
 public class CommentResponse {
+    private Long id;
     private String message;
     private String createdBy;
     private String imageUrl;
