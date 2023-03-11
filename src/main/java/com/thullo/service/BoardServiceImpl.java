@@ -49,7 +49,7 @@ public class BoardServiceImpl implements BoardService {
 
     public BoardResponse createBoard(BoardRequest boardRequest, UserPrincipal userPrincipal) throws UserException, BadRequestException, IOException {
         if (Helper.isNullOrEmpty(boardRequest.getName())) throw new BadRequestException("Board name cannot be empty");
-        User user = internalFindUserByEmail(userPrincipal.getEmail());
+        User user = findByEmail(userPrincipal.getEmail());
         Board board = mapper.map(boardRequest, Board.class);
         board.setUser(user);
         String imageUrl = null;
@@ -58,6 +58,7 @@ public class BoardServiceImpl implements BoardService {
         }
         board.setImageUrl(imageUrl);
         board.setBoardTag(generateThreeLetterWord(boardRequest.getName().toUpperCase()));
+
         return getBoard(boardRepository.save(board));
     }
 
@@ -106,7 +107,7 @@ public class BoardServiceImpl implements BoardService {
 
     @Override
     public List<BoardResponse> getBoards(UserPrincipal userPrincipal) throws UserException {
-        User user = internalFindUserByEmail(userPrincipal.getEmail());
+        User user = findByEmail(userPrincipal.getEmail());
         List<Board> allUserBoards = boardRepository.getAllByUserOrderByCreatedAtAsc(user);
         List<BoardResponse> boardResponses = new ArrayList<>(allUserBoards.size());
 
@@ -155,7 +156,7 @@ public class BoardServiceImpl implements BoardService {
     }
 
 
-    private User internalFindUserByEmail(String email) throws UserException {
+    private User findByEmail(String email) throws UserException {
         return userRepository.findByEmail(email).orElseThrow(() -> new UserException(format("user not found with email %s", email)));
     }
 

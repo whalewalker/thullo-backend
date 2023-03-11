@@ -15,6 +15,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -96,6 +97,20 @@ public class CommentServiceImpl implements CommentService {
             task.getComments().remove(comment);
             commentRepository.delete(comment);
         });
+    }
+
+    @Override
+    public List<CommentResponse> getTaskComment(String boardRef) throws ResourceNotFoundException {
+        Task task = getTask(boardRef);
+        List<CommentResponse> commentResponses = new ArrayList<>();
+        List<Comment> comments = commentRepository.findAllByTask(task);
+        comments.forEach(comment -> {
+            CommentResponse response = mapper.map(comment, CommentResponse.class);
+            response.setCreatedBy(comment.getCreatedBy().getName());
+            response.setImageUrl(comment.getCreatedBy().getImageUrl());
+            commentResponses.add(response);
+        });
+        return commentResponses;
     }
 
 

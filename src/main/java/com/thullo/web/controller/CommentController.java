@@ -14,6 +14,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import java.util.List;
 
 @RestController
 @Slf4j
@@ -53,7 +54,19 @@ public class CommentController {
             commentService.deleteComment(boardRef, commentId);
             ApiResponse response = new ApiResponse(true, "Comment successfully deleted");
             return ResponseEntity.ok(response);
-        }catch (ResourceNotFoundException ex){
+        } catch (ResourceNotFoundException ex) {
+            return ResponseEntity.badRequest().body(new ApiResponse(false, ex.getMessage()));
+        }
+    }
+
+    @GetMapping("{boardTag}/{boardRef}")
+    @PreAuthorize("@boardServiceImpl.hasBoardRole(authentication.principal.email, #boardTag) or hasRole('BOARD_' + #boardTag) or hasRole('TASK_' + #boardRef)")
+    public ResponseEntity<ApiResponse> getTaskComments(@PathVariable String boardTag, @PathVariable String boardRef) {
+        try {
+            List<CommentResponse> taskComments = commentService.getTaskComment(boardRef);
+            ApiResponse response = new ApiResponse(true, "Comments successfully fetched", taskComments);
+            return ResponseEntity.ok(response);
+        } catch (ResourceNotFoundException ex) {
             return ResponseEntity.badRequest().body(new ApiResponse(false, ex.getMessage()));
         }
     }
