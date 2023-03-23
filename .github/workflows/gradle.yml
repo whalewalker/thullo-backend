@@ -1,0 +1,21 @@
+name: Thullo build and test
+
+on: [ push ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Setup JDK
+        uses: actions/setup-java@v1
+        with:
+          java-version: '11'
+      - name: Run test with gradle
+        run: ./gradlew clean test
+      - name: Calculate code coverage
+        uses: codecov/codecov-action@v1
+        with:
+          token: a11c5efd-1eae-4096-ada2-28ed7ec5e1ec
+          fail_ci_if_error: true
