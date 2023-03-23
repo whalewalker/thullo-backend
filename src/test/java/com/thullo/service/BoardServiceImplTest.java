@@ -99,7 +99,7 @@ class BoardServiceImplTest {
                 .thenReturn(board);
         when(boardRepository.save(board)).thenReturn(board);
 
-        Board actualResponse = boardService.createBoard(boardRequest, userPrincipal);
+        BoardResponse actualResponse = boardService.createBoard(boardRequest, userPrincipal);
 
         verify(mapper).map(boardRequest, Board.class);
         verify(boardRepository).save(board);
@@ -129,7 +129,7 @@ class BoardServiceImplTest {
                 .thenReturn(board);
 
 
-        Board actualResponse = boardService.createBoard(boardRequest, userPrincipal);
+        BoardResponse actualResponse = boardService.createBoard(boardRequest, userPrincipal);
 
         verify(mapper).map(boardRequest, Board.class);
         verify(boardRepository).save(board);
@@ -159,14 +159,14 @@ class BoardServiceImplTest {
         when(mapper.map(board, Board.class))
                 .thenReturn(board);
 
-        Board actualResponse = boardService.createBoard(boardRequest, userPrincipal);
+        BoardResponse actualResponse = boardService.createBoard(boardRequest, userPrincipal);
 
 
-        assertEquals(4, actualResponse.getTasks().size());
+        assertEquals(4, actualResponse.getTaskColumn().size());
     }
 
     @Test
-    void shouldReturnAllTaskColumnWhenValidBoardId() throws BadRequestException {
+    void shouldReturnAllTaskColumnWhenValidBoardId() {
 //        board.getTaskColumns().addAll(
 //                List.of(
 //                        createTaskColumn("Backlog"),
