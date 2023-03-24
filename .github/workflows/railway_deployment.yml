@@ -24,19 +24,19 @@ jobs:
         run: |
           if grep -q '<td class="failures">' build/reports/tests/test/index.html && grep -q '%<\/td>' build/reports/tests/test/index.html; then
             percentage=$(awk -F '[><]' '/<td class="failures">/{print $3}' build/reports/tests/test/index.html | sed 's/%//')
-            echo "::set-output name=percentage::$percentage"
             echo "Test failure percentage: $percentage"
           elif grep -q '<td class="success">' build/reports/tests/test/index.html && grep -q '%<\/td>' build/reports/tests/test/index.html; then
             percentage=$(awk -F '[><]' '/<td class="success">/{print $3}' build/reports/tests/test/index.html | sed 's/%//')
-            echo "::set-output name=percentage::$percentage"
             echo "Test success percentage: $percentage"
-            echo "Output data: $steps.percentage.outputs.percentage"
-            echo "Output: ${steps.percentage.outputs.percentage}"
           else
             echo "No percentage found"
           fi
+
+          # Save the 'percentage' variable using Bash script syntax
+          echo "percentage=$percentage" >> $GITHUB_ENV
+
       - name: Check coverage percentage and exit if below 70%
-        if: ${{ steps.percentage.outputs.percentage }} < 70
+        if: ${{ env.percentage }} < 70
         run: |
-          echo "Error: Test coverage percentage is below 70%. ${{ steps.percentage.outputs.percentage }}"
-            exit 1
+          echo "Error: Test coverage percentage is below 70%. ${{ env.percentage }}"
+          exit 1
