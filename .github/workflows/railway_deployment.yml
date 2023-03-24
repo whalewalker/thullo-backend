@@ -25,7 +25,7 @@ jobs:
           if grep -q '<td class="failures">' build/reports/tests/test/index.html && grep -q '%<\/td>' build/reports/tests/test/index.html; then
             percentage=$(grep -oE '<td class="failures">([0-9]+)%<\/td>' build/reports/tests/test/index.html | sed 's/<[^>]*>//g' | awk '{print $1}')
             echo "::set-output name=percentage::${percentage%?}"
-            echo "Test failure percentage: $percentage"
+            echo "Test failure percentage: ${percentage%?}"
           elif grep -q '<td class="success">' build/reports/tests/test/index.html && grep -q '%<\/td>' build/reports/tests/test/index.html; then
             percentage=$(grep -oE '<td class="success">([0-9]+)%<\/td>' build/reports/tests/test/index.html | sed 's/<[^>]*>//g' | awk '{print $1}')
             echo "::set-output name=percentage::$percentage"
