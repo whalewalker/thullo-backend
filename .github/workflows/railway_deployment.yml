@@ -22,7 +22,7 @@ jobs:
       - name: Extract test percentage
         id: percentage
         run: |
-          if grep -q "failures" "build/reports/tests/test/index.html"; then
+          if grep -q '<td class="failures">' build/reports/tests/test/index.html && grep -q '%<\/td>' build/reports/tests/test/index.html; then
             echo "::set-output name=percentage::$(grep -oP '(?<=<td class="failures">)[0-9]+%' build/reports/tests/test/index.html | grep -oP '[0-9]+')"
           else
             echo "No percentage found"
