@@ -1,0 +1,26 @@
+name: Thullo Deployment
+
+on:
+  push:
+    branches: [ dev, main ]
+  pull_request:
+    branches: [ dev, main ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Setup JDK
+        uses: actions/setup-java@v1
+        with:
+          java-version: '11'
+      - name: Run tests with gradle and generate coverage report
+        run: ./gradlew clean test jacocoTestReport
+      - name: Parse coverage report and extract percentage
+        id: coverage
+        run: echo "::set-output name=percentage::$(grep -Po '(?<=<td>)[\d.]+(?=%</td><td class="bar")' build/reports/jacoco/test/html/index.html | tail -1)"
+      - name: Check coverage percentage and exit if below 70%
+        if: steps.coverage.outputs.percentage < 70
+        run: exit 1

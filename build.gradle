@@ -3,6 +3,7 @@ plugins {
     id 'org.springframework.boot' version '2.7.4'
     id 'io.spring.dependency-management' version '1.1.0'
     id 'application'
+    id 'jacoco'
 }
 application {
     mainClass = 'com.thullo.ThulloApplication'
@@ -20,13 +21,46 @@ configurations {
     }
 }
 
-
-
 repositories {
     mavenCentral()
-    jcenter()
 }
 
+jacoco {
+    toolVersion = "0.8.7"
+}
+
+tasks.register('testWithCoverage', Test) {
+    // Set specific includes for code coverage validation
+    include 'com.thullo.service.*', 'com.thullo.security.*', 'com.thullo.web.controller.*'
+    // Exclude specific packages from code coverage validation
+    exclude 'com.thullo.web.payload.*', 'com.thullo.web.exception.*', 'com.thullo.security.oauth.*', 'com.thullo.util.*', 'com.thullo.event.*', 'com.thullo.config.*', 'com.thullo'
+}
+
+
+jacocoTestReport {
+    reports {
+        xml.enabled true
+        html.enabled true
+    }
+    dependsOn testWithCoverage
+
+    // Only include specific packages in HTML report
+    afterEvaluate {
+        classDirectories.setFrom(files(classDirectories.files.collect {
+            fileTree(dir: it, include: tasks.testWithCoverage.includes, exclude: tasks.testWithCoverage.excludes)
+        }))
+    }
+}
+
+test {
+    useJUnitPlatform()
+    finalizedBy jacocoTestReport
+}
+
+
+bootJar {
+    launchScript()
+}
 
 dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
@@ -45,14 +79,4 @@ dependencies {
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.springframework.security:spring-security-test'
     implementation 'commons-io:commons-io:2.8.0'
-}
-
-tasks.named('test') {
-    useJUnitPlatform()
-}
-
-
-
-bootJar {
-    launchScript()
 }
