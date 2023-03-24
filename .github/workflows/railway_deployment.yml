@@ -16,11 +16,16 @@ jobs:
         uses: actions/setup-java@v1
         with:
           java-version: '11'
-      - name: Run tests with gradle and generate coverage report
-        run: ./gradlew clean test jacocoTestReport
-      - name: Parse coverage report and extract percentage
-        id: coverage
-        run: echo "::set-output name=percentage::$(grep -Po '(?<=<td>)[\d.]+(?=%</td><td class="bar")' build/reports/jacoco/test/html/index.html | tail -1)"
+      - name: Run tests with gradle
+        run: ./gradlew clean test
+      - name: Extract test percentage
+        id: percentage
+        run: |
+          if grep -q "failures" "build/reports/tests/test/index.html"; then
+            echo "::set-output name=percentage::$(grep -oP '(?<=<td class="failures">)[0-9]+%' build/reports/tests/test/index.html | grep -oP '[0-9]+')"
+          else
+            echo "No percentage found"
+          fi
       - name: Check coverage percentage and exit if below 70%
-        if: steps.coverage.outputs.percentage < 1
+        if: steps.percentage.outputs.percentage < 70
         run: exit 1
