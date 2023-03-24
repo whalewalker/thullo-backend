@@ -12,13 +12,16 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
+
       - name: Setup JDK
         uses: actions/setup-java@v1
         with:
           java-version: '11'
+
       - name: Run tests with gradle
         run: |
           ./gradlew clean test || true
+
       - name: Extract test percentage
         id: percentage
         run: |
@@ -32,7 +35,7 @@ jobs:
             echo "Test success percentage: $percentage"
           else
             echo "No percentage found"
-          fi
+
       - name: Check coverage percentage and exit if below 70%
-        if: ${{steps.percentage.outputs.percentage%?}} < 70
+        if: ${{ steps.percentage.outputs.percentage[:-1] }} < 70
         run: exit 1
