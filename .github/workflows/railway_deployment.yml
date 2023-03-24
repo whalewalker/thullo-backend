@@ -25,11 +25,11 @@ jobs:
           if grep -q '<td class="failures">' build/reports/tests/test/index.html && grep -q '%<\/td>' build/reports/tests/test/index.html; then
             percentage=$(awk -F '[><]' '/<td class="failures">/{print $3}' build/reports/tests/test/index.html | sed 's/%//')
             echo "::set-output name=percentage::$percentage"
-            echo "Test failure percentage: $percentage%"
+            echo "Test failure percentage: $percentage"
           elif grep -q '<td class="success">' build/reports/tests/test/index.html && grep -q '%<\/td>' build/reports/tests/test/index.html; then
             percentage=$(awk -F '[><]' '/<td class="success">/{print $3}' build/reports/tests/test/index.html | sed 's/%//')
             echo "::set-output name=percentage::$percentage"
-            echo "Test success percentage: $percentage%"
+            echo "Test success percentage: $percentage"
           else
             echo "No percentage found"
           fi
