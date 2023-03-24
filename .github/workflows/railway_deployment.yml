@@ -12,30 +12,27 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
-
       - name: Setup JDK
         uses: actions/setup-java@v1
         with:
           java-version: '11'
-
       - name: Run tests with gradle
         run: |
           ./gradlew clean test || true
-
       - name: Extract test percentage
         id: percentage
         run: |
           if grep -q '<td class="failures">' build/reports/tests/test/index.html && grep -q '%<\/td>' build/reports/tests/test/index.html; then
-            percentage=$(grep -oE '<td class="failures">([0-9]+)%<\/td>' build/reports/tests/test/index.html | sed 's/<[^>]*>//g')
+            percentage=$(grep -oE '<td class="failures">([0-9]+)%<\/td>' build/reports/tests/test/index.html | sed 's/<[^>]*>//g' | sed 's/%//g')
             echo "::set-output name=percentage::$percentage"
-            echo "Test failure percentage: $percentage"
+            echo "Test failure percentage: $percentage%"
           elif grep -q '<td class="success">' build/reports/tests/test/index.html && grep -q '%<\/td>' build/reports/tests/test/index.html; then
-            percentage=$(grep -oE '<td class="success">([0-9]+)%<\/td>' build/reports/tests/test/index.html | sed 's/<[^>]*>//g')
+            percentage=$(grep -oE '<td class="failures">([0-9]+)%<\/td>' build/reports/tests/test/index.html | sed 's/<[^>]*>//g' | sed 's/%//g')
             echo "::set-output name=percentage::$percentage"
-            echo "Test success percentage: $percentage"
+            echo "Test success percentage: $percentage%"
           else
             echo "No percentage found"
-
+          fi
       - name: Check coverage percentage and exit if below 70%
         if: steps.percentage.outputs.percentage < 70
         run: exit 1
