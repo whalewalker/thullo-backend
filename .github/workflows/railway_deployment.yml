@@ -37,5 +37,5 @@ jobs:
             echo "No percentage found"
 
       - name: Check coverage percentage and exit if below 70%
-        if: ${{ steps.percentage.outputs.percentage[:-1] }} < 70
+        if: steps.percentage.outputs.percentage < 70
         run: exit 1
