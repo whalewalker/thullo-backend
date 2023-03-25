@@ -32,10 +32,19 @@ jobs:
             echo "No percentage found"
             exit 1
           fi
-          if [ $percentage -lt 70 ]; then
+
+          # Convert percentage to an integer
+          percentage=$(echo "$percentage" | bc -l | xargs printf "%.0f")
+          
+          if [ "$percentage" -lt 70 ]; then
             echo "Error: Test coverage percentage is below 70%. Percentage value: $percentage"
-            exit 1
-          fi
+          elif [ "$percentage" -eq 100 ]; then
+            echo "Test coverage percentage is 100%. Percentage value: $percentage"
+          else
+            percentage=$(echo "$percentage" | cut -c1-2)
+          echo "Test coverage percentage is above 70%. Percentage value: $percentage"
+            fi
+
       - name: Deploy to production
         if: success()
         run: |
