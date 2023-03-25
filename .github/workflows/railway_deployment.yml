@@ -30,11 +30,13 @@ jobs:
             echo "Test success percentage: $percentage"
           else
             echo "No percentage found"
+            exit 1
           fi
-          # Save the 'percentage' variable as a GitHub environment variable
-          echo "percentage=${{percentage}}" >> $GITHUB_ENV
-      - name: Check coverage percentage and exit if below 70%
-        if: $percentage < 70
+          if [ $percentage -lt 70 ]; then
+            echo "Error: Test coverage percentage is below 70%. Percentage value: $percentage"
+            exit 1
+          fi
+      - name: Deploy to production
+        if: success()
         run: |
-          echo "Error: Test coverage percentage is below 70%. Percentage value: ${{ env.percentage }}"
-          exit 1
+          echo "Deploying to production"
