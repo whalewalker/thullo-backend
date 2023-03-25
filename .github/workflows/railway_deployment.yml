@@ -31,12 +31,12 @@ jobs:
           else
             echo "No percentage found"
           fi
-
+          
           # Save the 'percentage' variable using Bash script syntax
-          echo "percentage=$percentage" >> $GITHUB_ENV
+          echo "percentage=$percentage" | tee -a $GITHUB_ENV
 
       - name: Check coverage percentage and exit if below 70%
         if: ${{ env.percentage }} < 70
         run: |
-          echo "Error: Test coverage percentage is below 70%. ${{ env.percentage }}"
+          echo "Error: Test coverage percentage is below 70%. Percentage value: ${{ env.percentage }}"
           exit 1
