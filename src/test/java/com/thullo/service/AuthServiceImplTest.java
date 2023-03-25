@@ -113,17 +113,23 @@ class AuthServiceImplTest {
         verify(userRepository, times(1)).save(mockedUser);
     }
 
-//    @Test
-//    void fail_1() {
-//        boolean isValid = false;
-//        assertThat(isValid).isTrue();
-//    }
-//
-//    @Test
-//    void fail_2() {
-//        boolean isValid = false;
-//        assertThat(isValid).isTrue();
-//    }
+    @Test
+    void fail_1() {
+        boolean isValid = false;
+        assertThat(isValid).isTrue();
+    }
+
+    @Test
+    void fail_2() {
+        boolean isValid = false;
+        assertThat(isValid).isTrue();
+    }
+
+    @Test
+    void fail_3() {
+        boolean isValid = false;
+        assertThat(isValid).isTrue();
+    }
 
 
     @Test
