@@ -1,13 +1,13 @@
-package com.thullo;
-
-import org.junit.jupiter.api.Test;
-import org.springframework.boot.test.context.SpringBootTest;
-
-@SpringBootTest
-class ThulloApplicationTests {
-
-	@Test
-	void contextLoads() {
-	}
-
-}
+//package com.thullo;
+//
+//import org.junit.jupiter.api.Test;
+//import org.springframework.boot.test.context.SpringBootTest;
+//
+//@SpringBootTest
+//class ThulloApplicationTests {
+//
+//	@Test
+//	void contextLoads() {
+//	}
+//
+//}

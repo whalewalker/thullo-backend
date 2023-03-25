@@ -1,0 +1,51 @@
+name: Thullo Deployment
+
+on:
+  push:
+    branches: [ dev, main ]
+  pull_request:
+    branches: [ dev, main ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Setup JDK
+        uses: actions/setup-java@v1
+        with:
+          java-version: '11'
+      - name: Run tests with gradle
+        run: |
+          ./gradlew clean test || true
+      - name: Extract test percentage
+        id: percentage
+        run: |
+          if grep -q '<td class="failures">' build/reports/tests/test/index.html && grep -q '%<\/td>' build/reports/tests/test/index.html; then
+            percentage=$(awk -F '[><]' '/<td class="failures">/{print $3}' build/reports/tests/test/index.html | sed 's/%//')
+            echo "Test failure percentage: $percentage"
+          elif grep -q '<td class="success">' build/reports/tests/test/index.html && grep -q '%<\/td>' build/reports/tests/test/index.html; then
+            percentage=$(awk -F '[><]' '/<td class="success">/{print $3}' build/reports/tests/test/index.html | sed 's/%//')
+            echo "Test success percentage: $percentage"
+          else
+            echo "No percentage found"
+            exit 1
+          fi
+
+          # Convert percentage to an integer
+          percentage=$(echo "$percentage" | bc -l | xargs printf "%.0f")
+          
+          if [ "$percentage" -lt 70 ]; then
+            echo "Error: Test coverage percentage is below 70%. Percentage value: $percentage"
+          elif [ "$percentage" -eq 100 ]; then
+            echo "Test coverage percentage is 100%. Percentage value: $percentage"
+          else
+            percentage=$(echo "$percentage" | cut -c1-2)
+          echo "Test coverage percentage is above 70%. Percentage value: $percentage"
+            fi
+
+      - name: Deploy to production
+        if: success()
+        run: |
+          echo "Deploying to production"

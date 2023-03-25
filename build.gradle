@@ -20,13 +20,17 @@ configurations {
     }
 }
 
-
-
 repositories {
     mavenCentral()
-    jcenter()
 }
 
+test {
+    useJUnitPlatform()
+}
+
+bootJar {
+    launchScript()
+}
 
 dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
@@ -45,14 +49,4 @@ dependencies {
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.springframework.security:spring-security-test'
     implementation 'commons-io:commons-io:2.8.0'
-}
-
-tasks.named('test') {
-    useJUnitPlatform()
-}
-
-
-
-bootJar {
-    launchScript()
 }
