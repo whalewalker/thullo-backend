@@ -15,6 +15,6 @@ public class UpdateBoardRequest {
     private MultipartFile file;
 
     //The board visibility is set ot private by default
-    private BoardVisibility visibility;
+    private String boardVisibility;
     private String boardTag;
 }

@@ -1,6 +1,7 @@
 package com.thullo.web.payload.request;
 
 import com.thullo.data.model.BoardVisibility;
+import com.thullo.web.exception.BadRequestException;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -16,5 +17,5 @@ public class BoardRequest {
     private String requestUrl;
     private MultipartFile file;
     //The board visibility is set ot private by default
-    private String visibility;
+    private String boardVisibility;
 }

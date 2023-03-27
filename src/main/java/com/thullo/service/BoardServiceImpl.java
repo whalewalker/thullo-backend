@@ -20,6 +20,7 @@ import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static com.thullo.data.model.BoardVisibility.PRIVATE;
 import static java.lang.String.format;
 
 @Slf4j
@@ -52,10 +53,19 @@ public class BoardServiceImpl implements BoardService {
         if (Helper.isNullOrEmpty(boardRequest.getName())) throw new BadRequestException("Board name cannot be empty");
         User user = findByEmail(userPrincipal.getEmail());
         Board board = mapper.map(boardRequest, Board.class);
-        board.setUser(user);
+
+        if(boardRequest.getBoardVisibility() == null){
+            board.setBoardVisibility(PRIVATE);
+        }
+        else {
+            board.setBoardVisibility(BoardVisibility.getBoardVisibility(boardRequest.getBoardVisibility()));
+        }
+
         String imageUrl = null;
+        board.setUser(user);
         if (boardRequest.getFile() != null) {
             imageUrl = fileService.uploadFile(boardRequest.getFile(), boardRequest.getRequestUrl());
+            log.info("imageUrl called");
         }
         board.setImageUrl(imageUrl);
         board.setBoardTag(generateThreeLetterWord(boardRequest.getName().toUpperCase()));
@@ -73,10 +83,11 @@ public class BoardServiceImpl implements BoardService {
         if (board == null) throw new BadRequestException(BOARD_NOT_FOUND);
         List<Board> userBoards =  user.getBoards();
         String imageUrl;
+
         for (Board userboard : userBoards){
             if(userboard == board){
                 if(boardRequest.getName() != null) userboard.setName(boardRequest.getName());
-                if(boardRequest.getVisibility() != null) userboard.setVisibility(boardRequest.getVisibility());
+                if(boardRequest.getBoardVisibility() != null) userboard.setBoardVisibility(BoardVisibility.getBoardVisibility(boardRequest.getBoardVisibility()));
                 if(boardRequest.getFile() != null) {
                     imageUrl = fileService.uploadFile(boardRequest.getFile(), boardRequest.getRequestUrl());
                     userboard.setImageUrl(imageUrl);
@@ -126,7 +137,6 @@ public class BoardServiceImpl implements BoardService {
                 boardResponse.getTaskColumn().add(column);
             });
         }
-
         return boardResponse;
     }
 

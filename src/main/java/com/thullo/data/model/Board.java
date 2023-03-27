@@ -3,8 +3,7 @@ package com.thullo.data.model;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
@@ -37,8 +36,8 @@ public class Board{
     @JsonBackReference
     private User user;
 
-    @Enumerated
-    private BoardVisibility visibility = PRIVATE;
+    @Enumerated(EnumType.STRING)
+    private BoardVisibility boardVisibility;
 
     @ManyToMany
     @JoinTable(name = "board_collaborators",

@@ -13,10 +13,8 @@ import com.thullo.web.payload.response.BoardResponse;
 import org.apache.commons.io.IOUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
+import org.junit.runner.RunWith;
+import org.mockito.junit.MockitoJUnitRunner;
 import org.modelmapper.ModelMapper;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -30,25 +28,26 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-import static com.thullo.data.model.BoardVisibility.PUBLIC;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
-@ExtendWith(MockitoExtension.class)
+//@ExtendWith(MockitoExtension.class)
+//@TestInstance(TestInstance.Lifecycle.PER_CLASS)
+@RunWith(MockitoJUnitRunner.class)
 class BoardServiceImplTest {
-    @Mock
-    private ModelMapper mapper;
-    @Mock
-    private BoardRepository boardRepository;
-    @Mock
-    private UserRepository userRepository;
-    @Mock
-    private FileService fileService;
-    @InjectMocks
-    private BoardServiceImpl boardService;
+    private ModelMapper mapperMock;
+    private BoardRepository boardRepositoryMock;
+    private UserRepository userRepositoryMock;
+    private FileService fileServiceMock;
+
+    private RoleServiceImpl roleServiceMock;
+
+    private NotificationService notificationServiceMock;
+
+
+    private BoardServiceImpl boardServiceImplMock;
     private Board board;
     private BoardRequest boardRequest;
     private UserPrincipal userPrincipal;
@@ -57,14 +56,21 @@ class BoardServiceImplTest {
 
     @BeforeEach
     void setUp() {
+        mapperMock = mock(ModelMapper.class);
+        boardRepositoryMock = mock(BoardRepository.class);
+        userRepositoryMock = mock(UserRepository.class);
+        fileServiceMock = mock(FileService.class);
+        roleServiceMock = mock(RoleServiceImpl.class);
+        notificationServiceMock = mock(NotificationServiceImpl.class);
+        boardServiceImplMock = new BoardServiceImpl(boardRepositoryMock, mapperMock, fileServiceMock, userRepositoryMock, roleServiceMock, notificationServiceMock);
+
         board = new Board();
         board.setName(boardName);
 
         boardRequest = new BoardRequest();
         boardRequest.setName(boardName);
 
-        board = new Board();
-        board.setName(boardName);
+
 //        board.setTaskColumns(
 //                List.of(
 //                        new TaskColumn("Backlog \uD83E\uDD14", new Board()),
@@ -85,55 +91,60 @@ class BoardServiceImplTest {
 
         UpdateBoardRequest request = new UpdateBoardRequest();
         request.setName("Thullo Challenge");
-        request.setVisibility(PUBLIC);
+        request.setBoardVisibility("public");
     }
 
     @Test
-    void testCreateBoard_withBoardName_createANewBoard() throws UserException, BadRequestException, IOException {
-        when(userRepository.findByEmail(anyString())).thenReturn(Optional.of(new User()));
-        when(mapper.map(boardRequest, Board.class))
-                .thenReturn(board);
-        when(mapper.map(board, Board.class))
-                .thenReturn(board);
-        when(boardRepository.save(board)).thenReturn(board);
+    void testCreateBoard_withBoardName_createANewBoard() {
+        try {
+            when(userRepositoryMock.findByEmail(anyString()))
+                    .thenReturn(Optional.of(new User()));
+            when(mapperMock.map(boardRequest, Board.class))
+                    .thenReturn(board);
+            when(mapperMock.map(board, Board.class))
+                    .thenReturn(board);
+            when(boardRepositoryMock.save(board)).thenReturn(board);
 
-        BoardResponse actualResponse = boardService.createBoard(boardRequest, userPrincipal);
+            BoardResponse actualResponse = boardServiceImplMock.createBoard(boardRequest, userPrincipal);
 
-        verify(mapper).map(boardRequest, Board.class);
-        verify(boardRepository).save(board);
-        verify(userRepository).findByEmail(userPrincipal.getEmail());
-        assertEquals(boardName, actualResponse.getName());
-        assertEquals("PRIVATE", actualResponse.getBoardVisibility());
+            verify(mapperMock).map(boardRequest, Board.class);
+            verify(boardRepositoryMock).save(board);
+            verify(userRepositoryMock).findByEmail(userPrincipal.getEmail());
+            assertEquals(boardName, actualResponse.getName());
+            assertEquals("PRIVATE", actualResponse.getBoardVisibility());
+        } catch (UserException | IOException | BadRequestException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Test
     void testCreateBoard_WithBoardNameAndCoverImage_createANewBoard() throws IOException, UserException, BadRequestException {
-        MultipartFile multipartFile = getMultipartFile("src/main/resources/static/code.png");
+        MultipartFile multipartFile = getMultipartFile("src/main/resources/static/screenshot.png");
         boardRequest.setFile(multipartFile);
         boardRequest.setRequestUrl("http://localhost:8080/api/v1/thullo");
 
         board.setImageUrl(imageUrl);
 
-        when(userRepository.findByEmail(anyString())).thenReturn(Optional.of(new User()));
+        when(userRepositoryMock.findByEmail(anyString())).thenReturn(Optional.of(new User()));
 
-        when(mapper.map(boardRequest, Board.class))
+        when(mapperMock.map(boardRequest, Board.class))
                 .thenReturn(board);
 
-        when(fileService.uploadFile(boardRequest.getFile(), boardRequest.getRequestUrl()))
+        when(fileServiceMock.uploadFile(boardRequest.getFile(), boardRequest.getRequestUrl()))
                 .thenReturn(imageUrl);
 
-        when(boardRepository.save(board)).thenReturn(board);
+        when(boardRepositoryMock.save(board)).thenReturn(board);
 
-        when(mapper.map(board, Board.class))
+        when(mapperMock.map(board, Board.class))
                 .thenReturn(board);
 
 
-        BoardResponse actualResponse = boardService.createBoard(boardRequest, userPrincipal);
+        BoardResponse actualResponse = boardServiceImplMock.createBoard(boardRequest, userPrincipal);
 
-        verify(mapper).map(boardRequest, Board.class);
-        verify(boardRepository).save(board);
-        verify(userRepository).findByEmail(userPrincipal.getEmail());
-        verify(fileService).uploadFile(multipartFile, boardRequest.getRequestUrl());
+        verify(mapperMock).map(boardRequest, Board.class);
+        verify(boardRepositoryMock).save(board);
+        verify(userRepositoryMock).findByEmail(userPrincipal.getEmail());
+        verify(fileServiceMock).uploadFile(multipartFile, boardRequest.getRequestUrl());
         assertEquals(boardName, actualResponse.getName());
         assertEquals(imageUrl, actualResponse.getImageUrl());
     }
@@ -145,20 +156,20 @@ class BoardServiceImplTest {
         boardRequest.setFile(multipartFile);
         boardRequest.setRequestUrl("http://localhost:8080/api/v1/thullo");
 
-        when(userRepository.findByEmail(anyString())).thenReturn(Optional.of(new User()));
+        when(userRepositoryMock.findByEmail(anyString())).thenReturn(Optional.of(new User()));
 
-        when(mapper.map(boardRequest, Board.class))
+        when(mapperMock.map(boardRequest, Board.class))
                 .thenReturn(board);
 
-        when(fileService.uploadFile(boardRequest.getFile(), boardRequest.getRequestUrl()))
+        when(fileServiceMock.uploadFile(boardRequest.getFile(), boardRequest.getRequestUrl()))
                 .thenReturn(imageUrl);
 
-        when(boardRepository.save(board)).thenReturn(board);
+        when(boardRepositoryMock.save(board)).thenReturn(board);
 
-        when(mapper.map(board, Board.class))
+        when(mapperMock.map(board, Board.class))
                 .thenReturn(board);
 
-        BoardResponse actualResponse = boardService.createBoard(boardRequest, userPrincipal);
+        BoardResponse actualResponse = boardServiceImplMock.createBoard(boardRequest, userPrincipal);
 
 //        assertEquals(4, actualResponse.getTasks().size());
     }
@@ -173,12 +184,12 @@ class BoardServiceImplTest {
 //                        createTaskColumn("Completed"))
 //        );
 
-        when(boardRepository.findById(anyLong()))
+        when(boardRepositoryMock.findById(anyLong()))
                 .thenReturn(Optional.ofNullable(board));
 
 //        Board userBoard = boardService.getBoard(1L);
 
-        verify(boardRepository).findById(1L);
+        verify(boardRepositoryMock).findById(1L);
 //        assertAll(() -> {
 //            assertEquals(board.getName(), userBoard.getName());
 //            assertEquals(4, board.getTaskColumns().size());
@@ -195,15 +206,15 @@ class BoardServiceImplTest {
     @Test
     void shouldReturnAllBoardWhenValidUser() throws UserException {
         User boardOwner = new User();
-        when(boardRepository.getAllByUserOrderByCreatedAtAsc(any(User.class)))
+        when(boardRepositoryMock.getAllByUserOrderByCreatedAtAsc(any(User.class)))
                 .thenReturn(new ArrayList<>(List.of(
                         new Board(), new Board(), new Board() )));
-        when(userRepository.findByEmail(anyString()))
+        when(userRepositoryMock.findByEmail(anyString()))
                 .thenReturn(Optional.of(boardOwner));
 
-        List<BoardResponse> boards = boardService.getBoards(userPrincipal);
-        verify(boardRepository).getAllByUserOrderByCreatedAtAsc(boardOwner);
-        verify(userRepository).findByEmail("ismail@gmail.com");
+        List<BoardResponse> boards = boardServiceImplMock.getBoards(userPrincipal);
+        verify(boardRepositoryMock).getAllByUserOrderByCreatedAtAsc(boardOwner);
+        verify(userRepositoryMock).findByEmail("ismail@gmail.com");
 
         assertNotNull(boards);
         assertEquals(3, boards.size());

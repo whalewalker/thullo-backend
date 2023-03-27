@@ -19,16 +19,10 @@ public interface BoardService {
      * @return A response object containing the result of the board creation process.
      */
     BoardResponse createBoard(BoardRequest boardRequest, UserPrincipal principal) throws UserException, BadRequestException, IOException;
-
     public BoardResponse updateBoard(UpdateBoardRequest boardRequest, UserPrincipal userPrincipal)
             throws UserException, BadRequestException, IOException;
-
-
     BoardResponse getBoard(String boardTag) throws BadRequestException;
-
     List<BoardResponse> getBoards(UserPrincipal userPrincipal) throws UserException;
-
     void addCollaboratorToBoard(String boardTag, Set<String> collaborators) throws BadRequestException;
-
     void removeCollaboratorsFromBoard(String boardTag, Set<String> emails) throws BadRequestException;
 }
