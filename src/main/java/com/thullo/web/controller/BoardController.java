@@ -45,6 +45,7 @@ public class BoardController {
     }
 
     @PutMapping(value = "/{boardTag}", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE}, produces = {MediaType.APPLICATION_JSON_VALUE})
+    @PreAuthorize("@boardServiceImpl.hasBoardRole(authentication.principal.email, #boardTag) or hasRole('BOARD_' + #boardTag)")
     public ResponseEntity<ApiResponse> updateBoard(@PathVariable String boardTag,
                                                    @RequestParam(value = "file", required = false) MultipartFile file,
                                                    @RequestParam("boardName") String boardName,
@@ -53,7 +54,7 @@ public class BoardController {
         try {
             UpdateBoardRequest boardRequest = new UpdateBoardRequest(boardName, request.getRequestURL().toString(), file, boardVisibility, boardTag);
             BoardResponse board = boardService.updateBoard(boardRequest, principal);
-            return ResponseEntity.ok(new ApiResponse(true, "Board successfully created", board));
+            return ResponseEntity.ok(new ApiResponse(true, "Board successfully updated", board));
         } catch (UserException | IOException | BadRequestException ex) {
             return ResponseEntity.badRequest().body(new ApiResponse(false, ex.getMessage(),
                     new HashMap<>(Map.of("message", ex.getMessage()))));

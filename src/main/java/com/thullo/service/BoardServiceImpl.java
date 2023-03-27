@@ -74,30 +74,6 @@ public class BoardServiceImpl implements BoardService {
     }
 
     @Override
-    public BoardResponse updateBoard(UpdateBoardRequest boardRequest, UserPrincipal userPrincipal)
-            throws UserException, BadRequestException, IOException {
-
-        User user = findByEmail(userPrincipal.getEmail());
-        Board board = getBoardInternal(boardRequest.getBoardTag());
-
-        if (board == null) throw new BadRequestException(BOARD_NOT_FOUND);
-        List<Board> userBoards =  user.getBoards();
-        String imageUrl;
-
-        for (Board userboard : userBoards){
-            if(userboard == board){
-                if(boardRequest.getName() != null) userboard.setName(boardRequest.getName());
-                if(boardRequest.getBoardVisibility() != null) userboard.setBoardVisibility(BoardVisibility.getBoardVisibility(boardRequest.getBoardVisibility()));
-                if(boardRequest.getFile() != null) {
-                    imageUrl = fileService.uploadFile(boardRequest.getFile(), boardRequest.getRequestUrl());
-                    userboard.setImageUrl(imageUrl);
-                }
-            }
-        }
-        return getBoard(boardRepository.save(board));
-    }
-
-    @Override
     public BoardResponse getBoard(String boardTag) throws BadRequestException {
         Board board = getBoardInternal(boardTag);
         if (board == null) throw new BadRequestException(BOARD_NOT_FOUND);
@@ -108,8 +84,8 @@ public class BoardServiceImpl implements BoardService {
         return getBoardResponse(board);
     }
 
-    private Board getBoardInternal(String boardTag) {
-        return boardRepository.findByBoardTag(boardTag).orElse(null);
+    public Board getBoardInternal(String boardTag) throws BadRequestException {
+        return boardRepository.findByBoardTag(boardTag).orElseThrow(()-> new BadRequestException(BOARD_NOT_FOUND));
     }
 
 
@@ -151,6 +127,30 @@ public class BoardServiceImpl implements BoardService {
         }
 
         return boardResponses;
+    }
+
+    @Override
+    public BoardResponse updateBoard(UpdateBoardRequest boardRequest, UserPrincipal userPrincipal)
+            throws UserException, BadRequestException, IOException {
+
+        User user = findByEmail(userPrincipal.getEmail());
+        Board board = getBoardInternal(boardRequest.getBoardTag());
+
+        if (board == null) throw new BadRequestException(BOARD_NOT_FOUND);
+        List<Board> userBoards =  user.getBoards();
+        String imageUrl;
+
+        for (Board userboard : userBoards){
+            if(userboard == board){
+                if(boardRequest.getName() != null) userboard.setName(boardRequest.getName());
+                if(boardRequest.getBoardVisibility() != null) userboard.setBoardVisibility(BoardVisibility.getBoardVisibility(boardRequest.getBoardVisibility()));
+                if(boardRequest.getFile() != null) {
+                    imageUrl = fileService.uploadFile(boardRequest.getFile(), boardRequest.getRequestUrl());
+                    userboard.setImageUrl(imageUrl);
+                }
+            }
+        }
+        return getBoard(boardRepository.save(board));
     }
 
     @Override
@@ -210,7 +210,7 @@ public class BoardServiceImpl implements BoardService {
         throw new IllegalStateException("All three-letter substrings have been used. Please choose a different board name.");
     }
 
-    public boolean hasBoardRole(String boardOwner, String boardTag) {
+    public boolean hasBoardRole(String boardOwner, String boardTag) throws BadRequestException {
         Board board = getBoardInternal(boardTag);
         if (board == null) return false;
         return board.getUser().getEmail().equals(boardOwner);
