@@ -15,7 +15,6 @@ public class BoardRequest {
     private String name;
     private String requestUrl;
     private MultipartFile file;
-
     //The board visibility is set ot private by default
-    private BoardVisibility visibility;
+    private String visibility;
 }

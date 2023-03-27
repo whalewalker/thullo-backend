@@ -1,7 +1,6 @@
 package com.thullo.service;
 
 import com.thullo.data.model.Board;
-import com.thullo.data.model.BoardVisibility;
 import com.thullo.data.model.User;
 import com.thullo.data.repository.BoardRepository;
 import com.thullo.data.repository.UserRepository;

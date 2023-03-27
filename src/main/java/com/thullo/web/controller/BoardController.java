@@ -1,6 +1,7 @@
 package com.thullo.web.controller;
 
 import com.thullo.annotation.CurrentUser;
+import com.thullo.data.model.BoardVisibility;
 import com.thullo.security.UserPrincipal;
 import com.thullo.service.BoardService;
 import com.thullo.web.exception.BadRequestException;
@@ -21,6 +22,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
+import static com.thullo.data.model.BoardVisibility.PRIVATE;
+
 @RestController
 @Slf4j
 @RequestMapping("api/v1/thullo/boards")
@@ -29,9 +32,9 @@ public class BoardController {
     private final BoardService boardService;
     @PostMapping
     public ResponseEntity<ApiResponse> createBoard(@RequestParam(value = "file", required = false) MultipartFile file, @RequestParam("boardName") String boardName,
-                                                   @CurrentUser UserPrincipal principal, HttpServletRequest request) {
+                                                   @RequestParam("visibilityStatus") String visibilityStatus, @CurrentUser UserPrincipal principal, HttpServletRequest request) {
         try {
-            BoardRequest boardRequest = new BoardRequest(boardName, request.getRequestURL().toString(), file);
+            BoardRequest boardRequest = new BoardRequest(boardName, request.getRequestURL().toString(), file, visibilityStatus);
             BoardResponse board = boardService.createBoard(boardRequest, principal);
             return ResponseEntity.ok(new ApiResponse(true, "Board successfully created", board));
         } catch (UserException | IOException | BadRequestException ex) {
@@ -84,5 +87,4 @@ public class BoardController {
             return ResponseEntity.badRequest().body(new ApiResponse(false, ex.getMessage()));
         }
     }
-
 }
