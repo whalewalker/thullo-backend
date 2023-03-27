@@ -88,7 +88,6 @@ class AuthControllerTest {
                 post("/api/v1/thullo/auth/register").contentType(MediaType.APPLICATION_JSON)
                         .content(userRequestJson.write(userRequest).getJson())
         ).andReturn().getResponse();
-
         then(response.getStatus()).isEqualTo(HttpStatus.OK.value());
     }
 }

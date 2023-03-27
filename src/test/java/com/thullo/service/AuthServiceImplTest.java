@@ -58,7 +58,6 @@ class AuthServiceImplTest {
     @Mock
     private TokenRepository tokenRepository;
 
-
     @Mock
     private JwtTokenProvider jwtTokenProvider;
 
@@ -217,7 +216,4 @@ class AuthServiceImplTest {
         assertThat(tokenArgumentCaptor.getValue()).isNotNull();
         assertThat(tokenArgumentCaptor.getValue().getPassword()).isNotNull();
     }
-
-
-
 }

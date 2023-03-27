@@ -6,16 +6,15 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.web.multipart.MultipartFile;
 
-import static com.thullo.data.model.BoardVisibility.PRIVATE;
-
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class BoardRequest {
+public class UpdateBoardRequest {
     private String name;
     private String requestUrl;
     private MultipartFile file;
 
     //The board visibility is set ot private by default
     private BoardVisibility visibility;
+    private String boardTag;
 }

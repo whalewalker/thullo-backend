@@ -9,6 +9,7 @@ import com.thullo.util.Helper;
 import com.thullo.web.exception.BadRequestException;
 import com.thullo.web.exception.UserException;
 import com.thullo.web.payload.request.BoardRequest;
+import com.thullo.web.payload.request.UpdateBoardRequest;
 import com.thullo.web.payload.response.BoardResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -63,6 +64,29 @@ public class BoardServiceImpl implements BoardService {
     }
 
     @Override
+    public BoardResponse updateBoard(UpdateBoardRequest boardRequest, UserPrincipal userPrincipal)
+            throws UserException, BadRequestException, IOException {
+
+        User user = findByEmail(userPrincipal.getEmail());
+        Board board = getBoardInternal(boardRequest.getBoardTag());
+
+        if (board == null) throw new BadRequestException(BOARD_NOT_FOUND);
+        List<Board> userBoards =  user.getBoards();
+        String imageUrl;
+        for (Board userboard : userBoards){
+            if(userboard == board){
+                if(boardRequest.getName() != null) userboard.setName(boardRequest.getName());
+                if(boardRequest.getVisibility() != null) userboard.setVisibility(boardRequest.getVisibility());
+                if(boardRequest.getFile() != null) {
+                    imageUrl = fileService.uploadFile(boardRequest.getFile(), boardRequest.getRequestUrl());
+                    userboard.setImageUrl(imageUrl);
+                }
+            }
+        }
+        return getBoard(boardRepository.save(board));
+    }
+
+    @Override
     public BoardResponse getBoard(String boardTag) throws BadRequestException {
         Board board = getBoardInternal(boardTag);
         if (board == null) throw new BadRequestException(BOARD_NOT_FOUND);
@@ -82,6 +106,7 @@ public class BoardServiceImpl implements BoardService {
         BoardResponse boardResponse = mapper.map(board, BoardResponse.class);
 
         List<Task> tasks = board.getTasks();
+
         Map<Status, List<Task>> columns = tasks.stream()
                 .collect(Collectors.groupingBy(Task::getStatus));
 

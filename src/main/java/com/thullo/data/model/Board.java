@@ -15,6 +15,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import static com.thullo.data.model.BoardVisibility.PRIVATE;
+
 @Getter
 @Setter
 @Entity
@@ -34,6 +36,9 @@ public class Board{
     @JoinColumn(name = "user_id")
     @JsonBackReference
     private User user;
+
+    @Enumerated
+    private BoardVisibility visibility = PRIVATE;
 
     @ManyToMany
     @JoinTable(name = "board_collaborators",

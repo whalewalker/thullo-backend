@@ -48,7 +48,6 @@ public class AuthServiceImpl implements AuthService {
     private final TokenRepository tokenRepository;
     private final AuthenticationManager authenticationManager;
     private final JwtTokenProvider tokenProvider;
-
     private final RoleServiceImpl roleService;
 
 
@@ -109,6 +108,7 @@ public class AuthServiceImpl implements AuthService {
         JwtTokenResponse jwtTokenResponse = new JwtTokenResponse();
 
         Optional<Token> optionalToken = tokenRepository.findByUser(user);
+
         if (optionalToken.isPresent() && isValidToken(optionalToken.get().getExpiryDate())) {
             jwtTokenResponse.setRefreshToken(optionalToken.get().getToken());
         } else if (optionalToken.isPresent() && !isValidToken(optionalToken.get().getExpiryDate())) {
@@ -119,7 +119,6 @@ public class AuthServiceImpl implements AuthService {
             Token refreshToken = new Token(user);
             jwtTokenResponse.setRefreshToken(tokenRepository.save(refreshToken).getToken());
         }
-
         jwtTokenResponse.setJwtToken(jwtToken);
         jwtTokenResponse.setEmail(user.getEmail());
         return jwtTokenResponse;

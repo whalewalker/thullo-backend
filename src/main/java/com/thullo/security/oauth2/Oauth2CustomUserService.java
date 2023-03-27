@@ -79,6 +79,4 @@ public class Oauth2CustomUserService extends DefaultOAuth2UserService {
         existingUser.setImageUrl(oauth2UserData.getImageUrl());
         return userRepository.save(existingUser);
     }
-
-
 }
