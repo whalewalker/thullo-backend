@@ -25,7 +25,6 @@ public class Helper {
     }
 
     public static String extractFileIdFromUrl(String imageUrl) {
-        return imageUrl.substring(imageUrl.indexOf("files/") + 6);
+        return imageUrl.substring(imageUrl.indexOf("files/") + 6, imageUrl.indexOf("."));
     }
-
 }

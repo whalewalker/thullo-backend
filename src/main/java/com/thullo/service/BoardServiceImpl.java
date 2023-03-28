@@ -129,9 +129,7 @@ public class BoardServiceImpl implements BoardService {
         }
 
         if (boardRequest.getFile() != null) {
-            log.info(board.getImageUrl());
             String fileId = Helper.extractFileIdFromUrl(board.getImageUrl());
-            log.info(fileId);
             fileService.deleteFile(fileId);
             imageUrl = fileService.uploadFile(boardRequest.getFile(), boardRequest.getRequestUrl());
             board.setImageUrl(imageUrl);

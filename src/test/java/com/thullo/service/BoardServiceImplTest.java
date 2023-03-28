@@ -1,10 +1,8 @@
 package com.thullo.service;
 
 import com.thullo.data.model.Board;
-import com.thullo.data.model.Task;
 import com.thullo.data.model.User;
 import com.thullo.data.repository.BoardRepository;
-import com.thullo.data.repository.UserRepository;
 import com.thullo.web.exception.BadRequestException;
 import com.thullo.web.payload.request.BoardRequest;
 import org.junit.jupiter.api.BeforeEach;
@@ -18,11 +16,11 @@ import org.mockito.quality.Strictness;
 import org.modelmapper.ModelMapper;
 
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.Optional;
 
 import static com.thullo.data.model.BoardVisibility.PRIVATE;
 import static com.thullo.data.model.BoardVisibility.PUBLIC;
+import static org.junit.Assert.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.Mockito.*;
@@ -37,30 +35,27 @@ class BoardServiceImplTest {
     @InjectMocks
     private BoardServiceImpl boardServiceImplMock;
     @Mock
-    private UserRepository userRepositoryMock;
+    private FileService fileServiceMock;
     private Board board;
 
-    @BeforeEach
-    void setUp() {
+    private BoardRequest boardRequest;
 
+    @BeforeEach
+    void setUp() throws IOException {
         board = new Board();
         board.setName("Test Board");
         board.setBoardVisibility(PUBLIC);
         board.setUser(new User());
-        board.setTasks(Arrays.asList(
-                new Task(), new Task()
-        ));
-    }
 
-    @Test
-    void testUpdateBoardWithValidRequest() throws BadRequestException, IOException {
-
-        BoardRequest boardRequest = new BoardRequest();
+        boardRequest = new BoardRequest();
         boardRequest.setName("Test Board Update");
         boardRequest.setBoardVisibility("PRIVATE");
         boardRequest.setBoardTag("TES");
 
-        when(userRepositoryMock.findByEmail("admin@gmail.com")).thenReturn(Optional.of(new User()));
+    }
+
+    @Test
+    void testUpdateBoardWithValidRequest() throws BadRequestException, IOException {
 
         when(boardRepositoryMock.findByBoardTag("TES")).thenReturn(Optional.of(board));
 
@@ -81,5 +76,37 @@ class BoardServiceImplTest {
         assertNotNull(response);
         assertEquals("Test Board Update", response.getName());
         assertEquals(PRIVATE, response.getBoardVisibility());
+    }
+
+    @Test
+    public void testUpdateBoardWithInvalidBoardTag() {
+        BoardRequest boardRequest = new BoardRequest();
+        boardRequest.setBoardTag("invalid_tag");
+        when(boardRepositoryMock.findByBoardTag(boardRequest.getBoardTag())).thenReturn(Optional.empty());
+        assertThrows(BadRequestException.class, () -> {
+            boardServiceImplMock.updateBoard(boardRequest);
+        });
+    }
+
+    @Test
+    public void testUpdateBoardWithNoFile() throws BadRequestException, IOException {
+
+        when(boardRepositoryMock.findByBoardTag("TES")).thenReturn(Optional.of(board));
+
+        doAnswer(invocation -> {
+            mapper.map(boardRequest, board);
+            board.setName(boardRequest.getName()); // Update the board name before saving
+            return board;
+        }).when(boardRepositoryMock).save(board);
+
+        when(boardRepositoryMock.save(board)).thenReturn(board);
+        Board response = boardServiceImplMock.updateBoard(boardRequest);
+
+        verify(boardRepositoryMock).save(board);
+        verify(fileServiceMock, times(0)).deleteFile(anyString());
+        verify(fileServiceMock, times(0)).uploadFile(any(), any());
+
+        assertNotNull(response);
+        assertEquals("Test Board Update", response.getName());
     }
 }
