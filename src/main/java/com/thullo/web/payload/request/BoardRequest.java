@@ -18,4 +18,5 @@ public class BoardRequest {
     private MultipartFile file;
     //The board visibility is set ot private by default
     private String boardVisibility;
+    private String boardTag;
 }

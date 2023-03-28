@@ -6,7 +6,6 @@ import com.thullo.service.BoardService;
 import com.thullo.web.exception.BadRequestException;
 import com.thullo.web.exception.UserException;
 import com.thullo.web.payload.request.BoardRequest;
-import com.thullo.web.payload.request.UpdateBoardRequest;
 import com.thullo.web.payload.response.ApiResponse;
 import com.thullo.web.payload.response.BoardResponse;
 import lombok.RequiredArgsConstructor;
@@ -15,7 +14,6 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
@@ -29,12 +27,13 @@ import java.util.Set;
 @RequiredArgsConstructor
 public class BoardController {
     private final BoardService boardService;
+
     @PostMapping(consumes = {MediaType.MULTIPART_FORM_DATA_VALUE}, produces = {MediaType.APPLICATION_JSON_VALUE})
-    public ResponseEntity<ApiResponse> createBoard(@RequestParam(value = "file", required = false) MultipartFile file,
-                                                   @RequestParam(value = "boardName") String boardName, @CurrentUser UserPrincipal principal,
-                                                   @RequestParam(value = "boardVisibility", required = false) String boardVisibility, HttpServletRequest request) {
+    public ResponseEntity<ApiResponse> createBoard(BoardRequest boardRequest,
+                                                   @CurrentUser UserPrincipal principal,
+                                                   HttpServletRequest request) {
+        boardRequest.setRequestUrl(request.getRequestURI());
         try {
-            BoardRequest boardRequest = new BoardRequest(boardName, request.getRequestURL().toString(), file, boardVisibility);
             BoardResponse board = boardService.createBoard(boardRequest, principal);
             return ResponseEntity.ok(new ApiResponse(true, "Board successfully created", board));
 
@@ -47,12 +46,12 @@ public class BoardController {
     @PutMapping(value = "/{boardTag}", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE}, produces = {MediaType.APPLICATION_JSON_VALUE})
     @PreAuthorize("@boardServiceImpl.hasBoardRole(authentication.principal.email, #boardTag) or hasRole('BOARD_' + #boardTag)")
     public ResponseEntity<ApiResponse> updateBoard(@PathVariable String boardTag,
-                                                   @RequestParam(value = "file", required = false) MultipartFile file,
-                                                   @RequestParam("boardName") String boardName,
-                                                   @RequestParam("boardVisibility") String boardVisibility,
-                                                   @CurrentUser UserPrincipal principal, HttpServletRequest request) {
+                                                   BoardRequest boardRequest,
+                                                   @CurrentUser UserPrincipal principal,
+                                                   HttpServletRequest request) {
+
+        boardRequest.setRequestUrl(request.getRequestURL().toString());
         try {
-            UpdateBoardRequest boardRequest = new UpdateBoardRequest(boardName, request.getRequestURL().toString(), file, boardVisibility, boardTag);
             BoardResponse board = boardService.updateBoard(boardRequest, principal);
             return ResponseEntity.ok(new ApiResponse(true, "Board successfully updated", board));
         } catch (UserException | IOException | BadRequestException ex) {

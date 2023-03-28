@@ -3,7 +3,8 @@ package com.thullo.data.model;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
-import lombok.*;
+import lombok.Getter;
+import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
@@ -14,8 +15,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import static com.thullo.data.model.BoardVisibility.PRIVATE;
-
 @Getter
 @Setter
 @Entity
@@ -23,11 +22,8 @@ public class Board{
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
     private String name;
-
     private String imageUrl;
-
     @Column(nullable = false, unique = true)
     private String boardTag;
 

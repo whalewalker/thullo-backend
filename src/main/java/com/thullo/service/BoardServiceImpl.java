@@ -1,6 +1,5 @@
 package com.thullo.service;
 
-
 import com.thullo.data.model.*;
 import com.thullo.data.repository.BoardRepository;
 import com.thullo.data.repository.UserRepository;
@@ -9,7 +8,6 @@ import com.thullo.util.Helper;
 import com.thullo.web.exception.BadRequestException;
 import com.thullo.web.exception.UserException;
 import com.thullo.web.payload.request.BoardRequest;
-import com.thullo.web.payload.request.UpdateBoardRequest;
 import com.thullo.web.payload.response.BoardResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -20,7 +18,6 @@ import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static com.thullo.data.model.BoardVisibility.PRIVATE;
 import static java.lang.String.format;
 
 @Slf4j
@@ -30,15 +27,10 @@ public class BoardServiceImpl implements BoardService {
 
     private final BoardRepository boardRepository;
     private final ModelMapper mapper;
-
     private final FileService fileService;
-
     private final UserRepository userRepository;
-
     private final RoleServiceImpl roleService;
-
     private final NotificationService notificationService;
-
     private static final String BOARD_NOT_FOUND = "Board not found";
 
 
@@ -50,16 +42,10 @@ public class BoardServiceImpl implements BoardService {
      */
 
     public BoardResponse createBoard(BoardRequest boardRequest, UserPrincipal userPrincipal) throws UserException, BadRequestException, IOException {
-        if (Helper.isNullOrEmpty(boardRequest.getName())) throw new BadRequestException("Board name cannot be empty");
-        User user = findByEmail(userPrincipal.getEmail());
         Board board = mapper.map(boardRequest, Board.class);
-
-        if(boardRequest.getBoardVisibility() == null){
-            board.setBoardVisibility(PRIVATE);
-        }
-        else {
-            board.setBoardVisibility(BoardVisibility.getBoardVisibility(boardRequest.getBoardVisibility()));
-        }
+        if (Helper.isNullOrEmpty(board.getName())) throw new BadRequestException("Board name cannot be empty");
+        User user = findByEmail(userPrincipal.getEmail());
+        board.setBoardVisibility(BoardVisibility.getBoardVisibility(boardRequest.getBoardVisibility()));
 
         String imageUrl = null;
         board.setUser(user);
@@ -79,7 +65,6 @@ public class BoardServiceImpl implements BoardService {
         if (board == null) throw new BadRequestException(BOARD_NOT_FOUND);
         return getBoard(board);
     }
-
     private BoardResponse getBoard(Board board) {
         return getBoardResponse(board);
     }
@@ -125,18 +110,16 @@ public class BoardServiceImpl implements BoardService {
         for (Board board : allUserBoards) {
             boardResponses.add(getBoardResponse(board));
         }
-
         return boardResponses;
     }
 
     @Override
-    public BoardResponse updateBoard(UpdateBoardRequest boardRequest, UserPrincipal userPrincipal)
+    public BoardResponse updateBoard(BoardRequest boardRequest, UserPrincipal userPrincipal)
             throws UserException, BadRequestException, IOException {
 
         User user = findByEmail(userPrincipal.getEmail());
         Board board = getBoardInternal(boardRequest.getBoardTag());
 
-        if (board == null) throw new BadRequestException(BOARD_NOT_FOUND);
         List<Board> userBoards =  user.getBoards();
         String imageUrl;
 
@@ -206,7 +189,6 @@ public class BoardServiceImpl implements BoardService {
                 return threeLetterWord;
             }
         }
-
         throw new IllegalStateException("All three-letter substrings have been used. Please choose a different board name.");
     }
 
