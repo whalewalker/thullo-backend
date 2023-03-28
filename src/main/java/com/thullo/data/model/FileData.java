@@ -17,7 +17,6 @@ public class FileData {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private String fileId;
-
     private String fileName;
     private String fileType;
 
@@ -41,7 +40,4 @@ public class FileData {
         this.fileId = fileId;
         this.fileType = fileType;
     }
-
-
-
 }

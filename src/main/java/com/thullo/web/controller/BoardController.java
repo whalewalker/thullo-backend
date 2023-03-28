@@ -1,6 +1,7 @@
 package com.thullo.web.controller;
 
 import com.thullo.annotation.CurrentUser;
+import com.thullo.data.model.Board;
 import com.thullo.security.UserPrincipal;
 import com.thullo.service.BoardService;
 import com.thullo.web.exception.BadRequestException;
@@ -16,6 +17,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.validation.Valid;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
@@ -29,10 +31,10 @@ public class BoardController {
     private final BoardService boardService;
 
     @PostMapping(consumes = {MediaType.MULTIPART_FORM_DATA_VALUE}, produces = {MediaType.APPLICATION_JSON_VALUE})
-    public ResponseEntity<ApiResponse> createBoard(BoardRequest boardRequest,
+    public ResponseEntity<ApiResponse> createBoard(@Valid BoardRequest boardRequest,
                                                    @CurrentUser UserPrincipal principal,
                                                    HttpServletRequest request) {
-        boardRequest.setRequestUrl(request.getRequestURI());
+        boardRequest.setRequestUrl(request.getRequestURL().toString());
         try {
             BoardResponse board = boardService.createBoard(boardRequest, principal);
             return ResponseEntity.ok(new ApiResponse(true, "Board successfully created", board));
@@ -47,13 +49,12 @@ public class BoardController {
     @PreAuthorize("@boardServiceImpl.hasBoardRole(authentication.principal.email, #boardTag) or hasRole('BOARD_' + #boardTag)")
     public ResponseEntity<ApiResponse> updateBoard(@PathVariable String boardTag,
                                                    BoardRequest boardRequest,
-                                                   @CurrentUser UserPrincipal principal,
                                                    HttpServletRequest request) {
 
         boardRequest.setRequestUrl(request.getRequestURL().toString());
         try {
-            BoardResponse board = boardService.updateBoard(boardRequest, principal);
-            return ResponseEntity.ok(new ApiResponse(true, "Board successfully updated", board));
+            Board board = boardService.updateBoard(boardRequest);
+            return ResponseEntity.ok(new ApiResponse(true, "Board successfully updated", boardService.getBoardResponse(board)));
         } catch (UserException | IOException | BadRequestException ex) {
             return ResponseEntity.badRequest().body(new ApiResponse(false, ex.getMessage(),
                     new HashMap<>(Map.of("message", ex.getMessage()))));

@@ -42,6 +42,7 @@ public class BoardServiceImpl implements BoardService {
      */
 
     public BoardResponse createBoard(BoardRequest boardRequest, UserPrincipal userPrincipal) throws UserException, BadRequestException, IOException {
+
         Board board = mapper.map(boardRequest, Board.class);
         if (Helper.isNullOrEmpty(board.getName())) throw new BadRequestException("Board name cannot be empty");
         User user = findByEmail(userPrincipal.getEmail());
@@ -51,7 +52,6 @@ public class BoardServiceImpl implements BoardService {
         board.setUser(user);
         if (boardRequest.getFile() != null) {
             imageUrl = fileService.uploadFile(boardRequest.getFile(), boardRequest.getRequestUrl());
-            log.info("imageUrl called");
         }
         board.setImageUrl(imageUrl);
         board.setBoardTag(generateThreeLetterWord(boardRequest.getName().toUpperCase()));
@@ -65,16 +65,17 @@ public class BoardServiceImpl implements BoardService {
         if (board == null) throw new BadRequestException(BOARD_NOT_FOUND);
         return getBoard(board);
     }
+
     private BoardResponse getBoard(Board board) {
         return getBoardResponse(board);
     }
 
     public Board getBoardInternal(String boardTag) throws BadRequestException {
-        return boardRepository.findByBoardTag(boardTag).orElseThrow(()-> new BadRequestException(BOARD_NOT_FOUND));
+        return boardRepository.findByBoardTag(boardTag).orElseThrow(() -> new BadRequestException(BOARD_NOT_FOUND));
     }
 
 
-    private BoardResponse getBoardResponse(Board board) {
+    public BoardResponse getBoardResponse(Board board) {
         BoardResponse boardResponse = mapper.map(board, BoardResponse.class);
 
         List<Task> tasks = board.getTasks();
@@ -114,26 +115,28 @@ public class BoardServiceImpl implements BoardService {
     }
 
     @Override
-    public BoardResponse updateBoard(BoardRequest boardRequest, UserPrincipal userPrincipal)
-            throws UserException, BadRequestException, IOException {
+    public Board updateBoard(BoardRequest boardRequest)
+            throws BadRequestException, IOException {
 
-        User user = findByEmail(userPrincipal.getEmail());
         Board board = getBoardInternal(boardRequest.getBoardTag());
 
-        List<Board> userBoards =  user.getBoards();
         String imageUrl;
+        mapper.map(boardRequest, board);
 
-        for (Board userboard : userBoards){
-            if(userboard == board){
-                if(boardRequest.getName() != null) userboard.setName(boardRequest.getName());
-                if(boardRequest.getBoardVisibility() != null) userboard.setBoardVisibility(BoardVisibility.getBoardVisibility(boardRequest.getBoardVisibility()));
-                if(boardRequest.getFile() != null) {
-                    imageUrl = fileService.uploadFile(boardRequest.getFile(), boardRequest.getRequestUrl());
-                    userboard.setImageUrl(imageUrl);
-                }
-            }
+        if (!Helper.isNullOrEmpty(boardRequest.getBoardVisibility())) {
+            BoardVisibility visibility = BoardVisibility.getBoardVisibility(boardRequest.getBoardVisibility());
+            board.setBoardVisibility(visibility == null ? board.getBoardVisibility() : visibility);
         }
-        return getBoard(boardRepository.save(board));
+
+        if (boardRequest.getFile() != null) {
+            log.info(board.getImageUrl());
+            String fileId = Helper.extractFileIdFromUrl(board.getImageUrl());
+            log.info(fileId);
+            fileService.deleteFile(fileId);
+            imageUrl = fileService.uploadFile(boardRequest.getFile(), boardRequest.getRequestUrl());
+            board.setImageUrl(imageUrl);
+        }
+        return boardRepository.save(board);
     }
 
     @Override

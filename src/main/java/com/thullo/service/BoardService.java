@@ -1,5 +1,6 @@
 package com.thullo.service;
 
+import com.thullo.data.model.Board;
 import com.thullo.security.UserPrincipal;
 import com.thullo.web.exception.BadRequestException;
 import com.thullo.web.exception.UserException;
@@ -18,10 +19,17 @@ public interface BoardService {
      * @return A response object containing the result of the board creation process.
      */
     BoardResponse createBoard(BoardRequest boardRequest, UserPrincipal principal) throws UserException, BadRequestException, IOException;
-    public BoardResponse updateBoard(BoardRequest boardRequest, UserPrincipal userPrincipal)
+
+    Board updateBoard(BoardRequest boardRequest)
             throws UserException, BadRequestException, IOException;
+
+    BoardResponse getBoardResponse(Board board);
+
     BoardResponse getBoard(String boardTag) throws BadRequestException;
+
     List<BoardResponse> getBoards(UserPrincipal userPrincipal) throws UserException;
+
     void addCollaboratorToBoard(String boardTag, Set<String> collaborators) throws BadRequestException;
+
     void removeCollaboratorsFromBoard(String boardTag, Set<String> emails) throws BadRequestException;
 }

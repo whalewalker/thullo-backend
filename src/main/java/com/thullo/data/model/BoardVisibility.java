@@ -5,11 +5,10 @@ public enum BoardVisibility {
     PUBLIC;
 
     public static BoardVisibility getBoardVisibility(String input){
-        var boardVisibilityList = BoardVisibility.values();
 
-        for (BoardVisibility visibility : boardVisibilityList) {
+        for (BoardVisibility visibility : BoardVisibility.values()) {
             if (visibility.name().equalsIgnoreCase(input)) return visibility;
         }
-        return PRIVATE;
+        return null;
     }
 }
