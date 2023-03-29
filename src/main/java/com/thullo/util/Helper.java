@@ -1,13 +1,13 @@
 package com.thullo.util;
 
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
+
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class Helper {
-
-
-    private Helper() {
-    }
 
     public static boolean isValidToken(LocalDateTime expiryDate) {
         long minutes = ChronoUnit.MINUTES.between(LocalDateTime.now(), expiryDate);
@@ -26,5 +26,9 @@ public class Helper {
 
     public static String extractFileIdFromUrl(String imageUrl) {
         return imageUrl.substring(imageUrl.indexOf("files/") + 6, imageUrl.indexOf("."));
+    }
+
+    public static boolean isOnServer(String envName) {
+        return envName.trim().equals("server");
     }
 }
