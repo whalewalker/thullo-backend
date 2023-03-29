@@ -46,7 +46,9 @@ public class BoardServiceImpl implements BoardService {
         Board board = mapper.map(boardRequest, Board.class);
         if (Helper.isNullOrEmpty(board.getName())) throw new BadRequestException("Board name cannot be empty");
         User user = findByEmail(userPrincipal.getEmail());
-        board.setBoardVisibility(BoardVisibility.getBoardVisibility(boardRequest.getBoardVisibility()));
+
+        BoardVisibility boardVisibility = BoardVisibility.getBoardVisibility(boardRequest.getBoardVisibility());
+        board.setBoardVisibility(boardVisibility == null ? BoardVisibility.PRIVATE : boardVisibility);
 
         String imageUrl = null;
         board.setUser(user);

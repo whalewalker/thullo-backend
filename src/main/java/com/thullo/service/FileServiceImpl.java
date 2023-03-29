@@ -5,6 +5,7 @@ import com.thullo.data.repository.FilesRepository;
 import com.thullo.web.exception.BadRequestException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -17,18 +18,29 @@ import java.util.UUID;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
+import static com.thullo.util.Helper.isOnServer;
+
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class FileServiceImpl implements FileService {
     private final FilesRepository filesRepository;
+    @Value("${env.name}")
+    private String environmentName;
 
     @Override
     public String uploadFile(MultipartFile file, String url) throws BadRequestException, IOException {
         if (file.isEmpty()) throw new BadRequestException("File cannot be empty");
         String baseUrl = url.substring(0, url.lastIndexOf("thullo"));
         FileData fileData = uploadFileData(file);
-        return String.format("%s%s%s", baseUrl, "thullo/files/", fileData.getFileId()) + "." + fileData.getFileType();
+        String fileUrl = String.format("%s%s%s", baseUrl, "thullo/files/", fileData.getFileId()) + "." + fileData.getFileType();
+        return formatUrl(fileUrl);
+    }
+
+    public String formatUrl(String fileUrl) {
+        if (isOnServer(environmentName))
+            return fileUrl.replaceFirst("http", "https");
+        return fileUrl;
     }
 
     private FileData uploadFileData(MultipartFile file) throws IOException {

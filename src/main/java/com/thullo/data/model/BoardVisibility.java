@@ -7,7 +7,8 @@ public enum BoardVisibility {
     public static BoardVisibility getBoardVisibility(String input){
 
         for (BoardVisibility visibility : BoardVisibility.values()) {
-            if (visibility.name().equalsIgnoreCase(input)) return visibility;
+            if (visibility.name().equalsIgnoreCase(input))
+                return visibility;
         }
         return null;
     }
