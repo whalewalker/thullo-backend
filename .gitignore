@@ -41,3 +41,10 @@ out/
 ### VS Code ###
 .vscode/
 mySSH.pem
+
+# Ignore all application properties files
+application*.properties
+
+# Except for these two files
+!application.properties
+!application-prod.properties
