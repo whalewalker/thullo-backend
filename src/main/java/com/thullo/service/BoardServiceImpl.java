@@ -1,6 +1,5 @@
 package com.thullo.service;
 
-
 import com.thullo.data.model.*;
 import com.thullo.data.repository.BoardRepository;
 import com.thullo.data.repository.UserRepository;
@@ -28,15 +27,10 @@ public class BoardServiceImpl implements BoardService {
 
     private final BoardRepository boardRepository;
     private final ModelMapper mapper;
-
     private final FileService fileService;
-
     private final UserRepository userRepository;
-
     private final RoleServiceImpl roleService;
-
     private final NotificationService notificationService;
-
     private static final String BOARD_NOT_FOUND = "Board not found";
 
 
@@ -48,11 +42,14 @@ public class BoardServiceImpl implements BoardService {
      */
 
     public BoardResponse createBoard(BoardRequest boardRequest, UserPrincipal userPrincipal) throws UserException, BadRequestException, IOException {
-        if (Helper.isNullOrEmpty(boardRequest.getName())) throw new BadRequestException("Board name cannot be empty");
-        User user = findByEmail(userPrincipal.getEmail());
+
         Board board = mapper.map(boardRequest, Board.class);
-        board.setUser(user);
+        if (Helper.isNullOrEmpty(board.getName())) throw new BadRequestException("Board name cannot be empty");
+        User user = findByEmail(userPrincipal.getEmail());
+        board.setBoardVisibility(BoardVisibility.getBoardVisibility(boardRequest.getBoardVisibility()));
+
         String imageUrl = null;
+        board.setUser(user);
         if (boardRequest.getFile() != null) {
             imageUrl = fileService.uploadFile(boardRequest.getFile(), boardRequest.getRequestUrl());
         }
@@ -64,7 +61,7 @@ public class BoardServiceImpl implements BoardService {
 
     @Override
     public BoardResponse getBoard(String boardTag) throws BadRequestException {
-        Board board = getBoardInternal(boardTag);
+        Board board = getBoardByTag(boardTag);
         if (board == null) throw new BadRequestException(BOARD_NOT_FOUND);
         return getBoard(board);
     }
@@ -73,15 +70,16 @@ public class BoardServiceImpl implements BoardService {
         return getBoardResponse(board);
     }
 
-    private Board getBoardInternal(String boardTag) {
+    public Board getBoardByTag(String boardTag) {
         return boardRepository.findByBoardTag(boardTag).orElse(null);
     }
 
 
-    private BoardResponse getBoardResponse(Board board) {
+    public BoardResponse getBoardResponse(Board board) {
         BoardResponse boardResponse = mapper.map(board, BoardResponse.class);
 
         List<Task> tasks = board.getTasks();
+
         Map<Status, List<Task>> columns = tasks.stream()
                 .collect(Collectors.groupingBy(Task::getStatus));
 
@@ -101,7 +99,6 @@ public class BoardServiceImpl implements BoardService {
                 boardResponse.getTaskColumn().add(column);
             });
         }
-
         return boardResponse;
     }
 
@@ -114,8 +111,30 @@ public class BoardServiceImpl implements BoardService {
         for (Board board : allUserBoards) {
             boardResponses.add(getBoardResponse(board));
         }
-
         return boardResponses;
+    }
+
+    @Override
+    public Board updateBoard(BoardRequest boardRequest)
+            throws BadRequestException, IOException {
+        Board board = getBoardByTag(boardRequest.getBoardTag());
+        if (board == null) throw new BadRequestException(BOARD_NOT_FOUND);
+
+        String imageUrl;
+        mapper.map(boardRequest, board);
+
+        if (!Helper.isNullOrEmpty(boardRequest.getBoardVisibility())) {
+            BoardVisibility visibility = BoardVisibility.getBoardVisibility(boardRequest.getBoardVisibility());
+            board.setBoardVisibility(visibility == null ? board.getBoardVisibility() : visibility);
+        }
+
+        if (boardRequest.getFile() != null) {
+            String fileId = Helper.extractFileIdFromUrl(board.getImageUrl());
+            fileService.deleteFile(fileId);
+            imageUrl = fileService.uploadFile(boardRequest.getFile(), boardRequest.getRequestUrl());
+            board.setImageUrl(imageUrl);
+        }
+        return boardRepository.save(board);
     }
 
     @Override
@@ -123,7 +142,7 @@ public class BoardServiceImpl implements BoardService {
         String title = "You have been added as a collaborator on board: " + boardTag;
         String message = "You have been added as a collaborator on board " + boardTag;
 
-        Board board = getBoardInternal(boardTag);
+        Board board = getBoardByTag(boardTag);
         if (board == null) throw new BadRequestException(BOARD_NOT_FOUND);
         Set<User> existingCollaborators = board.getCollaborators();
         List<User> newCollaborators = userRepository.findAllByEmails(collaborators);
@@ -142,7 +161,7 @@ public class BoardServiceImpl implements BoardService {
         String title = "You have been removed as a collaborator on board: " + boardTag;
         String message = "You have been removed as a collaborator on board " + boardTag;
 
-        Board board = getBoardInternal(boardTag);
+        Board board = getBoardByTag(boardTag);
         if (board == null) throw new BadRequestException(BOARD_NOT_FOUND);
         Set<User> existingCollaborators = board.getCollaborators();
         List<User> usersToRemove = userRepository.findAllByEmails(emails);
@@ -171,12 +190,11 @@ public class BoardServiceImpl implements BoardService {
                 return threeLetterWord;
             }
         }
-
         throw new IllegalStateException("All three-letter substrings have been used. Please choose a different board name.");
     }
 
     public boolean hasBoardRole(String boardOwner, String boardTag) {
-        Board board = getBoardInternal(boardTag);
+        Board board = getBoardByTag(boardTag);
         if (board == null) return false;
         return board.getUser().getEmail().equals(boardOwner);
     }

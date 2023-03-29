@@ -106,6 +106,4 @@ public class FileServiceImpl implements FileService {
         filesRepository.findFileDataByFileId(fileId)
                 .ifPresent(filesRepository::delete);
     }
-
-
 }

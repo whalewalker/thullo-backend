@@ -22,11 +22,8 @@ public class Board{
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
     private String name;
-
     private String imageUrl;
-
     @Column(nullable = false, unique = true)
     private String boardTag;
 
@@ -34,6 +31,9 @@ public class Board{
     @JoinColumn(name = "user_id")
     @JsonBackReference
     private User user;
+
+    @Enumerated(EnumType.STRING)
+    private BoardVisibility boardVisibility;
 
     @ManyToMany
     @JoinTable(name = "board_collaborators",

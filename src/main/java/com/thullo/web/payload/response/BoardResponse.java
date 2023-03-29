@@ -15,8 +15,8 @@ public class BoardResponse {
     private Long id;
 
     private String name;
-
     private String imageUrl;
+    private String boardVisibility;
 
     private String boardTag;
 

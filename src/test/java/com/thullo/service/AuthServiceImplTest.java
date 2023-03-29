@@ -48,33 +48,23 @@ import static org.mockito.Mockito.*;
 class AuthServiceImplTest {
     @Mock
     private UserRepository userRepository;
-
     @Mock
     private AuthenticationManager authenticationManager;
-
     @Mock
     private RoleRepository roleRepository;
-
     @Mock
     private TokenRepository tokenRepository;
-
-
     @Mock
     private JwtTokenProvider jwtTokenProvider;
-
     @Mock
     private CustomUserDetailService customUserDetailsService;
-
     @Mock
     private ModelMapper modelMapper;
-
     @Mock
     private BCryptPasswordEncoder passwordEncoder;
-
     private User mockedUser;
     private Role role;
     private Token token;
-
     @InjectMocks
     private AuthServiceImpl authService;
 
@@ -111,24 +101,6 @@ class AuthServiceImplTest {
         //Assert
         verify(userRepository, times(1)).existsByEmail(mockedUser.getEmail());
         verify(userRepository, times(1)).save(mockedUser);
-    }
-
-    @Test
-    void fail_1() {
-        boolean isValid = false;
-        assertThat(isValid).isTrue();
-    }
-
-    @Test
-    void fail_2() {
-        boolean isValid = false;
-        assertThat(isValid).isTrue();
-    }
-
-    @Test
-    void fail_3() {
-        boolean isValid = false;
-        assertThat(isValid).isTrue();
     }
 
 
@@ -235,7 +207,4 @@ class AuthServiceImplTest {
         assertThat(tokenArgumentCaptor.getValue()).isNotNull();
         assertThat(tokenArgumentCaptor.getValue().getPassword()).isNotNull();
     }
-
-
-
 }

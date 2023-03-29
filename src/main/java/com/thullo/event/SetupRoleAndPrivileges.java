@@ -91,6 +91,4 @@ public class SetupRoleAndPrivileges implements ApplicationListener<ContextRefres
         }
         return privilege;
     }
-
-
 }
