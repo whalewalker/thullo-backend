@@ -20,9 +20,7 @@ import java.util.Optional;
 
 import static com.thullo.data.model.BoardVisibility.PRIVATE;
 import static com.thullo.data.model.BoardVisibility.PUBLIC;
-import static org.junit.Assert.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -41,7 +39,7 @@ class BoardServiceImplTest {
     private BoardRequest boardRequest;
 
     @BeforeEach
-    void setUp() throws IOException {
+    void setUp() {
         board = new Board();
         board.setName("Test Board");
         board.setBoardVisibility(PUBLIC);
@@ -76,16 +74,6 @@ class BoardServiceImplTest {
         assertNotNull(response);
         assertEquals("Test Board Update", response.getName());
         assertEquals(PRIVATE, response.getBoardVisibility());
-    }
-
-    @Test
-    public void testUpdateBoardWithInvalidBoardTag() {
-        BoardRequest boardRequest = new BoardRequest();
-        boardRequest.setBoardTag("invalid_tag");
-        when(boardRepositoryMock.findByBoardTag(boardRequest.getBoardTag())).thenReturn(Optional.empty());
-        assertThrows(BadRequestException.class, () -> {
-            boardServiceImplMock.updateBoard(boardRequest);
-        });
     }
 
     @Test

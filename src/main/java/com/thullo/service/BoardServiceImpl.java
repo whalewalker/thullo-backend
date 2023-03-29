@@ -70,8 +70,8 @@ public class BoardServiceImpl implements BoardService {
         return getBoardResponse(board);
     }
 
-    public Board getBoardInternal(String boardTag) throws BadRequestException {
-        return boardRepository.findByBoardTag(boardTag).orElseThrow(() -> new BadRequestException(BOARD_NOT_FOUND));
+    public Board getBoardInternal(String boardTag) {
+        return boardRepository.findByBoardTag(boardTag).orElse(null);
     }
 
 
@@ -193,7 +193,7 @@ public class BoardServiceImpl implements BoardService {
         throw new IllegalStateException("All three-letter substrings have been used. Please choose a different board name.");
     }
 
-    public boolean hasBoardRole(String boardOwner, String boardTag) throws BadRequestException {
+    public boolean hasBoardRole(String boardOwner, String boardTag) {
         Board board = getBoardInternal(boardTag);
         if (board == null) return false;
         return board.getUser().getEmail().equals(boardOwner);
