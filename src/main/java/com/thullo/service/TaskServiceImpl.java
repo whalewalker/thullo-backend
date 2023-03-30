@@ -5,6 +5,7 @@ import com.thullo.data.repository.AttachmentRepository;
 import com.thullo.data.repository.BoardRepository;
 import com.thullo.data.repository.TaskRepository;
 import com.thullo.data.repository.UserRepository;
+import com.thullo.util.Helper;
 import com.thullo.web.exception.BadRequestException;
 import com.thullo.web.exception.ResourceNotFoundException;
 import com.thullo.web.payload.request.TaskRequest;
@@ -42,7 +43,7 @@ public class TaskServiceImpl implements TaskService {
         User createdBy = userRepository.findUserByEmail(email);
 
         task.setBoard(board);
-        String taskStatus = taskRequest.getStatus();
+        String taskStatus = Helper.statusName(taskRequest.getStatus());
         String status = isNullOrEmpty(taskStatus) ? "BACKLOG" : (taskStatus.toUpperCase());
         long position = taskRepository.countByBoardAndStatus(board, status);
 
@@ -98,8 +99,7 @@ public class TaskServiceImpl implements TaskService {
             }
             task.setPosition(index);
         }
-
-        task.setStatus(status);
+        task.setStatus(Helper.statusName(status));
         return taskRepository.save(task);
     }
 
