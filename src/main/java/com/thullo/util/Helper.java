@@ -25,7 +25,8 @@ public class Helper {
     }
 
     public static String extractFileIdFromUrl(String imageUrl) {
-        return imageUrl.substring(imageUrl.indexOf("files/") + 6, imageUrl.indexOf("."));
+        String fileUrl = imageUrl.substring(imageUrl.indexOf("files/") + 6);
+        return fileUrl.split("\\.")[0];
     }
 
     public static boolean isOnServer(String envName) {
