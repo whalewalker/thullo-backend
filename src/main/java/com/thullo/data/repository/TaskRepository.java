@@ -1,7 +1,6 @@
 package com.thullo.data.repository;
 
 import com.thullo.data.model.Board;
-import com.thullo.data.model.Status;
 import com.thullo.data.model.Task;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -19,7 +18,8 @@ public interface TaskRepository extends JpaRepository<Task, Long> {
 
     Optional<Task> findByBoardRef(@NonNull String boardRef);
 
-    long countByBoardAndStatus(Board board, Status status);
+    long countByBoardAndStatus(Board board, String status);
+    long countByBoard(Board board);
 
-    List<Task> findAllByBoardAndStatus(Board board, Status status);
+    List<Task> findAllByBoardAndStatus(Board board, String status);
 }

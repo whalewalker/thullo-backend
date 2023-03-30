@@ -79,24 +79,24 @@ public class BoardServiceImpl implements BoardService {
 
     public BoardResponse getBoardResponse(Board board) {
         BoardResponse boardResponse = mapper.map(board, BoardResponse.class);
-
         List<Task> tasks = board.getTasks();
+        Set<String> status = new LinkedHashSet<>(Arrays.asList("BACKLOG", "IN_PROGRESS", "IN_REVIEW", "COMPLETED"));
 
-        Map<Status, List<Task>> columns = tasks.stream()
+        Map<String, List<Task>> columns = tasks.stream()
                 .collect(Collectors.groupingBy(Task::getStatus));
 
         if (columns.isEmpty()) {
-            Arrays.stream(Status.values()).forEach(columnName -> {
+            Arrays.stream(status.toArray()).forEach(columnName -> {
                 BoardResponse.Column column = new BoardResponse.Column();
-                column.setName(columnName.getContent());
+                column.setName(columnName.toString());
                 column.setTasks(Collections.emptyList());
                 boardResponse.getTaskColumn().add(column);
             });
         } else {
-            Arrays.stream(Status.values()).forEach(columnName -> {
+            Arrays.stream(status.toArray()).forEach(columnName -> {
                 BoardResponse.Column column = new BoardResponse.Column();
-                column.setName(columnName.getContent());
-                List<Task> columnTasks = columns.getOrDefault(columnName, Collections.emptyList());
+                column.setName(columnName.toString());
+                List<Task> columnTasks = columns.getOrDefault(columnName.toString(), Collections.emptyList());
                 column.setTasks(columnTasks);
                 boardResponse.getTaskColumn().add(column);
             });
