@@ -33,7 +33,7 @@ public class Helper {
         return envName.trim().equals("server");
     }
 
-    public static String statusName(String name){
-       return name.replaceAll("\\s+", "_").toUpperCase();
+    public static String formatStatus(String status){
+       return status.replaceAll("\\s+", "_").toUpperCase();
     }
 }
