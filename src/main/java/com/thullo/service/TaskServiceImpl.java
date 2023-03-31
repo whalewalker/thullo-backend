@@ -75,7 +75,8 @@ public class TaskServiceImpl implements TaskService {
         Task task = taskRepository.findByBoardRef(boardRef)
                 .orElseThrow(() -> new ResourceNotFoundException("Task not found"));
 
-        List<Task> tasksInStatus = taskRepository.findAllByBoardAndStatus(task.getBoard(), status);
+        String formattedStatus = formatStatus(status);
+        List<Task> tasksInStatus = taskRepository.findAllByBoardAndStatus(task.getBoard(), formattedStatus);
 
         long index = Math.max(Math.min(position, tasksInStatus.size()), 0);
         boolean isSameStatus = task.getStatus().equalsIgnoreCase(status);
