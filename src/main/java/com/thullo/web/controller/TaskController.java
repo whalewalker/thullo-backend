@@ -167,5 +167,4 @@ public class TaskController {
         taskService.deleteAttachmentFromTask(request.getRequestURL().toString(), attachmentId);
         return ResponseEntity.ok(new ApiResponse(true, "Attachment is  successfully deleted"));
     }
-
 }

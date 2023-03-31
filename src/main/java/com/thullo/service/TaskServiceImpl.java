@@ -43,8 +43,9 @@ public class TaskServiceImpl implements TaskService {
 
         task.setBoard(board);
         String taskStatus = formatStatus(taskRequest.getStatus());
-        String status = isNullOrEmpty(taskStatus) ? "BACKLOG" : (taskStatus.toUpperCase());
-        long position = taskRepository.countByBoardAndStatus(board, status);
+        String status = isNullOrEmpty(taskStatus) ? "BACKLOG" : (taskStatus);
+
+        long position = taskRepository.countByBoardAndStatus(board, taskStatus);
 
         task.setStatus(status);
         task.setPosition(position);
@@ -71,7 +72,6 @@ public class TaskServiceImpl implements TaskService {
 
     @Override
     public Task moveTask(String boardRef, String status, Long position) throws ResourceNotFoundException {
-
         Task task = taskRepository.findByBoardRef(boardRef)
                 .orElseThrow(() -> new ResourceNotFoundException("Task not found"));
 
