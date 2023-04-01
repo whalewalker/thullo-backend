@@ -76,20 +76,20 @@ public class TaskServiceImpl implements TaskService {
                 .orElseThrow(() -> new ResourceNotFoundException("Task not found"));
 
         String formattedStatus = formatStatus(status);
-        List<Task> tasksInStatus = taskRepository.findAllByBoardAndStatus(task.getBoard(), formattedStatus);
+        List<Task> tasks = taskRepository.findAllByBoardAndStatus(task.getBoard(), formattedStatus);
 
-        long index = Math.max(Math.min(position, tasksInStatus.size()), 0);
-        boolean isSameStatus = task.getStatus().equalsIgnoreCase(status);
+        long index = Math.max(Math.min(position, tasks.size()), 0);
+        boolean isSameStatus = task.getStatus().equals(formattedStatus);
         long currentIndex = task.getPosition();
 
         if (index > currentIndex && isSameStatus) {
             index--;
         }
 
-        if (tasksInStatus.isEmpty()) {
+        if (tasks.isEmpty()) {
             task.setPosition(0L);
         } else {
-            for (Task t : tasksInStatus) {
+            for (Task t : tasks) {
                 long tIndex = t.getPosition();
                 if (tIndex >= index && tIndex < currentIndex) {
                     t.setPosition(tIndex + 1);
@@ -99,7 +99,7 @@ public class TaskServiceImpl implements TaskService {
             }
             task.setPosition(index);
         }
-        task.setStatus(formatStatus(status));
+        task.setStatus(formattedStatus);
         return taskRepository.save(task);
     }
 
