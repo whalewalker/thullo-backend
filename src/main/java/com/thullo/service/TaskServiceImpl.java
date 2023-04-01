@@ -42,9 +42,10 @@ public class TaskServiceImpl implements TaskService {
         User createdBy = userRepository.findUserByEmail(email);
 
         task.setBoard(board);
-        String taskStatus = taskRequest.getStatus();
-        Status status = isNullOrEmpty(taskStatus) ? Status.BACKLOG : Status.getStatus(taskStatus.toLowerCase());
-        long position = taskRepository.countByBoardAndStatus(board, status);
+        String taskStatus = formatStatus(taskRequest.getStatus());
+        String status = isNullOrEmpty(taskStatus) ? "BACKLOG" : (taskStatus);
+
+        long position = taskRepository.countByBoardAndStatus(board, taskStatus);
 
         task.setStatus(status);
         task.setPosition(position);
@@ -71,24 +72,24 @@ public class TaskServiceImpl implements TaskService {
 
     @Override
     public Task moveTask(String boardRef, String status, Long position) throws ResourceNotFoundException {
-        Status statusToUpdateTo = Status.getStatus(status);
         Task task = taskRepository.findByBoardRef(boardRef)
                 .orElseThrow(() -> new ResourceNotFoundException("Task not found"));
 
-        List<Task> tasksInStatus = taskRepository.findAllByBoardAndStatus(task.getBoard(), statusToUpdateTo);
+        String formattedStatus = formatStatus(status);
+        List<Task> tasks = taskRepository.findAllByBoardAndStatus(task.getBoard(), formattedStatus);
 
-        long index = Math.max(Math.min(position, tasksInStatus.size()), 0);
-        boolean isSameStatus = task.getStatus().getContent().equalsIgnoreCase(status);
+        long index = Math.max(Math.min(position, tasks.size()), 0);
+        boolean isSameStatus = task.getStatus().equals(formattedStatus);
         long currentIndex = task.getPosition();
 
         if (index > currentIndex && isSameStatus) {
             index--;
         }
 
-        if (tasksInStatus.isEmpty()) {
+        if (tasks.isEmpty()) {
             task.setPosition(0L);
         } else {
-            for (Task t : tasksInStatus) {
+            for (Task t : tasks) {
                 long tIndex = t.getPosition();
                 if (tIndex >= index && tIndex < currentIndex) {
                     t.setPosition(tIndex + 1);
@@ -98,8 +99,7 @@ public class TaskServiceImpl implements TaskService {
             }
             task.setPosition(index);
         }
-
-        task.setStatus(statusToUpdateTo);
+        task.setStatus(formattedStatus);
         return taskRepository.save(task);
     }
 
@@ -213,5 +213,4 @@ public class TaskServiceImpl implements TaskService {
         return taskRepository.findByBoardRef(boardRef).orElseThrow(
                 () -> new ResourceNotFoundException(format("Task with board ref %s not found", boardRef)));
     }
-
 }

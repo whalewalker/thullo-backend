@@ -32,9 +32,7 @@ public class Task {
 
     private Long position;
 
-    @Enumerated(EnumType.STRING)
-    private Status status;
-
+    private String status;
     @Column(nullable = false, unique = true)
     private String boardRef;
 

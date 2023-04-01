@@ -19,6 +19,7 @@ public interface TaskService {
     Task editTask(String boardRef, TaskRequest taskRequest) throws BadRequestException, IOException, ResourceNotFoundException;
 
     Task getTask(String boardRef) throws ResourceNotFoundException;
+
     void deleteTask(String boardRef) throws ResourceNotFoundException;
 
     List<Task> searchTask(String params);
@@ -34,5 +35,6 @@ public interface TaskService {
     Attachment addAttachmentToTask(String boardRef, String url, MultipartFile file) throws ResourceNotFoundException, BadRequestException, IOException;
 
     void deleteAttachmentFromTask(String fileId, Long attachmentId);
+
 }
 

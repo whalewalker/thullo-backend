@@ -32,4 +32,8 @@ public class Helper {
     public static boolean isOnServer(String envName) {
         return envName.trim().equals("server");
     }
+
+    public static String formatStatus(String status){
+       return status.replaceAll("\\s+", "_").toUpperCase();
+    }
 }

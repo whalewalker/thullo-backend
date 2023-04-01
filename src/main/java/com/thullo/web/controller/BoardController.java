@@ -10,7 +10,6 @@ import com.thullo.web.payload.request.BoardRequest;
 import com.thullo.web.payload.response.ApiResponse;
 import com.thullo.web.payload.response.BoardResponse;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -24,7 +23,6 @@ import java.util.Map;
 import java.util.Set;
 
 @RestController
-@Slf4j
 @RequestMapping("api/v1/thullo/boards")
 @RequiredArgsConstructor
 public class BoardController {

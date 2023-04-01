@@ -13,19 +13,13 @@ import java.util.Set;
 @Data
 public class BoardResponse {
     private Long id;
-
     private String name;
     private String imageUrl;
     private String boardVisibility;
-
     private String boardTag;
-
     private List<Column> taskColumn = new ArrayList<>();
-
     private LocalDateTime updatedAt;
-
     private LocalDateTime createdAt;
-
     private Set<User> collaborators = new HashSet<>();
 
     @Data
