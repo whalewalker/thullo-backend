@@ -7,6 +7,7 @@ import com.thullo.security.UserPrincipal;
 import com.thullo.service.TaskService;
 import com.thullo.web.exception.BadRequestException;
 import com.thullo.web.exception.ResourceNotFoundException;
+import com.thullo.web.payload.request.StatusRequest;
 import com.thullo.web.payload.request.TaskMoveRequest;
 import com.thullo.web.payload.request.TaskRequest;
 import com.thullo.web.payload.response.ApiResponse;
@@ -167,4 +168,15 @@ public class TaskController {
         taskService.deleteAttachmentFromTask(request.getRequestURL().toString(), attachmentId);
         return ResponseEntity.ok(new ApiResponse(true, "Attachment is  successfully deleted"));
     }
+
+    @PutMapping("{boardTag}")
+    @PreAuthorize("@boardServiceImpl.hasBoardRole(authentication.principal.email, #boardTag) or hasRole('BOARD_' + #boardTag) or hasRole('TASK_' + #boardRef)")
+    public ResponseEntity<ApiResponse> editStatus(@PathVariable String boardTag,
+                                                  @RequestBody StatusRequest status,
+                                                  HttpServletRequest request) throws ResourceNotFoundException {
+        status.setRequestUrl(request.getRequestURL().toString());
+        List<Task> tasks = taskService.editStatus(status, boardTag);
+        return ResponseEntity.ok(new ApiResponse(true, "Status is successfully updated", tasks));
+    }
+
 }

@@ -4,6 +4,7 @@ import com.thullo.data.model.Attachment;
 import com.thullo.data.model.Task;
 import com.thullo.web.exception.BadRequestException;
 import com.thullo.web.exception.ResourceNotFoundException;
+import com.thullo.web.payload.request.StatusRequest;
 import com.thullo.web.payload.request.TaskRequest;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -36,5 +37,8 @@ public interface TaskService {
 
     void deleteAttachmentFromTask(String fileId, Long attachmentId);
 
+    List<Task> editStatus(StatusRequest request, String boardTag) throws ResourceNotFoundException;
+
+    List<Task> updateStatus(StatusRequest request, String boardTag) throws ResourceNotFoundException;
 }
 
