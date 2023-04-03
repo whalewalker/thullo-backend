@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
@@ -207,31 +208,17 @@ public class TaskServiceImpl implements TaskService {
     }
 
     @Override
-    public List<Task> editStatus(StatusRequest request, String boardTag) throws ResourceNotFoundException {
-        Board board = getBoard(boardTag);
-        String previousStatus = formatStatus(request.getPreviousStatus());
-        List<Task> tasks = getAllByBoardAndStatus(board, previousStatus);
-        String currentStatus = formatStatus(request.getCurrentStatus());
-
-        for (Task task : tasks) {
-            task.setStatus(currentStatus);
-            taskRepository.save(task);
-        }
-        return getAllByBoardAndStatus(board, currentStatus);
-    }
-
-    @Override
-    public List<Task> updateStatus(StatusRequest request, String boardTag) throws ResourceNotFoundException {
-        Board board = getBoard(boardTag);
+    public List<Task> editStatus(StatusRequest request) throws ResourceNotFoundException {
         Set<String> boardRefs = request.getBoardRef();
-        String status = formatStatus(request.getCurrentStatus());
+        String status = formatStatus(request.getStatus());
 
+        List<Task> tasks = new ArrayList<>();
         for (String boardRef : boardRefs) {
             Task task = getTask(boardRef);
             task.setStatus(status);
-            taskRepository.save(task);
+            tasks.add(task);
         }
-        return getAllByBoardAndStatus(board, status);
+        return taskRepository.saveAll(tasks);
     }
 
     private List<Task> getAllByBoardAndStatus(Board board, String formattedStatus) {

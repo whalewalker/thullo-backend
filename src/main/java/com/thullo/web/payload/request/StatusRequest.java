@@ -9,8 +9,7 @@ import java.util.Set;
 @Getter
 @Setter
 public class StatusRequest {
-    private String previousStatus;
-    private String currentStatus;
+    private String status;
     private String requestUrl;
     private Set<String> boardRef;
 }

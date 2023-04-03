@@ -169,14 +169,12 @@ public class TaskController {
         return ResponseEntity.ok(new ApiResponse(true, "Attachment is  successfully deleted"));
     }
 
-    @PutMapping("{boardTag}")
+    @PutMapping("/edit-status")
     @PreAuthorize("@boardServiceImpl.hasBoardRole(authentication.principal.email, #boardTag) or hasRole('BOARD_' + #boardTag) or hasRole('TASK_' + #boardRef)")
-    public ResponseEntity<ApiResponse> editStatus(@PathVariable String boardTag,
-                                                  @RequestBody StatusRequest status,
+    public ResponseEntity<ApiResponse> editStatus(@RequestBody StatusRequest status,
                                                   HttpServletRequest request) throws ResourceNotFoundException {
         status.setRequestUrl(request.getRequestURL().toString());
-        List<Task> tasks = taskService.editStatus(status, boardTag);
+        List<Task> tasks = taskService.editStatus(status);
         return ResponseEntity.ok(new ApiResponse(true, "Status is successfully updated", tasks));
     }
-
 }
