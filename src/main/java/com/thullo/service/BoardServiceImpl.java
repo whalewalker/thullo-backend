@@ -56,7 +56,7 @@ public class BoardServiceImpl implements BoardService {
             imageUrl = fileService.uploadFile(boardRequest.getFile(), boardRequest.getRequestUrl());
         }
         board.setImageUrl(imageUrl);
-        board.setBoardTag(generateThreeLetterWord(boardRequest.getName().toUpperCase()));
+        board.setBoardTag(generateThreeLetterWord(boardRequest.getBoardName().toUpperCase()));
 
         return getBoard(boardRepository.save(board));
     }
