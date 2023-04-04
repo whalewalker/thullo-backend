@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.validation.Valid;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
@@ -172,7 +173,7 @@ public class TaskController {
     @PutMapping("{boardTag}/edit-status")
     @PreAuthorize("@boardServiceImpl.hasBoardRole(authentication.principal.email, #boardTag) or hasRole('BOARD_' + #boardTag) or hasRole('TASK_' + #boardRef)")
     public ResponseEntity<ApiResponse> editStatus(@PathVariable String boardTag,
-                                                  @RequestBody StatusRequest status,
+                                                  @Valid @RequestBody StatusRequest status,
                                                   HttpServletRequest request) {
         try {
             status.setRequestUrl(request.getRequestURL().toString());
