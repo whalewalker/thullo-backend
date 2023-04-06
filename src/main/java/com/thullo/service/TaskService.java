@@ -38,5 +38,6 @@ public interface TaskService {
     void deleteAttachmentFromTask(String fileId, Long attachmentId);
 
     List<Task> editStatus(StatusRequest request) throws ResourceNotFoundException;
+    List<Task> deleteStatus(StatusRequest statusRequest) throws ResourceNotFoundException;
 }
 
