@@ -46,7 +46,7 @@ class BoardServiceImplTest {
         board.setUser(new User());
 
         boardRequest = new BoardRequest();
-        boardRequest.setName("Test Board Update");
+        boardRequest.setBoardName("Test Board Update");
         boardRequest.setBoardVisibility("PRIVATE");
         boardRequest.setBoardTag("TES");
 
@@ -59,7 +59,7 @@ class BoardServiceImplTest {
 
         doAnswer(invocation -> {
             mapper.map(boardRequest, board);
-            board.setName(boardRequest.getName()); // Update the board name before saving
+            board.setName(boardRequest.getBoardName()); // Update the board name before saving
             return board;
         }).when(boardRepositoryMock).save(board);
 
@@ -90,7 +90,7 @@ class BoardServiceImplTest {
 
         doAnswer(invocation -> {
             mapper.map(boardRequest, board);
-            board.setName(boardRequest.getName()); // Update the board name before saving
+            board.setName(boardRequest.getBoardName()); // Update the board name before saving
             return board;
         }).when(boardRepositoryMock).save(board);
 

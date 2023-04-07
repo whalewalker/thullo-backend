@@ -155,7 +155,6 @@ class AuthServiceImplTest {
 
         //When
         String expected = passwordRequest.getOldPassword();
-        String actual = mockedUser.getPassword();
         authService.saveResetPassword(passwordRequest);
 
         //Assert

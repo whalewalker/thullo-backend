@@ -7,6 +7,7 @@ import com.thullo.security.UserPrincipal;
 import com.thullo.service.TaskService;
 import com.thullo.web.exception.BadRequestException;
 import com.thullo.web.exception.ResourceNotFoundException;
+import com.thullo.web.payload.request.StatusRequest;
 import com.thullo.web.payload.request.TaskMoveRequest;
 import com.thullo.web.payload.request.TaskRequest;
 import com.thullo.web.payload.response.ApiResponse;
@@ -18,6 +19,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.validation.Valid;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
@@ -166,5 +168,19 @@ public class TaskController {
     public ResponseEntity<ApiResponse> addAttachment(@PathVariable String boardTag, @PathVariable String boardRef, @PathVariable Long attachmentId, HttpServletRequest request) {
         taskService.deleteAttachmentFromTask(request.getRequestURL().toString(), attachmentId);
         return ResponseEntity.ok(new ApiResponse(true, "Attachment is  successfully deleted"));
+    }
+
+    @PutMapping("{boardTag}/edit-status")
+    @PreAuthorize("@boardServiceImpl.hasBoardRole(authentication.principal.email, #boardTag) or hasRole('BOARD_' + #boardTag) or hasRole('TASK_' + #boardRef)")
+    public ResponseEntity<ApiResponse> editStatus(@PathVariable String boardTag,
+                                                  @Valid @RequestBody StatusRequest status,
+                                                  HttpServletRequest request) {
+        try {
+            status.setRequestUrl(request.getRequestURL().toString());
+            List<Task> tasks = taskService.editStatus(status);
+            return ResponseEntity.ok(new ApiResponse(true, "Status is successfully updated", tasks));
+        } catch (ResourceNotFoundException exception) {
+            return ResponseEntity.badRequest().body(new ApiResponse(false, exception.getMessage()));
+        }
     }
 }

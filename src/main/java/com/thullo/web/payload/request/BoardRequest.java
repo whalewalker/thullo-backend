@@ -13,12 +13,11 @@ import javax.validation.constraints.NotNull;
 @NoArgsConstructor
 public class BoardRequest {
     @NotBlank(message = "Board name cannot be blank")
-    private String name;
+    private String boardName;
     private String requestUrl;
     @NotNull(message = "Cover image cannot be null")
     private MultipartFile file;
     private String boardVisibility;     //The board visibility is set ot private by default
     private String boardTag;
-
     private String imageUrl;
 }

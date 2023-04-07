@@ -7,6 +7,7 @@ import com.thullo.data.repository.TaskRepository;
 import com.thullo.data.repository.UserRepository;
 import com.thullo.web.exception.BadRequestException;
 import com.thullo.web.exception.ResourceNotFoundException;
+import com.thullo.web.payload.request.StatusRequest;
 import com.thullo.web.payload.request.TaskRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -15,6 +16,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
@@ -76,7 +78,7 @@ public class TaskServiceImpl implements TaskService {
                 .orElseThrow(() -> new ResourceNotFoundException("Task not found"));
 
         String formattedStatus = formatStatus(status);
-        List<Task> tasks = taskRepository.findAllByBoardAndStatus(task.getBoard(), formattedStatus);
+        List<Task> tasks = getAllByBoardAndStatus(task.getBoard(), formattedStatus);
 
         long index = Math.max(Math.min(position, tasks.size()), 0);
         boolean isSameStatus = task.getStatus().equals(formattedStatus);
@@ -203,6 +205,24 @@ public class TaskServiceImpl implements TaskService {
     public void deleteAttachmentFromTask(String fileUrl, Long attachmentId) {
         fileService.deleteFile(extractFileIdFromUrl(fileUrl));
         attachmentRepository.findById(attachmentId).ifPresent(attachmentRepository::delete);
+    }
+
+    @Override
+    public List<Task> editStatus(StatusRequest request) throws ResourceNotFoundException {
+        Set<String> boardRefs = request.getBoardRef();
+        String status = formatStatus(request.getStatus());
+
+        List<Task> tasks = new ArrayList<>();
+        for (String boardRef : boardRefs) {
+            Task task = getTask(boardRef);
+            task.setStatus(status);
+            tasks.add(task);
+        }
+        return taskRepository.saveAll(tasks);
+    }
+
+    private List<Task> getAllByBoardAndStatus(Board board, String formattedStatus) {
+        return taskRepository.findAllByBoardAndStatus(board, formattedStatus);
     }
 
     private String uploadCoverImage(MultipartFile coverImage, String requestUrl) throws IOException, BadRequestException {

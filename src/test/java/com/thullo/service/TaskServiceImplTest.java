@@ -6,7 +6,9 @@ import com.thullo.data.model.User;
 import com.thullo.data.repository.BoardRepository;
 import com.thullo.data.repository.TaskRepository;
 import com.thullo.data.repository.UserRepository;
+import com.thullo.util.Helper;
 import com.thullo.web.exception.ResourceNotFoundException;
+import com.thullo.web.payload.request.StatusRequest;
 import com.thullo.web.payload.request.TaskRequest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -18,9 +20,7 @@ import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 import org.modelmapper.ModelMapper;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -228,5 +228,63 @@ class TaskServiceImplTest {
         verify(taskRepositoryMock).findByBoardRef(eq(boardRef));
         verify(taskRepositoryMock).findAllByBoardAndStatus(eq(board), eq("DONE"));
         verify(taskRepositoryMock, times(1)).save(any());
+    }
+
+    @Test
+    public void editStatus_shouldEditTasksStatus() throws ResourceNotFoundException {
+        Set<String> boardRefs = new HashSet<>(Arrays.asList("TAG-1", "TAG-2"));
+        String status = "DONE";
+
+        List<Task> tasks = new ArrayList<>();
+        //Setting up simple Tasks
+
+        Task task1 = new Task();
+        task1.setBoardRef("TAG-1");
+        task1.setStatus(status);
+        task1.setPosition(1L);
+
+        Task task2 = new Task();
+        task2.setBoardRef("TAG-2");
+        task2.setStatus(status);
+        task2.setPosition(3L);
+
+        tasks.add(task1);
+        tasks.add(task2);
+
+        when(taskRepositoryMock.saveAll(anyList())).thenReturn(tasks);
+        when(taskRepositoryMock.findByBoardRef(eq("TAG-1"))).thenReturn(Optional.of(task1));
+        when(taskRepositoryMock.findByBoardRef(eq("TAG-2"))).thenReturn(Optional.of(task2));
+
+        StatusRequest request = new StatusRequest();
+        request.setBoardRef(boardRefs);
+        request.setStatus("Final");
+
+        String editedStatus = Helper.formatStatus(request.getStatus());
+        // Act
+        List<Task> result = taskServiceMock.editStatus(request);
+
+        // Assert
+        verify(taskRepositoryMock, times(2)).findByBoardRef(anyString());
+        verify(taskRepositoryMock, times(1)).saveAll(anyList());
+
+        assertNotNull(result);
+        assertEquals(2, result.size());
+        assertEquals(editedStatus, result.get(0).getStatus());
+        assertEquals(editedStatus, result.get(1).getStatus());
+    }
+
+    @Test
+    public void editStatus_shouldThrowResourceNotFoundException() {
+        // Arrange
+        Set<String> boardRefs = new HashSet<>(Arrays.asList("board1", "board2"));
+        when(taskRepositoryMock.findByBoardRef(anyString())).thenReturn(Optional.empty());
+
+        StatusRequest request = new StatusRequest();
+        request.setBoardRef(boardRefs);
+        request.setStatus("Final");
+
+        // Act
+        assertThrows(ResourceNotFoundException.class, () -> taskServiceMock.editStatus(request));
+        verify(taskRepositoryMock, times(1)).findByBoardRef(any(String.class));
     }
 }
