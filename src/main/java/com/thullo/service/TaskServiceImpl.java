@@ -223,7 +223,7 @@ public class TaskServiceImpl implements TaskService {
 
     @Override
     public List<Task> deleteStatus(StatusRequest statusRequest) throws ResourceNotFoundException {
-        statusRequest.setStatus(formatStatus("NO_STATUS"));
+        statusRequest.setStatus("NO_STATUS");
         return editStatus(statusRequest);
     }
 

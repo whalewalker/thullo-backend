@@ -192,7 +192,7 @@ public class TaskController {
         try {
             status.setRequestUrl(request.getRequestURL().toString());
             List<Task> tasks = taskService.deleteStatus(status);
-            return ResponseEntity.ok(new ApiResponse(true, "Status is successfully updated", tasks));
+            return ResponseEntity.ok(new ApiResponse(true, "Status is successfully deleted", tasks));
         } catch (ResourceNotFoundException exception) {
             return ResponseEntity.badRequest().body(new ApiResponse(false, exception.getMessage()));
         }
