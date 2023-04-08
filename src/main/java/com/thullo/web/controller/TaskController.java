@@ -183,4 +183,18 @@ public class TaskController {
             return ResponseEntity.badRequest().body(new ApiResponse(false, exception.getMessage()));
         }
     }
+
+    @PutMapping("{boardTag}/delete-status")
+    @PreAuthorize("@boardServiceImpl.hasBoardRole(authentication.principal.email, #boardTag) or hasRole('BOARD_' + #boardTag) or hasRole('TASK_' + #boardRef)")
+    public ResponseEntity<ApiResponse> deleteStatus(@PathVariable String boardTag,
+                                                  @RequestBody StatusRequest status,
+                                                  HttpServletRequest request) {
+        try {
+            status.setRequestUrl(request.getRequestURL().toString());
+            List<Task> tasks = taskService.deleteStatus(status);
+            return ResponseEntity.ok(new ApiResponse(true, "Status is successfully deleted", tasks));
+        } catch (ResourceNotFoundException exception) {
+            return ResponseEntity.badRequest().body(new ApiResponse(false, exception.getMessage()));
+        }
+    }
 }

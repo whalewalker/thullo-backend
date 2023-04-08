@@ -221,6 +221,12 @@ public class TaskServiceImpl implements TaskService {
         return taskRepository.saveAll(tasks);
     }
 
+    @Override
+    public List<Task> deleteStatus(StatusRequest statusRequest) throws ResourceNotFoundException {
+        statusRequest.setStatus("NO_STATUS");
+        return editStatus(statusRequest);
+    }
+
     private List<Task> getAllByBoardAndStatus(Board board, String formattedStatus) {
         return taskRepository.findAllByBoardAndStatus(board, formattedStatus);
     }
