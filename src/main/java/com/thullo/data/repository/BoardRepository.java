@@ -15,7 +15,8 @@ import java.util.Optional;
 public interface BoardRepository extends JpaRepository<Board, Long> {
     @Query("SELECT b FROM Board b WHERE b.user = :user ORDER BY b.createdAt DESC")
     List<Board> getAllByUserOrderByCreatedAtAsc(@Param("user") User user);
-
     @Query("SELECT b FROM Board b WHERE upper(b.boardTag) = upper(?1)")
     Optional<Board> findByBoardTag(@NonNull String boardTag);
+    @Query("SELECT b FROM Board b JOIN b.collaborators u WHERE u = :user ORDER BY b.createdAt DESC")
+    List<Board> getBoardByCollaborators(@Param("user") User user);
 }

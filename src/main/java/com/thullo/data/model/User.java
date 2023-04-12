@@ -90,5 +90,4 @@ public class User extends RepresentationModel<User> {
     public void addNotification(Notification notification) {
         notifications.add(notification);
     }
-
 }

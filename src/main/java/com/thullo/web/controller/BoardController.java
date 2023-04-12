@@ -103,4 +103,14 @@ public class BoardController {
             return ResponseEntity.badRequest().body(new ApiResponse(false, ex.getMessage()));
         }
     }
+
+    @GetMapping("/collaborator")
+    public ResponseEntity<ApiResponse> categorizeBoardByCollaborator(@CurrentUser UserPrincipal userPrincipal) {
+        try {
+            return ResponseEntity.ok(new ApiResponse(true, "Collaborator successfully fetched",
+                    boardService.categorizeBoardByCollaborator(userPrincipal)));
+        } catch (UserException ex) {
+            return ResponseEntity.badRequest().body(new ApiResponse(false, ex.getMessage()));
+        }
+    }
 }

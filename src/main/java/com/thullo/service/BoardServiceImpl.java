@@ -176,6 +176,18 @@ public class BoardServiceImpl implements BoardService {
         }
     }
 
+    @Override
+    public List<BoardResponse> categorizeBoardByCollaborator(UserPrincipal userPrincipal) throws UserException {
+        List<BoardResponse> boardResponses = new ArrayList<>();
+        User user = findByEmail(userPrincipal.getEmail());
+        List<Board> boards = boardRepository.getBoardByCollaborators(user);
+
+        for(Board board: boards){
+            boardResponses.add(getBoardResponse(board));
+            }
+        return boardResponses;
+    }
+
 
     private User findByEmail(String email) throws UserException {
         return userRepository.findByEmail(email).orElseThrow(() -> new UserException(format("user not found with email %s", email)));

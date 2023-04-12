@@ -32,4 +32,6 @@ public interface BoardService {
     void addCollaboratorToBoard(String boardTag, Set<String> collaborators) throws BadRequestException;
 
     void removeCollaboratorsFromBoard(String boardTag, Set<String> emails) throws BadRequestException;
+
+    List<BoardResponse> categorizeBoardByCollaborator(UserPrincipal userPrincipal) throws UserException;
 }
