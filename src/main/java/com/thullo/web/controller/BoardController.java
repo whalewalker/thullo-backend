@@ -10,6 +10,8 @@ import com.thullo.web.payload.request.BoardRequest;
 import com.thullo.web.payload.response.ApiResponse;
 import com.thullo.web.payload.response.BoardResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -104,11 +106,16 @@ public class BoardController {
         }
     }
 
-    @GetMapping("/collaborator")
-    public ResponseEntity<ApiResponse> categorizeBoardByCollaborator(@CurrentUser UserPrincipal userPrincipal) {
+    @GetMapping("/{boardTag}/collaborator")
+    @PreAuthorize("hasRole('BOARD_' + #boardTag)")
+    public ResponseEntity<ApiResponse> categorizeBoardByCollaborator(@CurrentUser UserPrincipal userPrincipal,
+                                                                     @RequestParam(defaultValue = "1") int page,
+                                                                     @RequestParam(defaultValue = "10") int size,
+                                                                     @PathVariable String boardTag) {
         try {
+            Pageable paging = PageRequest.of(page, size);
             return ResponseEntity.ok(new ApiResponse(true, "Collaborator successfully fetched",
-                    boardService.categorizeBoardByCollaborator(userPrincipal)));
+            boardService.categorizeBoardByCollaborator(userPrincipal, paging)));
         } catch (UserException ex) {
             return ResponseEntity.badRequest().body(new ApiResponse(false, ex.getMessage()));
         }

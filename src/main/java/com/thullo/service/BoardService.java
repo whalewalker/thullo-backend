@@ -6,6 +6,7 @@ import com.thullo.web.exception.BadRequestException;
 import com.thullo.web.exception.UserException;
 import com.thullo.web.payload.request.BoardRequest;
 import com.thullo.web.payload.response.BoardResponse;
+import org.springframework.data.domain.Pageable;
 
 import java.io.IOException;
 import java.util.List;
@@ -33,5 +34,5 @@ public interface BoardService {
 
     void removeCollaboratorsFromBoard(String boardTag, Set<String> emails) throws BadRequestException;
 
-    List<BoardResponse> categorizeBoardByCollaborator(UserPrincipal userPrincipal) throws UserException;
+    List<BoardResponse> categorizeBoardByCollaborator(UserPrincipal userPrincipal, Pageable pageable) throws UserException;
 }

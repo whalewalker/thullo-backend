@@ -2,6 +2,7 @@ package com.thullo.data.repository;
 
 import com.thullo.data.model.Board;
 import com.thullo.data.model.User;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -18,5 +19,5 @@ public interface BoardRepository extends JpaRepository<Board, Long> {
     @Query("SELECT b FROM Board b WHERE upper(b.boardTag) = upper(?1)")
     Optional<Board> findByBoardTag(@NonNull String boardTag);
     @Query("SELECT b FROM Board b JOIN b.collaborators u WHERE u = :user ORDER BY b.createdAt DESC")
-    List<Board> getBoardByCollaborators(@Param("user") User user);
+    List<Board> getBoardByCollaborators(@Param("user") User user, Pageable pageable);
 }

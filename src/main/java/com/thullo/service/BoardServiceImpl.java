@@ -12,6 +12,7 @@ import com.thullo.web.payload.response.BoardResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -177,10 +178,10 @@ public class BoardServiceImpl implements BoardService {
     }
 
     @Override
-    public List<BoardResponse> categorizeBoardByCollaborator(UserPrincipal userPrincipal) throws UserException {
+    public List<BoardResponse> categorizeBoardByCollaborator(UserPrincipal userPrincipal, Pageable pageable) throws UserException {
         List<BoardResponse> boardResponses = new ArrayList<>();
         User user = findByEmail(userPrincipal.getEmail());
-        List<Board> boards = boardRepository.getBoardByCollaborators(user);
+        List<Board> boards = boardRepository.getBoardByCollaborators(user, pageable);
 
         for(Board board: boards){
             boardResponses.add(getBoardResponse(board));
