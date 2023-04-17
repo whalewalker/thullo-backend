@@ -7,6 +7,7 @@ import com.thullo.data.repository.TaskRepository;
 import com.thullo.data.repository.UserRepository;
 import com.thullo.web.exception.BadRequestException;
 import com.thullo.web.exception.ResourceNotFoundException;
+import com.thullo.web.exception.UserException;
 import com.thullo.web.payload.request.StatusRequest;
 import com.thullo.web.payload.request.TaskRequest;
 import lombok.RequiredArgsConstructor;
@@ -129,35 +130,38 @@ public class TaskServiceImpl implements TaskService {
     }
 
     @Override
-    public void addContributors(String boardRef, Set<String> contributors) throws ResourceNotFoundException {
+    public void addContributor(String boardRef, String contributorEmail) throws ResourceNotFoundException, UserException {
         String title = "You have been added as a contributor on task: " + boardRef;
         String message = "You have been added as a contributor on task " + boardRef;
 
         Task task = getTask(boardRef);
         Set<User> existingContributors = task.getContributors();
-        List<User> newContributors = userRepository.findAllByEmails(contributors);
-        for (User contributor : newContributors) {
-            if (!existingContributors.contains(contributor)) {
-                existingContributors.add(contributor);
-                roleService.addTaskRoleToUser(contributor, task);
-                notificationService.sendNotificationToUser(contributor, message, title, NotificationType.ADDED_AS_CONTRIBUTOR);
-            }
+        User newContributor = findByEmail(contributorEmail);
+        if (!existingContributors.contains(newContributor)) {
+            existingContributors.add(newContributor);
+            roleService.addTaskRoleToUser(newContributor, task);
+            notificationService.sendNotificationToUser(newContributor, message, title, NotificationType.ADDED_AS_CONTRIBUTOR);
+
         }
     }
 
     @Override
-    public void removeContributors(String boardRef, Set<String> contributors) throws ResourceNotFoundException {
+    public void removeContributor(String boardRef, String contributorEmail) throws ResourceNotFoundException, UserException {
         String title = "You have been removed as a contributor on task: " + boardRef;
         String message = "You have been removed as a contributor on task " + boardRef;
 
         Task task = getTask(boardRef);
         Set<User> existingContributors = task.getContributors();
-        List<User> usersToRemove = userRepository.findAllByEmails(contributors);
-        for (User contributor : usersToRemove) {
-            existingContributors.remove(contributor);
-            roleService.removeTaskRoleFromUser(contributor, task);
-            notificationService.sendNotificationToUser(contributor, message, title, NotificationType.REMOVE_AS_CONTRIBUTOR);
+        User userToRemove = findByEmail(contributorEmail);
+        if (existingContributors.contains(userToRemove)) {
+            existingContributors.remove(userToRemove);
+            roleService.removeTaskRoleFromUser(userToRemove, task);
+            notificationService.sendNotificationToUser(userToRemove, message, title, NotificationType.REMOVE_AS_CONTRIBUTOR);
         }
+    }
+
+    private User findByEmail(String email) throws UserException {
+        return userRepository.findByEmail(email).orElseThrow(() -> new UserException(format("user not found with email %s", email)));
     }
 
     @Override

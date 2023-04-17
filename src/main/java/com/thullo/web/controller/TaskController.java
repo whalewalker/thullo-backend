@@ -7,6 +7,7 @@ import com.thullo.security.UserPrincipal;
 import com.thullo.service.TaskService;
 import com.thullo.web.exception.BadRequestException;
 import com.thullo.web.exception.ResourceNotFoundException;
+import com.thullo.web.exception.UserException;
 import com.thullo.web.payload.request.StatusRequest;
 import com.thullo.web.payload.request.TaskMoveRequest;
 import com.thullo.web.payload.request.TaskRequest;
@@ -23,7 +24,6 @@ import javax.validation.Valid;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 @RestController
 @RequiredArgsConstructor
@@ -106,25 +106,25 @@ public class TaskController {
         return taskService.searchTask(searchParams);
     }
 
-    @PutMapping("{boardTag}/{boardRef}/contributors")
-    @PreAuthorize("@boardServiceImpl.hasBoardRole(authentication.principal.email, #boardTag) or hasRole('BOARD_' + #boardTag) or hasRole('BOARD_' + #boardTag)")
-    public ResponseEntity<ApiResponse> addContributors(@PathVariable String boardTag, @PathVariable String boardRef, @RequestBody Set<String> contributors) {
+    @PutMapping("{boardTag}/{boardRef}/contributor/{contributorEmail}")
+    @PreAuthorize("@boardServiceImpl.hasBoardRole(authentication.principal.email, #boardTag) or hasRole('BOARD_' + #boardTag) or hasRole('BOARD_' + #boardTag) and #contributorEmail != #authentication.principal.emai")
+    public ResponseEntity<ApiResponse> addContributor(@PathVariable String boardTag, @PathVariable String boardRef, @PathVariable String contributorEmail) {
         try {
-            taskService.addContributors(boardRef, contributors);
+            taskService.addContributor(boardRef, contributorEmail);
             return ResponseEntity.ok(new ApiResponse(true, "contributors successfully added"));
-        } catch (ResourceNotFoundException ex) {
+        } catch (ResourceNotFoundException | UserException ex) {
             return ResponseEntity.badRequest().body(new ApiResponse(false, ex.getMessage()));
         }
     }
 
 
-    @PutMapping("{boardTag}/{boardRef}/remove/contributors")
-    @PreAuthorize("@boardServiceImpl.hasBoardRole(authentication.principal.email, #boardTag) or hasRole('BOARD_' + #boardTag)")
-    public ResponseEntity<ApiResponse> removeContributors(@PathVariable String boardTag, @PathVariable String boardRef, @RequestBody Set<String> contributors) {
+    @PutMapping("{boardTag}/{boardRef}/remove/contributor/{contributorEmail}")
+    @PreAuthorize("@boardServiceImpl.hasBoardRole(authentication.principal.email, #boardTag) or hasRole('BOARD_' + #boardTag) and #contributorEmail != #authentication.principal.email")
+    public ResponseEntity<ApiResponse> removeContributor(@PathVariable String boardTag, @PathVariable String boardRef, @PathVariable String contributorEmail) {
         try {
-            taskService.removeContributors(boardRef, contributors);
+            taskService.removeContributor(boardRef, contributorEmail);
             return ResponseEntity.ok(new ApiResponse(true, "contributors successfully removed"));
-        } catch (ResourceNotFoundException ex) {
+        } catch (ResourceNotFoundException | UserException ex) {
             return ResponseEntity.badRequest().body(new ApiResponse(false, ex.getMessage()));
         }
     }
@@ -171,7 +171,7 @@ public class TaskController {
     }
 
     @PutMapping("{boardTag}/edit-status")
-    @PreAuthorize("@boardServiceImpl.hasBoardRole(authentication.principal.email, #boardTag) or hasRole('BOARD_' + #boardTag) or hasRole('TASK_' + #boardRef)")
+    @PreAuthorize("@boardServiceImpl.hasBoardRole(authentication.principal.email, #boardTag) or hasRole('BOARD_' + #boardTag)")
     public ResponseEntity<ApiResponse> editStatus(@PathVariable String boardTag,
                                                   @Valid @RequestBody StatusRequest status,
                                                   HttpServletRequest request) {
@@ -185,7 +185,7 @@ public class TaskController {
     }
 
     @PutMapping("{boardTag}/delete-status")
-    @PreAuthorize("@boardServiceImpl.hasBoardRole(authentication.principal.email, #boardTag) or hasRole('BOARD_' + #boardTag) or hasRole('TASK_' + #boardRef)")
+    @PreAuthorize("@boardServiceImpl.hasBoardRole(authentication.principal.email, #boardTag) or hasRole('BOARD_' + #boardTag)")
     public ResponseEntity<ApiResponse> deleteStatus(@PathVariable String boardTag,
                                                   @RequestBody StatusRequest status,
                                                   HttpServletRequest request) {

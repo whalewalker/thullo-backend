@@ -43,7 +43,7 @@ class BoardServiceImplTest {
         board = new Board();
         board.setName("Test Board");
         board.setBoardVisibility(PUBLIC);
-        board.setUser(new User());
+        board.setCreatedBy(new User());
 
         boardRequest = new BoardRequest();
         boardRequest.setBoardName("Test Board Update");
@@ -77,14 +77,15 @@ class BoardServiceImplTest {
     }
 
     @Test
-    public void testUpdateBoardWithInvalidBoardTag() {
+    void testUpdateBoardWithInvalidBoardTag() {
         boardRequest.setBoardTag("invalid_tag");
         when(boardRepositoryMock.findByBoardTag(boardRequest.getBoardTag())).thenReturn(Optional.empty());
         assertThrows(BadRequestException.class, () -> boardServiceImplMock.updateBoard(boardRequest));
         verify(boardRepositoryMock, times(1)).findByBoardTag(boardRequest.getBoardTag());
     }
+
     @Test
-    public void testUpdateBoardWithNoFile() throws BadRequestException, IOException {
+    void testUpdateBoardWithNoFile() throws BadRequestException, IOException {
 
         when(boardRepositoryMock.findByBoardTag("TES")).thenReturn(Optional.of(board));
 

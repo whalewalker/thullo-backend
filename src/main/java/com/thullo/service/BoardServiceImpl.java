@@ -51,7 +51,7 @@ public class BoardServiceImpl implements BoardService {
         board.setBoardVisibility(boardVisibility == null ? BoardVisibility.PRIVATE : boardVisibility);
 
         String imageUrl = null;
-        board.setUser(user);
+        board.setCreatedBy(user);
         if (boardRequest.getFile() != null) {
             imageUrl = fileService.uploadFile(boardRequest.getFile(), boardRequest.getRequestUrl());
         }
@@ -104,17 +104,25 @@ public class BoardServiceImpl implements BoardService {
         return boardResponse;
     }
 
-    @Override
-    public List<BoardResponse> getBoards(UserPrincipal userPrincipal) throws UserException {
-        User user = findByEmail(userPrincipal.getEmail());
-        List<Board> allUserBoards = boardRepository.getAllByUserOrderByCreatedAtAsc(user);
-        List<BoardResponse> boardResponses = new ArrayList<>(allUserBoards.size());
+    public List<BoardResponse> getBoards(UserPrincipal userPrincipal, Map<String, String> filterParams) {
+        List<Board> filteredBoards = new ArrayList<>();
 
-        for (Board board : allUserBoards) {
-            boardResponses.add(getBoardResponse(board));
+        if (filterParams.isEmpty()) {
+            filteredBoards = boardRepository.findAllByCreatedBy(userPrincipal.getEmail());
+            filteredBoards.addAll(boardRepository.findAllByContributors(userPrincipal.getEmail()));
+            filteredBoards.addAll(boardRepository.findAllByCollaborators(userPrincipal.getEmail()));
+
+        } else if (filterParams.containsKey("contributor")) {
+            filteredBoards = boardRepository.findAllByContributors(userPrincipal.getEmail());
+        } else if (filterParams.containsKey("collaborator")) {
+            filteredBoards = boardRepository.findAllByCollaborators(userPrincipal.getEmail());
         }
+
+        List<BoardResponse> boardResponses = new ArrayList<>();
+        filteredBoards.forEach(board -> boardResponses.add(getBoardResponse(board)));
         return boardResponses;
     }
+
 
     @Override
     public Board updateBoard(BoardRequest boardRequest)
@@ -140,42 +148,41 @@ public class BoardServiceImpl implements BoardService {
     }
 
     @Override
-    public void addCollaboratorToBoard(String boardTag, Set<String> collaborators) throws BadRequestException {
+    public void addACollaborator(String boardTag, String collaboratorEmail) throws BadRequestException, UserException {
         String title = "You have been added as a collaborator on board: " + boardTag;
         String message = "You have been added as a collaborator on board " + boardTag;
 
         Board board = getBoardByTag(boardTag);
         if (board == null) throw new BadRequestException(BOARD_NOT_FOUND);
+        if (isBoardOwner(collaboratorEmail, board.getCreatedBy().getEmail()))
+            throw new BadRequestException("Creator of a board cannot be added a collaborator");
         Set<User> existingCollaborators = board.getCollaborators();
-        List<User> newCollaborators = userRepository.findAllByEmails(collaborators);
-        for (User contributor : newCollaborators) {
-            if (!existingCollaborators.contains(contributor)) {
-                existingCollaborators.add(contributor);
-                roleService.addTaskRoleToUser(contributor, board);
-                notificationService.sendNotificationToUser(contributor, message, title, NotificationType.ADDED_AS_COLLABORATOR);
-            }
+        User newCollaborator = findByEmail(collaboratorEmail);
+        if (!existingCollaborators.contains(newCollaborator)) {
+            existingCollaborators.add(newCollaborator);
+            roleService.addTaskRoleToUser(newCollaborator, board);
+            notificationService.sendNotificationToUser(newCollaborator, message, title, NotificationType.ADDED_AS_COLLABORATOR);
         }
     }
 
 
     @Override
-    public void removeCollaboratorsFromBoard(String boardTag, Set<String> emails) throws BadRequestException {
+    public void removeACollaborator(String boardTag, String collaboratorEmail) throws BadRequestException, UserException {
         String title = "You have been removed as a collaborator on board: " + boardTag;
         String message = "You have been removed as a collaborator on board " + boardTag;
 
         Board board = getBoardByTag(boardTag);
         if (board == null) throw new BadRequestException(BOARD_NOT_FOUND);
+        if (isBoardOwner(collaboratorEmail, board.getCreatedBy().getEmail()))
+            throw new BadRequestException("Creator of a board cannot be removed from board collaborators");
         Set<User> existingCollaborators = board.getCollaborators();
-        List<User> usersToRemove = userRepository.findAllByEmails(emails);
-        for (User userToRemove : usersToRemove) {
-            if (existingCollaborators.contains(userToRemove)) {
-                existingCollaborators.remove(userToRemove);
-                roleService.removeBoardRoleFromUser(userToRemove, board);
-                notificationService.sendNotificationToUser(userToRemove, message, title, NotificationType.REMOVED_AS_COLLABORATOR);
-            }
+        User userToRemove = findByEmail(collaboratorEmail);
+        if (existingCollaborators.contains(userToRemove)) {
+            existingCollaborators.remove(userToRemove);
+            roleService.removeBoardRoleFromUser(userToRemove, board);
+            notificationService.sendNotificationToUser(userToRemove, message, title, NotificationType.REMOVED_AS_COLLABORATOR);
         }
     }
-
 
     private User findByEmail(String email) throws UserException {
         return userRepository.findByEmail(email).orElseThrow(() -> new UserException(format("user not found with email %s", email)));
@@ -198,6 +205,10 @@ public class BoardServiceImpl implements BoardService {
     public boolean hasBoardRole(String boardOwner, String boardTag) {
         Board board = getBoardByTag(boardTag);
         if (board == null) return false;
-        return board.getUser().getEmail().equals(boardOwner);
+        return board.getCreatedBy().getEmail().equals(boardOwner);
+    }
+
+    public boolean isBoardOwner(String collaboratorEmail, String boardOwnerEmail) {
+        return collaboratorEmail.equals(boardOwnerEmail);
     }
 }

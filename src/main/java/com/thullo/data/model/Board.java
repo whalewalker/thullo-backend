@@ -1,6 +1,5 @@
 package com.thullo.data.model;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import lombok.Getter;
@@ -29,8 +28,8 @@ public class Board{
 
     @ManyToOne
     @JoinColumn(name = "user_id")
-    @JsonBackReference
-    private User user;
+    @JsonManagedReference
+    private User createdBy;
 
     @Enumerated(EnumType.STRING)
     private BoardVisibility boardVisibility;
@@ -41,7 +40,7 @@ public class Board{
             inverseJoinColumns = @JoinColumn(name = "user_id"))
     private Set<User> collaborators = new HashSet<>();
 
-    @OneToMany(mappedBy = "board", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "board", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonManagedReference
     private List<Task> tasks = new ArrayList<>();
 
