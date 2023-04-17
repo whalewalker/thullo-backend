@@ -19,17 +19,10 @@ public interface AuthService {
     User registerNewUserAccount(UserRequest userRequest) throws AuthException,  UnsupportedEncodingException;
     void confirmVerificationToken(String verificationToken) throws TokenException;
     Token createVerificationToken(User user, String token, String tokenType);
-
     JwtTokenResponse login(LoginRequest loginRequest) throws UserException;
-
     void saveResetPassword(PasswordRequest passwordRequest) throws AuthException, TokenException;
-
     TokenResponse resendVerificationToken(String token) throws TokenException;
-
     TokenResponse resendResetPasswordToken(String token) throws TokenException;
-
     TokenResponse createPasswordResetTokenForUser(String email) throws AuthException;
-
     JwtTokenResponse refreshToken(TokenRefreshRequest request) throws TokenException;
-
 }

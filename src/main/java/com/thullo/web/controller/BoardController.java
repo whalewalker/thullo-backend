@@ -92,7 +92,6 @@ public class BoardController {
         }
     }
 
-
     @PostMapping("/{boardTag}/remove/collaborators")
     @PreAuthorize("@boardServiceImpl.hasBoardRole(authentication.principal.email, #boardTag) or hasRole('BOARD_' + #boardTag)")
     public ResponseEntity<ApiResponse> removeCollaboratorToBoard(@PathVariable String boardTag, @RequestBody Set<String> collaborators) {
