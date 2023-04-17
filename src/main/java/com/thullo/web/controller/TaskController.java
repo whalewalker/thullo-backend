@@ -177,7 +177,7 @@ public class TaskController {
                                                   HttpServletRequest request) {
         try {
             status.setRequestUrl(request.getRequestURL().toString());
-            List<Task> tasks = taskService.editStatus(status);
+            List<Task> tasks = taskService.editStatus(status, boardTag);
             return ResponseEntity.ok(new ApiResponse(true, "Status is successfully updated", tasks));
         } catch (ResourceNotFoundException exception) {
             return ResponseEntity.badRequest().body(new ApiResponse(false, exception.getMessage()));
@@ -191,7 +191,7 @@ public class TaskController {
                                                   HttpServletRequest request) {
         try {
             status.setRequestUrl(request.getRequestURL().toString());
-            List<Task> tasks = taskService.deleteStatus(status);
+            List<Task> tasks = taskService.deleteStatus(status, boardTag);
             return ResponseEntity.ok(new ApiResponse(true, "Status is successfully deleted", tasks));
         } catch (ResourceNotFoundException exception) {
             return ResponseEntity.badRequest().body(new ApiResponse(false, exception.getMessage()));

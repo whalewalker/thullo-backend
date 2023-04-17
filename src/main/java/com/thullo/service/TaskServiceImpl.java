@@ -212,23 +212,25 @@ public class TaskServiceImpl implements TaskService {
     }
 
     @Override
-    public List<Task> editStatus(StatusRequest request) throws ResourceNotFoundException {
-        Set<String> boardRefs = request.getBoardRef();
-        String status = formatStatus(request.getStatus());
+    public List<Task> editStatus(StatusRequest request, String boardTag) throws ResourceNotFoundException {
+        Board board = getBoard(boardTag);
+        String previousStatus = formatStatus(request.getPreviousStatus());
+        List<Task> tasks = getAllByBoardAndStatus(board, previousStatus);
+        String currentStatus = formatStatus(request.getCurrentStatus());
 
-        List<Task> tasks = new ArrayList<>();
-        for (String boardRef : boardRefs) {
-            Task task = getTask(boardRef);
-            task.setStatus(status);
-            tasks.add(task);
+        List<Task> tasksList = new ArrayList<>();
+        for (Task task : tasks) {
+            task.setStatus(currentStatus);
+            tasksList.add(task);
         }
-        return taskRepository.saveAll(tasks);
+       return taskRepository.saveAll(tasksList);
+//        return getAllByBoardAndStatus(board, currentStatus);
     }
 
     @Override
-    public List<Task> deleteStatus(StatusRequest statusRequest) throws ResourceNotFoundException {
-        statusRequest.setStatus("NO_STATUS");
-        return editStatus(statusRequest);
+    public List<Task> deleteStatus(StatusRequest statusRequest, String boardTag) throws ResourceNotFoundException {
+        statusRequest.setCurrentStatus("NO_STATUS");
+        return editStatus(statusRequest, boardTag);
     }
 
     private List<Task> getAllByBoardAndStatus(Board board, String formattedStatus) {

@@ -104,5 +104,4 @@ public class BoardController {
             return ResponseEntity.badRequest().body(new ApiResponse(false, ex.getMessage()));
         }
     }
-
 }
