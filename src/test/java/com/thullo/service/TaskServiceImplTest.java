@@ -215,6 +215,7 @@ class TaskServiceImplTest {
         when(taskRepositoryMock.findByBoardRef(boardRef)).thenReturn(Optional.of(task));
         when(taskRepositoryMock.findByBoardRef(eq(boardRef))).thenReturn(Optional.of(task));
         when(taskRepositoryMock.findAllByBoardAndStatus(eq(board), eq("DONE"))).thenReturn(new ArrayList<>());
+
         when(taskRepositoryMock.save(any())).thenReturn(task);
 
         // move task to a new position
@@ -232,12 +233,12 @@ class TaskServiceImplTest {
 
     @Test
     public void editStatus_shouldEditTasksStatus() throws ResourceNotFoundException {
-        Set<String> boardRefs = new HashSet<>(Arrays.asList("TAG-1", "TAG-2"));
+        Board board = new Board();
+        board.setBoardTag("TAG");
         String status = "DONE";
-
         List<Task> tasks = new ArrayList<>();
-        //Setting up simple Tasks
 
+        //Setting up simple Tasks
         Task task1 = new Task();
         task1.setBoardRef("TAG-1");
         task1.setStatus(status);
@@ -253,20 +254,21 @@ class TaskServiceImplTest {
 
         // setting up repository mocks
         when(taskRepositoryMock.saveAll(anyList())).thenReturn(tasks);
-        when(taskRepositoryMock.findByBoardRef(eq("TAG-1"))).thenReturn(Optional.of(task1));
-        when(taskRepositoryMock.findByBoardRef(eq("TAG-2"))).thenReturn(Optional.of(task2));
+        when(boardRepositoryMock.findByBoardTag("TAG")).thenReturn(Optional.of(board));
+        when(taskRepositoryMock.findAllByBoardAndStatus(eq(board), eq("DONE"))).thenReturn(tasks);
 
         StatusRequest request = new StatusRequest();
-        request.setBoardRef(boardRefs);
-        request.setStatus("Final");
+        request.setPreviousStatus(status);
+        request.setCurrentStatus("Final");
 
-        String editedStatus = Helper.formatStatus(request.getStatus());
+        String editedStatus = Helper.formatStatus(request.getCurrentStatus());
         // Act
-        List<Task> result = taskServiceMock.editStatus(request);
+        List<Task> result = taskServiceMock.editStatus(request, "TAG");
 
         // verify repository method calls
-        verify(taskRepositoryMock, times(2)).findByBoardRef(anyString());
         verify(taskRepositoryMock, times(1)).saveAll(anyList());
+        verify(boardRepositoryMock, times(1)).findByBoardTag("TAG");
+        verify(taskRepositoryMock, times(1)).findAllByBoardAndStatus(board, status);
 
         //Assert Results has been updated
         assertNotNull(result);
@@ -277,31 +279,34 @@ class TaskServiceImplTest {
 
     @Test
     public void editStatus_shouldThrowResourceNotFoundException() {
-        // Arrange
-        Set<String> boardRefs = new HashSet<>(Arrays.asList("board1", "board2"));
+        Board board = new Board();
+        board.setBoardTag("TAG");
+
+        String status = "DONE";
 
         // setting up repository mocks
         when(taskRepositoryMock.findByBoardRef(anyString())).thenReturn(Optional.empty());
 
         StatusRequest request = new StatusRequest();
-        request.setBoardRef(boardRefs);
-        request.setStatus("Final");
+        request.setCurrentStatus(status);
+
+        when(boardRepositoryMock.findByBoardTag("TAG")).thenReturn(Optional.empty());
 
         // Act
-        assertThrows(ResourceNotFoundException.class, () -> taskServiceMock.editStatus(request));
+        assertThrows(ResourceNotFoundException.class, () -> taskServiceMock.editStatus(request, "TAG"));
 
         // verify repository method calls
-        verify(taskRepositoryMock, times(1)).findByBoardRef(any(String.class));
+        verify(boardRepositoryMock, times(1)).findByBoardTag("TAG");
     }
 
     @Test
     public void deleteStatus_shouldDeleteTaskStatusAndChangeTaskNameToNoStatus() throws ResourceNotFoundException {
-        Set<String> boardRefs = new HashSet<>(Arrays.asList("TAG-1", "TAG-2"));
+        Board board = new Board();
+        board.setBoardTag("TAG");
         String status = "DONE";
 
         List<Task> tasks = new ArrayList<>();
         //Setting up simple Tasks
-
         Task task1 = new Task();
         task1.setBoardRef("TAG-1");
         task1.setStatus(status);
@@ -317,19 +322,21 @@ class TaskServiceImplTest {
 
         // setting up repository mocks
         when(taskRepositoryMock.saveAll(anyList())).thenReturn(tasks);
-        when(taskRepositoryMock.findByBoardRef(eq("TAG-1"))).thenReturn(Optional.of(task1));
-        when(taskRepositoryMock.findByBoardRef(eq("TAG-2"))).thenReturn(Optional.of(task2));
+        when(boardRepositoryMock.findByBoardTag("TAG")).thenReturn(Optional.of(board));
+        when(taskRepositoryMock.findAllByBoardAndStatus(eq(board), eq("DONE"))).thenReturn(tasks);
+
 
         StatusRequest request = new StatusRequest();
-        request.setBoardRef(boardRefs);
+        request.setPreviousStatus(status);
 
         // Act
-        List<Task> result = taskServiceMock.deleteStatus(request);
-        String editedStatus = Helper.formatStatus(request.getStatus());
+        List<Task> result = taskServiceMock.deleteStatus(request, "TAG");
+        String editedStatus = Helper.formatStatus(request.getCurrentStatus());
 
         // verify repository method calls
-        verify(taskRepositoryMock, times(2)).findByBoardRef(anyString());
         verify(taskRepositoryMock, times(1)).saveAll(anyList());
+        verify(boardRepositoryMock, times(1)).findByBoardTag("TAG");
+        verify(taskRepositoryMock, times(1)).findAllByBoardAndStatus(board, status);
 
         //Assert Results has been updated
         assertEquals(editedStatus, task1.getStatus());
