@@ -3,7 +3,6 @@ package com.thullo.data.model;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -41,14 +40,17 @@ public class User extends RepresentationModel<User> {
 
     private String bio;
 
+    @JsonIgnore
     private Boolean emailVerified;
 
     @JsonIgnore
     private String password;
 
     @Enumerated(EnumType.STRING)
+    @JsonIgnore
     private AuthProvider provider;
 
+    @JsonIgnore
     private String providerId;
 
     @ManyToMany(fetch = FetchType.EAGER)
@@ -58,8 +60,8 @@ public class User extends RepresentationModel<User> {
     @JsonBackReference
     private List<Role> roles = new ArrayList<>();
 
-    @OneToMany(mappedBy = "user")
-    @JsonManagedReference
+    @OneToMany(mappedBy = "createdBy")
+    @JsonBackReference
     private List<Board> boards = new ArrayList<>();
 
     @OneToMany(mappedBy = "user")

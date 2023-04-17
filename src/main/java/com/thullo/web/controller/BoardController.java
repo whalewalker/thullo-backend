@@ -10,8 +10,6 @@ import com.thullo.web.payload.request.BoardRequest;
 import com.thullo.web.payload.response.ApiResponse;
 import com.thullo.web.payload.response.BoardResponse;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -22,13 +20,13 @@ import javax.validation.Valid;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
 
 @RestController
 @RequestMapping("api/v1/thullo/boards")
 @RequiredArgsConstructor
 public class BoardController {
     private final BoardService boardService;
+    private static final String MESSAGE = "message";
 
     @PostMapping(consumes = {MediaType.MULTIPART_FORM_DATA_VALUE}, produces = {MediaType.APPLICATION_JSON_VALUE})
     public ResponseEntity<ApiResponse> createBoard(@Valid BoardRequest boardRequest,
@@ -41,7 +39,7 @@ public class BoardController {
 
         } catch (UserException | IOException | BadRequestException ex) {
             return ResponseEntity.badRequest().body(new ApiResponse(false, ex.getMessage(),
-                    new HashMap<>(Map.of("message", ex.getMessage()))));
+                    new HashMap<>(Map.of(MESSAGE, ex.getMessage()))));
         }
     }
 
@@ -57,7 +55,7 @@ public class BoardController {
             return ResponseEntity.ok(new ApiResponse(true, "Board successfully updated", boardService.getBoardResponse(board)));
         } catch (UserException | IOException | BadRequestException ex) {
             return ResponseEntity.badRequest().body(new ApiResponse(false, ex.getMessage(),
-                    new HashMap<>(Map.of("message", ex.getMessage()))));
+                    new HashMap<>(Map.of(MESSAGE, ex.getMessage()))));
         }
     }
 
@@ -69,55 +67,42 @@ public class BoardController {
                     boardService.getBoard(boardTag)));
         } catch (BadRequestException ex) {
             return ResponseEntity.badRequest().body(new ApiResponse(false, ex.getMessage(),
-                    new HashMap<>(Map.of("message", ex.getMessage()))));
+                    new HashMap<>(Map.of(MESSAGE, ex.getMessage()))));
         }
     }
 
     @GetMapping
-    public ResponseEntity<ApiResponse> getBoards(@CurrentUser UserPrincipal userPrincipal) {
+    public ResponseEntity<ApiResponse> getBoards(@CurrentUser UserPrincipal userPrincipal,
+                                                 @RequestParam Map<String, String> filterParams) {
         try {
             return ResponseEntity.ok(new ApiResponse(true, "Board successfully fetched",
-                    boardService.getBoards(userPrincipal)));
+                    boardService.getBoards(userPrincipal, filterParams)));
         } catch (UserException ex) {
             return ResponseEntity.badRequest().body(new ApiResponse(false, ex.getMessage()));
         }
     }
 
-    @PostMapping("/{boardTag}/collaborators")
+    @PostMapping("/{boardTag}/collaborator/{collaboratorEmail}")
     @PreAuthorize("@boardServiceImpl.hasBoardRole(authentication.principal.email, #boardTag) or hasRole('BOARD_' + #boardTag)")
-    public ResponseEntity<ApiResponse> addCollaboratorToBoard(@PathVariable String boardTag, @RequestBody Set<String> collaborators) {
+    public ResponseEntity<ApiResponse> addCollaborator(@PathVariable String boardTag, @PathVariable String collaboratorEmail) {
         try {
-            boardService.addCollaboratorToBoard(boardTag, collaborators);
+            boardService.addACollaborator(boardTag, collaboratorEmail);
             return ResponseEntity.ok(new ApiResponse(true, "collaborators successfully added"));
-        } catch (BadRequestException ex) {
+        } catch (BadRequestException | UserException ex) {
             return ResponseEntity.badRequest().body(new ApiResponse(false, ex.getMessage()));
         }
     }
 
 
-    @PostMapping("/{boardTag}/remove/collaborators")
+    @PostMapping("/{boardTag}/remove/collaborator/{collaboratorEmail}")
     @PreAuthorize("@boardServiceImpl.hasBoardRole(authentication.principal.email, #boardTag) or hasRole('BOARD_' + #boardTag)")
-    public ResponseEntity<ApiResponse> removeCollaboratorToBoard(@PathVariable String boardTag, @RequestBody Set<String> collaborators) {
+    public ResponseEntity<ApiResponse> removeCollaborator(@PathVariable String boardTag, @PathVariable String collaboratorEmail) {
         try {
-            boardService.removeCollaboratorsFromBoard(boardTag, collaborators);
+            boardService.removeACollaborator(boardTag, collaboratorEmail);
             return ResponseEntity.ok(new ApiResponse(true, "collaborators successfully added"));
-        } catch (BadRequestException ex) {
+        } catch (BadRequestException | UserException ex) {
             return ResponseEntity.badRequest().body(new ApiResponse(false, ex.getMessage()));
         }
     }
 
-    @GetMapping("/{boardTag}/collaborator")
-    @PreAuthorize("hasRole('BOARD_' + #boardTag)")
-    public ResponseEntity<ApiResponse> categorizeBoardByCollaborator(@CurrentUser UserPrincipal userPrincipal,
-                                                                     @RequestParam(defaultValue = "1") int page,
-                                                                     @RequestParam(defaultValue = "10") int size,
-                                                                     @PathVariable String boardTag) {
-        try {
-            Pageable paging = PageRequest.of(page, size);
-            return ResponseEntity.ok(new ApiResponse(true, "Collaborator successfully fetched",
-            boardService.categorizeBoardByCollaborator(userPrincipal, paging)));
-        } catch (UserException ex) {
-            return ResponseEntity.badRequest().body(new ApiResponse(false, ex.getMessage()));
-        }
-    }
 }

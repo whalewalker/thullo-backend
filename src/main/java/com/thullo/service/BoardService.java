@@ -6,11 +6,10 @@ import com.thullo.web.exception.BadRequestException;
 import com.thullo.web.exception.UserException;
 import com.thullo.web.payload.request.BoardRequest;
 import com.thullo.web.payload.response.BoardResponse;
-import org.springframework.data.domain.Pageable;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.Set;
+import java.util.Map;
 
 public interface BoardService {
     /**
@@ -28,11 +27,9 @@ public interface BoardService {
 
     BoardResponse getBoard(String boardTag) throws BadRequestException;
 
-    List<BoardResponse> getBoards(UserPrincipal userPrincipal) throws UserException;
+    List<BoardResponse> getBoards(UserPrincipal userPrincipal, Map<String, String> filterParams) throws UserException;
 
-    void addCollaboratorToBoard(String boardTag, Set<String> collaborators) throws BadRequestException;
+    void addACollaborator(String boardTag, String collaboratorEmail) throws BadRequestException, UserException;
 
-    void removeCollaboratorsFromBoard(String boardTag, Set<String> emails) throws BadRequestException;
-
-    List<BoardResponse> categorizeBoardByCollaborator(UserPrincipal userPrincipal, Pageable pageable) throws UserException;
+    void removeACollaborator(String boardTag, String collaboratorEmail) throws BadRequestException, UserException;
 }
