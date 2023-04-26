@@ -1,6 +1,5 @@
 package com.thullo.data.repository;
 
-import com.thullo.data.model.Board;
 import com.thullo.data.model.Task;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -16,10 +15,8 @@ public interface TaskRepository extends JpaRepository<Task, Long> {
     @Query("SELECT t FROM Task t WHERE t.name LIKE %:params% OR t.boardRef LIKE %:params%")
     List<Task> findByParams(@Param("params") String params);
 
+    @Query("SELECT t FROM Task t WHERE t.taskColumn.id = ?1 ORDER BY t.position ASC")
+    List<Task> findByTaskColumnOrderByPositionAsc(long taskColumnId);
+
     Optional<Task> findByBoardRef(@NonNull String boardRef);
-
-    long countByBoardAndStatus(Board board, String status);
-    long countByBoard(Board board);
-
-    List<Task> findAllByBoardAndStatus(Board board, String status);
 }

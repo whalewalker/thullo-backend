@@ -11,7 +11,7 @@ public interface LabelService {
     Label createLabel(String boardRef, LabelRequest request) throws ResourceNotFoundException, ThulloException;
     void removeLabelFromTask(Long labelId, String boardRef) throws ResourceNotFoundException;
 
-    List<Label> getBoardLabel(Long boardId) throws ResourceNotFoundException;
+    List<Label> getTaskColumnLabel(Long columnId) throws ResourceNotFoundException;
 
     Label updateLabelOnTask(String boardRef, Long labelId, LabelRequest request) throws ResourceNotFoundException;
 }

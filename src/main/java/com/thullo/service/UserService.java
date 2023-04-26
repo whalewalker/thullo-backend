@@ -3,7 +3,7 @@ package com.thullo.service;
 
 import com.thullo.web.exception.UserException;
 import com.thullo.web.payload.request.UserProfileRequest;
-import com.thullo.web.payload.response.UserProfileResponse;
+import com.thullo.web.payload.response.UserResponse;
 
 import java.util.List;
 
@@ -18,7 +18,7 @@ public interface UserService {
      * @param email The unique identifier for the user whose information is being retrieved.
      * @return UserProfileResponse object that encapsulates various details such as name, email, address, and any other relevant information related to the user.
      */
-    UserProfileResponse getUserDetails(String email) throws UserException;
+    UserResponse getUserDetails(String email) throws UserException;
 
     /**
      * Updates the user details for a given email.
@@ -34,5 +34,5 @@ public interface UserService {
      * @param searchQuery A string containing either the email or name to search for.
      * @return A list of UserProfileResponse objects that match the search criteria.
      */
-    List<UserProfileResponse> searchUserProfiles(String searchQuery);
+    List<UserResponse> searchUserProfiles(String searchQuery);
 }

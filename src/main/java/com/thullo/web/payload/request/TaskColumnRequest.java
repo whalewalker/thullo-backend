@@ -5,10 +5,9 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
-@AllArgsConstructor
 @NoArgsConstructor
-public class TaskMoveRequest {
-    private String boardRef;
+@AllArgsConstructor
+public class TaskColumnRequest {
+    private String name;
     private Long taskColumnId;
-    private Long position;
 }

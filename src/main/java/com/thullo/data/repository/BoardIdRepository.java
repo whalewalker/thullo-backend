@@ -10,5 +10,4 @@ import java.util.Optional;
 public interface BoardIdRepository extends JpaRepository<BoardId, Long> {
     @Query("select b from BoardId b where upper(b.boardTag) = upper(?1)")
     Optional<BoardId> findByBoardTag(@NonNull String boardTag);
-
 }

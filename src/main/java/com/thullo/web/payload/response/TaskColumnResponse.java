@@ -3,22 +3,14 @@ package com.thullo.web.payload.response;
 import lombok.Data;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Data
-public class UserProfileResponse {
-
+public class TaskColumnResponse {
     private Long id;
     private String name;
-
-    private String email;
-
-    private String phoneNumber;
-
-    private String imageUrl;
-
-    private String bio;
-
+    private List<TaskResponse> tasks = new ArrayList<>();
     private LocalDateTime createdAt;
-
     private LocalDateTime updatedAt;
 }

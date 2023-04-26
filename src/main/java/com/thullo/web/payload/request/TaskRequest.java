@@ -9,9 +9,9 @@ import org.springframework.web.multipart.MultipartFile;
 @AllArgsConstructor
 @NoArgsConstructor
 public class TaskRequest {
+    private Long taskColumnId;
     private String name;
     private String requestUrl;
     private MultipartFile file;
     private String description;
-    private String status;
 }

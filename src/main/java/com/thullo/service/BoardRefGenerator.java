@@ -1,7 +1,7 @@
 package com.thullo.service;
 
-import com.thullo.data.model.Board;
 import com.thullo.data.model.BoardId;
+import com.thullo.data.model.TaskColumn;
 import com.thullo.data.repository.BoardIdRepository;
 import org.springframework.stereotype.Service;
 
@@ -13,9 +13,8 @@ public class BoardRefGenerator {
         this.boardIdRepository = boardIdRepository;
     }
 
-    public String generateBoardRef(Board board) {
-        String boardTag = board.getBoardTag();
-
+    public String generateBoardRef(TaskColumn taskColumn) {
+        String boardTag = taskColumn.getBoard().getBoardTag();
         BoardId boardId = boardIdRepository.findByBoardTag(boardTag)
                 .orElseGet(() -> new BoardId(boardTag, 1L));
 
@@ -23,7 +22,6 @@ public class BoardRefGenerator {
         boardId.setNextId(boardId.getNextId() + 1);
 
         boardIdRepository.save(boardId);
-
         return boardRef;
     }
 }

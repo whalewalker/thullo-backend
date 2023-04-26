@@ -1,10 +1,10 @@
 package com.thullo.service;
 
-import com.thullo.data.model.Board;
 import com.thullo.data.model.Label;
 import com.thullo.data.model.Task;
-import com.thullo.data.repository.BoardRepository;
+import com.thullo.data.model.TaskColumn;
 import com.thullo.data.repository.LabelRepository;
+import com.thullo.data.repository.TaskColumnRepository;
 import com.thullo.data.repository.TaskRepository;
 import com.thullo.web.exception.ResourceNotFoundException;
 import com.thullo.web.payload.request.LabelRequest;
@@ -25,8 +25,7 @@ import static java.lang.String.format;
 public class LabelServiceImpl implements LabelService {
     private final TaskRepository taskRepository;
     private final LabelRepository labelRepository;
-
-    private final BoardRepository boardRepository;
+    private final TaskColumnRepository taskColumnRepository;
 
     private final ModelMapper mapper;
 
@@ -64,18 +63,18 @@ public class LabelServiceImpl implements LabelService {
     }
 
     @Override
-    public List<Label> getBoardLabel(Long boardId) throws ResourceNotFoundException {
-        Board board = findBoardById(boardId);
+    public List<Label> getTaskColumnLabel(Long columnId) throws ResourceNotFoundException {
+        TaskColumn taskColumn = findTaskColumnById(columnId);
 
-        return board.getTasks()
+        return taskColumn.getTasks()
                 .stream()
                 .flatMap(task -> task.getLabels().stream())
                 .collect(Collectors.toList());
     }
 
-    private Board findBoardById(Long boardId) throws ResourceNotFoundException {
-        return boardRepository.findById(boardId)
-                .orElseThrow(() -> new ResourceNotFoundException("Board not found"));
+    private TaskColumn findTaskColumnById(Long columnId) throws ResourceNotFoundException {
+        return taskColumnRepository.findById(columnId)
+                .orElseThrow(() -> new ResourceNotFoundException("Task column not found"));
     }
 
 

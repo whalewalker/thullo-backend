@@ -13,7 +13,7 @@ import org.hibernate.annotations.UpdateTimestamp;
 import javax.persistence.*;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -32,7 +32,6 @@ public class Task {
 
     private Long position;
 
-    private String status;
     @Column(nullable = false, unique = true)
     private String boardRef;
 
@@ -49,9 +48,9 @@ public class Task {
     private User createdBy;
 
     @ManyToOne
-    @JoinColumn(name = "board_id")
+    @JoinColumn(name = "task_column_id")
     @JsonBackReference
-    private Board board;
+    private TaskColumn taskColumn;
 
     @OneToMany(mappedBy = "task", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonManagedReference
@@ -64,7 +63,7 @@ public class Task {
             joinColumns = @JoinColumn(name = "task_id"),
             inverseJoinColumns = @JoinColumn(name = "user_id")
     )
-    private Set<User> contributors = new HashSet<>();
+    private Set<User> contributors = new LinkedHashSet<>();
 
     @ManyToMany(cascade = {
             CascadeType.PERSIST,
@@ -73,7 +72,7 @@ public class Task {
     @JoinTable(name = "task_label",
             joinColumns = @JoinColumn(name = "task_id"),
             inverseJoinColumns = @JoinColumn(name = "label_id"))
-    private Set<Label> labels = new HashSet<>();
+    private Set<Label> labels = new LinkedHashSet<>();
 
     @CreationTimestamp
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")

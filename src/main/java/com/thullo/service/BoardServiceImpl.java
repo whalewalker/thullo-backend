@@ -6,18 +6,28 @@ import com.thullo.data.repository.UserRepository;
 import com.thullo.security.UserPrincipal;
 import com.thullo.util.Helper;
 import com.thullo.web.exception.BadRequestException;
+import com.thullo.web.exception.ThulloException;
 import com.thullo.web.exception.UserException;
 import com.thullo.web.payload.request.BoardRequest;
 import com.thullo.web.payload.response.BoardResponse;
+import com.thullo.web.payload.response.TaskColumnResponse;
+import com.thullo.web.payload.response.TaskResponse;
+import com.thullo.web.payload.response.UserResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
+import static com.thullo.data.model.BoardVisibility.getBoardVisibility;
+import static com.thullo.util.Helper.isNullOrEmpty;
 import static java.lang.String.format;
 
 @Slf4j
@@ -41,67 +51,82 @@ public class BoardServiceImpl implements BoardService {
      * @return A response object containing the result of the board creation process.
      */
 
-    public BoardResponse createBoard(BoardRequest boardRequest, UserPrincipal userPrincipal) throws UserException, BadRequestException, IOException {
+    public BoardResponse createBoard(BoardRequest boardRequest, UserPrincipal userPrincipal)
+            throws UserException, BadRequestException, IOException, ThulloException {
+
+        if (isNullOrEmpty(boardRequest.getBoardName()))
+            throw new BadRequestException("Board name cannot be empty");
+
+        User user = findByEmail(userPrincipal.getEmail());
+        checkBoardNameExists(boardRequest.getBoardName(), user);
 
         Board board = mapper.map(boardRequest, Board.class);
-        if (Helper.isNullOrEmpty(board.getName())) throw new BadRequestException("Board name cannot be empty");
-        User user = findByEmail(userPrincipal.getEmail());
-
-        BoardVisibility boardVisibility = BoardVisibility.getBoardVisibility(boardRequest.getBoardVisibility());
+        BoardVisibility boardVisibility = getBoardVisibility(boardRequest.getBoardVisibility());
         board.setBoardVisibility(boardVisibility == null ? BoardVisibility.PRIVATE : boardVisibility);
 
-        String imageUrl = null;
         board.setCreatedBy(user);
-        if (boardRequest.getFile() != null) {
-            imageUrl = fileService.uploadFile(boardRequest.getFile(), boardRequest.getRequestUrl());
-        }
+        String imageUrl = uploadBoardFile(boardRequest.getFile(), boardRequest.getRequestUrl());
         board.setImageUrl(imageUrl);
-        board.setBoardTag(generateThreeLetterWord(boardRequest.getBoardName().toUpperCase()));
 
-        return getBoard(boardRepository.save(board));
+        createDefaultTaskColumn(board, user);
+        board.setBoardTag(generateThreeLetterWord(boardRequest.getBoardName().toUpperCase(), user.getEmail()));
+
+        Board savedBoard = boardRepository.save(board);
+        return getBoardResponse(savedBoard);
+    }
+
+    private void checkBoardNameExists(String boardName, User user) throws ThulloException {
+        if (boardRepository.existsByNameAndCreatedBy(boardName, user))
+            throw new ThulloException(format("Board with name '%s' already exists", boardName));
+    }
+
+    private String uploadBoardFile(MultipartFile file, String requestUrl) throws IOException, BadRequestException {
+        return file != null ? fileService.uploadFile(file, requestUrl) : null;
     }
 
     @Override
     public BoardResponse getBoard(String boardTag) throws BadRequestException {
         Board board = getBoardByTag(boardTag);
-        if (board == null) throw new BadRequestException(BOARD_NOT_FOUND);
-        return getBoard(board);
-    }
-
-    private BoardResponse getBoard(Board board) {
         return getBoardResponse(board);
     }
 
-    public Board getBoardByTag(String boardTag) {
-        return boardRepository.findByBoardTag(boardTag).orElse(null);
+
+    public Board getBoardByTag(String boardTag) throws BadRequestException {
+        return boardRepository.findByBoardTag(boardTag).orElseThrow(() -> new BadRequestException(BOARD_NOT_FOUND));
+    }
+
+    private void createDefaultTaskColumn(Board board, User user) {
+        board.setTaskColumns(List.of(
+                new TaskColumn("Backlog \uD83E\uDD14", board, user),
+                new TaskColumn("In Progress \uD83D\uDCDA", board, user),
+                new TaskColumn("In Review ⚙️", board, user),
+                new TaskColumn("Completed \uD83D\uDE4C\uD83C\uDFFD", board, user))
+        );
     }
 
 
     public BoardResponse getBoardResponse(Board board) {
         BoardResponse boardResponse = mapper.map(board, BoardResponse.class);
-        List<Task> tasks = board.getTasks();
-        Set<String> status = new LinkedHashSet<>(Arrays.asList("BACKLOG", "IN_PROGRESS", "IN_REVIEW", "COMPLETED"));
 
-        Map<String, List<Task>> columns = tasks.stream()
-                .collect(Collectors.groupingBy(Task::getStatus));
+        List<TaskColumnResponse> taskColumnResponses = new ArrayList<>();
+        board.getTaskColumns().forEach(taskColumn -> {
+            TaskColumnResponse taskColumnResponse = mapper.map(taskColumn, TaskColumnResponse.class);
+            taskColumnResponse.setTasks(getTaskResponses(taskColumn.getTasks()));
+            taskColumnResponses.add(taskColumnResponse);
+        });
 
-        if (columns.isEmpty()) {
-            Arrays.stream(status.toArray()).forEach(columnName -> {
-                BoardResponse.Column column = new BoardResponse.Column();
-                column.setName(columnName.toString());
-                column.setTasks(Collections.emptyList());
-                boardResponse.getTaskColumn().add(column);
-            });
-        } else {
-            Arrays.stream(status.toArray()).forEach(columnName -> {
-                BoardResponse.Column column = new BoardResponse.Column();
-                column.setName(columnName.toString());
-                List<Task> columnTasks = columns.getOrDefault(columnName.toString(), Collections.emptyList());
-                column.setTasks(columnTasks);
-                boardResponse.getTaskColumn().add(column);
-            });
-        }
+        boardResponse.setTaskColumn(taskColumnResponses);
+        boardResponse.setCollaborators(getUserResponses(board.getCollaborators()));
         return boardResponse;
+    }
+
+
+    private List<TaskResponse> getTaskResponses(List<Task> tasks) {
+        return tasks.stream().map(task -> mapper.map(task, TaskResponse.class)).collect(Collectors.toList());
+    }
+
+    private Set<UserResponse> getUserResponses(Set<User> users) {
+        return users.stream().map(user -> mapper.map(user, UserResponse.class)).collect(Collectors.toSet());
     }
 
     public List<BoardResponse> getBoards(UserPrincipal userPrincipal, Map<String, String> filterParams) {
@@ -125,26 +150,25 @@ public class BoardServiceImpl implements BoardService {
 
 
     @Override
-    public Board updateBoard(BoardRequest boardRequest)
-            throws BadRequestException, IOException {
+    public BoardResponse updateBoard(BoardRequest boardRequest) throws BadRequestException, IOException {
         Board board = getBoardByTag(boardRequest.getBoardTag());
-        if (board == null) throw new BadRequestException(BOARD_NOT_FOUND);
 
-        String imageUrl;
         mapper.map(boardRequest, board);
 
-        if (!Helper.isNullOrEmpty(boardRequest.getBoardVisibility())) {
+        if (!isNullOrEmpty(boardRequest.getBoardVisibility())) {
             BoardVisibility visibility = BoardVisibility.getBoardVisibility(boardRequest.getBoardVisibility());
-            board.setBoardVisibility(visibility == null ? board.getBoardVisibility() : visibility);
+            board.setBoardVisibility(visibility != null ? visibility : board.getBoardVisibility());
         }
 
         if (boardRequest.getFile() != null) {
             String fileId = Helper.extractFileIdFromUrl(board.getImageUrl());
             fileService.deleteFile(fileId);
-            imageUrl = fileService.uploadFile(boardRequest.getFile(), boardRequest.getRequestUrl());
+            String imageUrl = fileService.uploadFile(boardRequest.getFile(), boardRequest.getRequestUrl());
             board.setImageUrl(imageUrl);
         }
-        return boardRepository.save(board);
+
+        Board updatedBoard = boardRepository.save(board);
+        return mapper.map(updatedBoard, BoardResponse.class);
     }
 
     @Override
@@ -153,7 +177,6 @@ public class BoardServiceImpl implements BoardService {
         String message = "You have been added as a collaborator on board " + boardTag;
 
         Board board = getBoardByTag(boardTag);
-        if (board == null) throw new BadRequestException(BOARD_NOT_FOUND);
         if (isBoardOwner(collaboratorEmail, board.getCreatedBy().getEmail()))
             throw new BadRequestException("Creator of a board cannot be added a collaborator");
         Set<User> existingCollaborators = board.getCollaborators();
@@ -172,7 +195,6 @@ public class BoardServiceImpl implements BoardService {
         String message = "You have been removed as a collaborator on board " + boardTag;
 
         Board board = getBoardByTag(boardTag);
-        if (board == null) throw new BadRequestException(BOARD_NOT_FOUND);
         if (isBoardOwner(collaboratorEmail, board.getCreatedBy().getEmail()))
             throw new BadRequestException("Creator of a board cannot be removed from board collaborators");
         Set<User> existingCollaborators = board.getCollaborators();
@@ -188,8 +210,8 @@ public class BoardServiceImpl implements BoardService {
         return userRepository.findByEmail(email).orElseThrow(() -> new UserException(format("user not found with email %s", email)));
     }
 
-    private String generateThreeLetterWord(String boardName) {
-        Set<String> usedThreeLetterWords = boardRepository.findAll().stream()
+    private String generateThreeLetterWord(String boardName, String email) throws ThulloException {
+        Set<String> usedThreeLetterWords = boardRepository.findAllByCreatedBy(email).stream()
                 .map(Board::getBoardTag)
                 .collect(Collectors.toSet());
 
@@ -199,11 +221,11 @@ public class BoardServiceImpl implements BoardService {
                 return threeLetterWord;
             }
         }
-        throw new IllegalStateException("All three-letter substrings have been used. Please choose a different board name.");
+        throw new ThulloException("All three-letter substrings have been used. Please choose a different board name.");
     }
 
     public boolean hasBoardRole(String boardOwner, String boardTag) {
-        Board board = getBoardByTag(boardTag);
+        Board board = boardRepository.findByBoardTag(boardTag).orElse(null);
         if (board == null) return false;
         return board.getCreatedBy().getEmail().equals(boardOwner);
     }

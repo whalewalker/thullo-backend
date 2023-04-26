@@ -1,12 +1,10 @@
 package com.thullo.web.payload.response;
 
-import com.thullo.data.model.Task;
-import com.thullo.data.model.User;
 import lombok.Data;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -17,14 +15,8 @@ public class BoardResponse {
     private String imageUrl;
     private String boardVisibility;
     private String boardTag;
-    private List<Column> taskColumn = new ArrayList<>();
+    private List<TaskColumnResponse> taskColumn = new ArrayList<>();
+    private Set<UserResponse> collaborators = new LinkedHashSet<>();
     private LocalDateTime updatedAt;
     private LocalDateTime createdAt;
-    private Set<User> collaborators = new HashSet<>();
-
-    @Data
-    public static class Column {
-        private String name;
-        private List<Task> tasks = new ArrayList<>();
-    }
 }

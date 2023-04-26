@@ -1,10 +1,10 @@
 package com.thullo.web.controller;
 
 import com.thullo.annotation.CurrentUser;
-import com.thullo.data.model.Board;
 import com.thullo.security.UserPrincipal;
 import com.thullo.service.BoardService;
 import com.thullo.web.exception.BadRequestException;
+import com.thullo.web.exception.ThulloException;
 import com.thullo.web.exception.UserException;
 import com.thullo.web.payload.request.BoardRequest;
 import com.thullo.web.payload.response.ApiResponse;
@@ -37,7 +37,7 @@ public class BoardController {
             BoardResponse board = boardService.createBoard(boardRequest, principal);
             return ResponseEntity.ok(new ApiResponse(true, "Board successfully created", board));
 
-        } catch (UserException | IOException | BadRequestException ex) {
+        } catch (UserException | IOException | BadRequestException | ThulloException ex) {
             return ResponseEntity.badRequest().body(new ApiResponse(false, ex.getMessage(),
                     new HashMap<>(Map.of(MESSAGE, ex.getMessage()))));
         }
@@ -51,8 +51,8 @@ public class BoardController {
 
         boardRequest.setRequestUrl(request.getRequestURL().toString());
         try {
-            Board board = boardService.updateBoard(boardRequest);
-            return ResponseEntity.ok(new ApiResponse(true, "Board successfully updated", boardService.getBoardResponse(board)));
+            BoardResponse boardResponse = boardService.updateBoard(boardRequest);
+            return ResponseEntity.ok(new ApiResponse(true, "Board successfully updated", boardResponse));
         } catch (UserException | IOException | BadRequestException ex) {
             return ResponseEntity.badRequest().body(new ApiResponse(false, ex.getMessage(),
                     new HashMap<>(Map.of(MESSAGE, ex.getMessage()))));
