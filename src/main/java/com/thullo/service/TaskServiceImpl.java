@@ -73,7 +73,7 @@ public class TaskServiceImpl implements TaskService {
         if (tasksInColumn == null) {
             throw new ResourceNotFoundException("Task column not found!");
         }
-        Long absolutePosition = Math.min(Math.max(position, 0L), tasksInColumn.size() - 1);
+        Long absolutePosition = Math.min(Math.max(position, 0L), (long) tasksInColumn.size() - 1);
         if (task.getTaskColumn().getId().equals(columnId) && task.getPosition() < absolutePosition) {
             absolutePosition--;
         }
@@ -98,11 +98,23 @@ public class TaskServiceImpl implements TaskService {
     public TaskResponse editTask(String boardRef, TaskRequest taskRequest) throws BadRequestException, IOException, ResourceNotFoundException {
         Task task = getTaskByBoardRef(boardRef);
         mapper.map(taskRequest, task);
-        String imageUrl = uploadTaskFile(taskRequest.getFile(), taskRequest.getRequestUrl());
-        if (imageUrl != null) task.setImageUrl(imageUrl);
+
+        String imageUrl = task.getImageUrl();
+        String newImageUrl = null;
+
+        if (taskRequest.getFile() != null) {
+            if (imageUrl != null) {
+                String fileId = extractFileIdFromUrl(imageUrl);
+                fileService.deleteFile(fileId);
+            }
+            newImageUrl = uploadCoverImage(taskRequest.getFile(), taskRequest.getRequestUrl());
+        }
+
+        task.setImageUrl(newImageUrl);
         Task savedTask = saveTask(task);
         return getTaskResponse(savedTask);
     }
+
 
     @Override
     public void deleteTask(String boardRef) throws ResourceNotFoundException {
@@ -151,23 +163,6 @@ public class TaskServiceImpl implements TaskService {
 
     private User findByEmail(String email) throws UserException {
         return userRepository.findByEmail(email).orElseThrow(() -> new UserException(format("user not found with email %s", email)));
-    }
-
-    @Override
-    public TaskResponse updateTaskImage(String boardRef, MultipartFile coverImage, String requestUrl) throws ResourceNotFoundException, IOException, BadRequestException {
-        Task task = getTaskByBoardRef(boardRef);
-
-        String imageUrl = task.getImageUrl();
-        if (imageUrl != null) {
-            String fileId = extractFileIdFromUrl(imageUrl);
-            fileService.deleteFile(fileId);
-        }
-
-        String newImageUrl = uploadCoverImage(coverImage, requestUrl);
-        task.setImageUrl(newImageUrl);
-
-        Task savedTask = saveTask(task);
-        return getTaskResponse(savedTask);
     }
 
     @Override

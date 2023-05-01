@@ -59,8 +59,19 @@ public class BoardController {
         }
     }
 
-    @GetMapping("/{boardTag}")
+    @DeleteMapping("/{boardTag}")
     @PreAuthorize("@boardServiceImpl.hasBoardRole(authentication.principal.email, #boardTag) or hasRole('BOARD_' + #boardTag)")
+    public ResponseEntity<ApiResponse> deleteBoard(@PathVariable String boardTag) {
+        try {
+            boardService.deleteBoard(boardTag);
+            return ResponseEntity.ok(new ApiResponse(true, "Board successfully delete"));
+        } catch (BadRequestException ex) {
+            return ResponseEntity.badRequest().body(new ApiResponse(false, ex.getMessage()));
+        }
+    }
+
+
+    @GetMapping("/{boardTag}")
     public ResponseEntity<ApiResponse> getABoard(@PathVariable String boardTag) {
         try {
             return ResponseEntity.ok(new ApiResponse(true, "Board successfully fetched",

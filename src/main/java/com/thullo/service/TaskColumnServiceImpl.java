@@ -21,9 +21,11 @@ import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import static com.thullo.util.AppConstants.NO_STATUS;
 import static java.lang.String.format;
 
 @Slf4j
@@ -42,31 +44,48 @@ public class TaskColumnServiceImpl implements TaskColumnService {
 
     @Override
     public TaskColumnResponse createTaskColumn(TaskColumnRequest taskColumnRequest, String boardTag, UserPrincipal principal) throws UserException, ThulloException, BadRequestException {
-        User user = findByEmail(principal.getEmail());
-        Board board = getBoardByTag(boardTag);
-        checkTaskColumnExists(taskColumnRequest.getName(), user);
-        TaskColumn taskColumn = mapper.map(taskColumnRequest, TaskColumn.class);
-        taskColumn.setCreatedBy(user);
-        taskColumn.setBoard(board);
+        TaskColumn taskColumn = createTaskColumn(taskColumnRequest, boardTag, principal.getEmail());
         TaskColumn savedTaskColumn = saveTaskColumn(taskColumn);
         return getTaskColumnResponse(savedTaskColumn);
     }
 
-    private void checkTaskColumnExists(String name, User user) throws ThulloException {
-        if (taskColumnRepository.existsByNameAndCreatedBy(name, user)) {
+    private TaskColumn createTaskColumn(TaskColumnRequest taskColumnRequest, String boardTag, String email) throws UserException, BadRequestException, ThulloException {
+        User user = findByEmail(email);
+        Board board = getBoardByTag(boardTag);
+        checkTaskColumnExists(taskColumnRequest.getName(), board);
+        TaskColumn taskColumn = mapper.map(taskColumnRequest, TaskColumn.class);
+        taskColumn.setCreatedBy(user);
+        taskColumn.setBoard(board);
+        return taskColumn;
+    }
+
+    private void checkTaskColumnExists(String name, Board board) throws ThulloException {
+        if (taskColumnRepository.existsByNameAndBoard(name, board)) {
             throw new ThulloException(String.format("Task column with name '%s' already exists", name));
         }
     }
 
     @Override
-    public TaskColumnResponse editTaskColumn(TaskColumnRequest taskColumnRequest, UserPrincipal principal) throws ResourceNotFoundException, UserException, ThulloException {
-        User user = findByEmail(principal.getEmail());
-        checkTaskColumnExists(taskColumnRequest.getName(), user);
+    public TaskColumnResponse editTaskColumn(TaskColumnRequest taskColumnRequest, String boardTag) throws ResourceNotFoundException, ThulloException, BadRequestException {
+        Board board = getBoardByTag(boardTag);
+        checkTaskColumnExists(taskColumnRequest.getName(), board);
         TaskColumn taskColumnToUpdate = findTaskColumnById(taskColumnRequest.getTaskColumnId());
         mapper.map(taskColumnRequest, taskColumnToUpdate);
         TaskColumn savedTaskColumn = saveTaskColumn(taskColumnToUpdate);
         return getTaskColumnResponse(savedTaskColumn);
     }
+
+
+    @Override
+    public TaskColumnResponse getTaskColumn(Map<String, String> params, String boardTag) throws BadRequestException {
+        Board board = getBoardByTag(boardTag);
+        Long taskColumnId = params.containsKey("taskColumnId") ? Long.parseLong(params.get("taskColumnId")) : null;
+        String name = params.getOrDefault("name", null);
+        Optional<TaskColumn> taskColumnOptional = taskColumnRepository.findTaskByParams(taskColumnId, name, board);
+        TaskColumn taskColumn = taskColumnOptional.orElse(null);
+        return taskColumn != null ? getTaskColumnResponse(taskColumn) : null;
+    }
+
 
     @Override
     public void deleteTaskColumn(TaskColumnRequest taskColumnRequest, String boardTag, UserPrincipal userPrincipal) throws ResourceNotFoundException, ThulloException, UserException, BadRequestException {
@@ -78,7 +97,7 @@ public class TaskColumnServiceImpl implements TaskColumnService {
             return;
         }
 
-        if (taskColumnToDelete.getName().equals("No status")) {
+        if (taskColumnToDelete.getName().equals(NO_STATUS)) {
             if (taskColumnToDelete.getTasks().isEmpty()) {
                 deleteTaskColumn(taskColumnToDelete, board);
             } else {
@@ -86,7 +105,7 @@ public class TaskColumnServiceImpl implements TaskColumnService {
             }
         } else {
             Optional<TaskColumn> noStatusTaskColumnOptional = board.getTaskColumns().stream()
-                    .filter(taskColumn -> taskColumn.getName().equals("No status"))
+                    .filter(taskColumn -> taskColumn.getName().equals(NO_STATUS))
                     .findFirst();
 
             if (noStatusTaskColumnOptional.isPresent()) {
@@ -95,8 +114,10 @@ public class TaskColumnServiceImpl implements TaskColumnService {
                 taskColumnRepository.save(noStatusTaskColumn);
                 deleteTaskColumn(taskColumnToDelete, board);
             } else {
-                TaskColumnRequest columnRequest = new TaskColumnRequest("No status", taskColumnToDelete.getId());
-                createTaskColumn(columnRequest, boardTag, userPrincipal);
+                TaskColumnRequest columnRequest = new TaskColumnRequest(NO_STATUS, taskColumnToDelete.getId());
+                TaskColumn taskColumn = createTaskColumn(columnRequest, boardTag, userPrincipal.getEmail());
+                taskColumnToDelete.getTasks().forEach(task -> task.setTaskColumn(taskColumn));
+                taskColumnRepository.save(taskColumn);
                 deleteTaskColumn(taskColumnToDelete, board);
             }
         }

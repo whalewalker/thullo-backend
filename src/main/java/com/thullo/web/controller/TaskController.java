@@ -127,17 +127,6 @@ public class TaskController {
         }
     }
 
-    @PutMapping("{boardTag}/{boardRef}/cover-image")
-    @PreAuthorize("@boardServiceImpl.hasBoardRole(authentication.principal.email, #boardTag) or hasRole('BOARD_' + #boardTag) or hasRole('TASK_' + #boardRef)")
-    public ResponseEntity<ApiResponse> addCoverImage(@PathVariable String boardTag, @PathVariable String boardRef, @RequestParam("file") MultipartFile file, HttpServletRequest request) {
-        try {
-            TaskResponse task = taskService.updateTaskImage(boardRef, file, request.getRequestURL().toString());
-            return ResponseEntity.ok(new ApiResponse(true, "cover image added successfully", task));
-        } catch (BadRequestException | ResourceNotFoundException | IOException ex) {
-            return ResponseEntity.badRequest().body(new ApiResponse(false, ex.getMessage()));
-        }
-    }
-
 
     @GetMapping("{boardTag}/{boardRef}/cover-image")
     @PreAuthorize("@boardServiceImpl.hasBoardRole(authentication.principal.email, #boardTag) or hasRole('BOARD_' + #boardTag) or hasRole('TASK_' + #boardRef)")

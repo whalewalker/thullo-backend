@@ -58,7 +58,7 @@ class BoardServiceImplTest {
     @BeforeEach
     void setUp() {
         boardRequest = new BoardRequest();
-        boardRequest.setBoardName("Test Board");
+        boardRequest.setName("Test Board");
         boardRequest.setBoardVisibility("PUBLIC");
         boardRequest.setRequestUrl("http://localhost:8080");
         boardRequest.setFile(new MockMultipartFile("image.jpg", new byte[0]));
@@ -72,7 +72,7 @@ class BoardServiceImplTest {
         board.setName("Test Board");
 
         boardResponse = new BoardResponse();
-        boardResponse.setName(boardRequest.getBoardName());
+        boardResponse.setName(boardRequest.getName());
         boardResponse.setBoardVisibility(boardRequest.getBoardVisibility());
     }
 
@@ -80,7 +80,7 @@ class BoardServiceImplTest {
     void testCreateBoard() throws Exception {
         // mock repository and service calls
         when(userRepository.findByEmail(userPrincipal.getEmail())).thenReturn(Optional.ofNullable(user));
-        when(boardRepository.existsByNameAndCreatedBy(boardRequest.getBoardName(), user)).thenReturn(false);
+        when(boardRepository.existsByNameAndCreatedBy(boardRequest.getName(), user)).thenReturn(false);
         when(modelMapper.map(boardRequest, Board.class)).thenReturn(new Board());
         when(modelMapper.map(any(Board.class), eq(BoardResponse.class))).thenReturn(boardResponse);
         when(boardRepository.save(any(Board.class))).thenReturn(board);
@@ -90,35 +90,29 @@ class BoardServiceImplTest {
 
         // verify repository and service calls
         verify(userRepository).findByEmail(userPrincipal.getEmail());
-        verify(boardRepository).existsByNameAndCreatedBy(boardRequest.getBoardName(), user);
+        verify(boardRepository).existsByNameAndCreatedBy(boardRequest.getName(), user);
         verify(boardRepository).save(any(Board.class));
         verify(fileService).uploadFile(any(MultipartFile.class), eq(boardRequest.getRequestUrl()));
         verify(modelMapper).map(any(Board.class), eq(BoardResponse.class));
 
         // verify response
         assertNotNull(boardResponse);
-        assertEquals(boardRequest.getBoardName(), boardResponse.getName());
+        assertEquals(boardRequest.getName(), boardResponse.getName());
         assertEquals(boardRequest.getBoardVisibility(), boardResponse.getBoardVisibility());
     }
 
 
     @Test
     void testCreateBoardWithEmptyName() {
-        boardRequest.setBoardName("");
-
-        assertThrows(BadRequestException.class, () -> {
-            boardService.createBoard(boardRequest, userPrincipal);
-        });
+        boardRequest.setName("");
+        assertThrows(BadRequestException.class, () -> boardService.createBoard(boardRequest, userPrincipal));
     }
 
     @Test
     void testCreateBoardWithNameAlreadyExists() {
         when(userRepository.findByEmail(userPrincipal.getEmail())).thenReturn(Optional.ofNullable(user));
-        when(boardRepository.existsByNameAndCreatedBy(boardRequest.getBoardName(), user)).thenReturn(true);
-
-        assertThrows(ThulloException.class, () -> {
-            boardService.createBoard(boardRequest, userPrincipal);
-        });
+        when(boardRepository.existsByNameAndCreatedBy(boardRequest.getName(), user)).thenReturn(true);
+        assertThrows(ThulloException.class, () -> boardService.createBoard(boardRequest, userPrincipal));
     }
 
 
@@ -154,7 +148,7 @@ class BoardServiceImplTest {
     }
 
     @Test
-    void testGetBoards() throws Exception {
+    void testGetBoards() {
         // Mock repository
         List<Board> mockBoards = new ArrayList<>();
         Board board1 = new Board();

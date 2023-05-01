@@ -26,4 +26,6 @@ public interface BoardService {
     void addACollaborator(String boardTag, String collaboratorEmail) throws BadRequestException, UserException;
 
     void removeACollaborator(String boardTag, String collaboratorEmail) throws BadRequestException, UserException;
+
+    void deleteBoard(String boardTag) throws BadRequestException;
 }

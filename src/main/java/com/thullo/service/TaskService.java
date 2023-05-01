@@ -28,8 +28,6 @@ public interface TaskService {
 
     void removeContributor(String boardRef, String contributorEmail) throws ResourceNotFoundException, UserException;
 
-    TaskResponse updateTaskImage(String boardRef, MultipartFile coverImage, String requestUrl) throws ResourceNotFoundException, BadRequestException, IOException;
-
     String getTaskImageUrl(String boardRef) throws ResourceNotFoundException;
 
     Attachment addAttachmentToTask(String boardRef, String url, MultipartFile file) throws ResourceNotFoundException, BadRequestException, IOException;

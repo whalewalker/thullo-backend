@@ -2,6 +2,8 @@ package com.thullo.service;
 
 import com.thullo.data.model.*;
 import com.thullo.data.repository.BoardRepository;
+import com.thullo.data.repository.TaskColumnRepository;
+import com.thullo.data.repository.TaskRepository;
 import com.thullo.data.repository.UserRepository;
 import com.thullo.security.UserPrincipal;
 import com.thullo.util.Helper;
@@ -20,10 +22,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static com.thullo.data.model.BoardVisibility.getBoardVisibility;
@@ -34,6 +33,8 @@ import static java.lang.String.format;
 @Service
 @RequiredArgsConstructor
 public class BoardServiceImpl implements BoardService {
+    private final TaskColumnRepository taskColumnRepository;
+    private final TaskRepository taskRepository;
 
     private final BoardRepository boardRepository;
     private final ModelMapper mapper;
@@ -54,11 +55,11 @@ public class BoardServiceImpl implements BoardService {
     public BoardResponse createBoard(BoardRequest boardRequest, UserPrincipal userPrincipal)
             throws UserException, BadRequestException, IOException, ThulloException {
 
-        if (isNullOrEmpty(boardRequest.getBoardName()))
+        if (isNullOrEmpty(boardRequest.getName()))
             throw new BadRequestException("Board name cannot be empty");
 
         User user = findByEmail(userPrincipal.getEmail());
-        checkBoardNameExists(boardRequest.getBoardName(), user);
+        checkBoardNameExists(boardRequest.getName(), user);
 
         Board board = mapper.map(boardRequest, Board.class);
         BoardVisibility boardVisibility = getBoardVisibility(boardRequest.getBoardVisibility());
@@ -69,7 +70,7 @@ public class BoardServiceImpl implements BoardService {
         board.setImageUrl(imageUrl);
 
         createDefaultTaskColumn(board, user);
-        board.setBoardTag(generateThreeLetterWord(boardRequest.getBoardName().toUpperCase(), user.getEmail()));
+        board.setBoardTag(generateThreeLetterWord(boardRequest.getName().toUpperCase(), user.getEmail()));
 
         Board savedBoard = boardRepository.save(board);
         return getBoardResponse(savedBoard);
@@ -108,17 +109,25 @@ public class BoardServiceImpl implements BoardService {
     public BoardResponse getBoardResponse(Board board) {
         BoardResponse boardResponse = mapper.map(board, BoardResponse.class);
 
-        List<TaskColumnResponse> taskColumnResponses = new ArrayList<>();
-        board.getTaskColumns().forEach(taskColumn -> {
-            TaskColumnResponse taskColumnResponse = mapper.map(taskColumn, TaskColumnResponse.class);
-            taskColumnResponse.setTasks(getTaskResponses(taskColumn.getTasks()));
-            taskColumnResponses.add(taskColumnResponse);
-        });
+        List<TaskColumn> taskColumns = board.getTaskColumns();
+        List<TaskColumn> sortedColumns = taskColumns.stream()
+                .sorted(Comparator.comparingInt(column ->
+                        column.getName().equalsIgnoreCase("no status") ? 0 : 1))
+                .collect(Collectors.toList());
+
+        List<TaskColumnResponse> taskColumnResponses = sortedColumns.stream()
+                .map(column -> {
+                    TaskColumnResponse taskColumnResponse = mapper.map(column, TaskColumnResponse.class);
+                    taskColumnResponse.setTasks(getTaskResponses(column.getTasks()));
+                    return taskColumnResponse;
+                })
+                .collect(Collectors.toList());
 
         boardResponse.setTaskColumn(taskColumnResponses);
         boardResponse.setCollaborators(getUserResponses(board.getCollaborators()));
         return boardResponse;
     }
+
 
 
     private List<TaskResponse> getTaskResponses(List<Task> tasks) {
@@ -148,28 +157,39 @@ public class BoardServiceImpl implements BoardService {
         return boardResponses;
     }
 
-
     @Override
     public BoardResponse updateBoard(BoardRequest boardRequest) throws BadRequestException, IOException {
         Board board = getBoardByTag(boardRequest.getBoardTag());
-
         mapper.map(boardRequest, board);
 
-        if (!isNullOrEmpty(boardRequest.getBoardVisibility())) {
-            BoardVisibility visibility = BoardVisibility.getBoardVisibility(boardRequest.getBoardVisibility());
-            board.setBoardVisibility(visibility != null ? visibility : board.getBoardVisibility());
-        }
-
-        if (boardRequest.getFile() != null) {
-            String fileId = Helper.extractFileIdFromUrl(board.getImageUrl());
-            fileService.deleteFile(fileId);
-            String imageUrl = fileService.uploadFile(boardRequest.getFile(), boardRequest.getRequestUrl());
-            board.setImageUrl(imageUrl);
-        }
+        updateBoardVisibility(board, boardRequest);
+        updateBoardImage(board, boardRequest);
 
         Board updatedBoard = boardRepository.save(board);
         return mapper.map(updatedBoard, BoardResponse.class);
     }
+
+    private void updateBoardVisibility(Board board, BoardRequest boardRequest) {
+        String boardVisibility = boardRequest.getBoardVisibility();
+        if (!isNullOrEmpty(boardVisibility)) {
+            BoardVisibility visibility = BoardVisibility.getBoardVisibility(boardVisibility);
+            board.setBoardVisibility(visibility != null ? visibility : board.getBoardVisibility());
+        }
+    }
+
+    private void updateBoardImage(Board board, BoardRequest boardRequest) throws IOException, BadRequestException {
+        if (boardRequest.getFile() != null) {
+            String imageUrl = board.getImageUrl();
+            if (imageUrl != null) {
+                String fileId = Helper.extractFileIdFromUrl(imageUrl);
+                fileService.deleteFile(fileId);
+            }
+
+            String newImageUrl = fileService.uploadFile(boardRequest.getFile(), boardRequest.getRequestUrl());
+            board.setImageUrl(newImageUrl);
+        }
+    }
+
 
     @Override
     public void addACollaborator(String boardTag, String collaboratorEmail) throws BadRequestException, UserException {
@@ -232,5 +252,13 @@ public class BoardServiceImpl implements BoardService {
 
     public boolean isBoardOwner(String collaboratorEmail, String boardOwnerEmail) {
         return collaboratorEmail.equals(boardOwnerEmail);
+    }
+
+    @Override
+    public void deleteBoard(String boardTag) throws BadRequestException {
+        Board board = getBoardByTag(boardTag);
+        board.getTaskColumns().forEach(taskColumn -> taskRepository.deleteAll(taskColumn.getTasks()));
+        taskColumnRepository.deleteAll(board.getTaskColumns());
+        boardRepository.delete(board);
     }
 }

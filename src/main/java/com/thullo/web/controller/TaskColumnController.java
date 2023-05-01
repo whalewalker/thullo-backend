@@ -16,6 +16,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import java.util.Map;
 
 @RestController
 @RequiredArgsConstructor
@@ -35,12 +36,23 @@ public class TaskColumnController {
     }
 
     @PreAuthorize("@boardServiceImpl.hasBoardRole(authentication.principal.email, #boardTag) or hasRole('BOARD_' + #boardTag)")
-    @PutMapping("/{boardTag}")
-    public ResponseEntity<ApiResponse> updateTaskColumn(@PathVariable String boardTag, @RequestBody @Valid TaskColumnRequest taskColumnRequest, @CurrentUser UserPrincipal principal) {
+    @GetMapping("/{boardTag}")
+    public ResponseEntity<ApiResponse> getTaskColumn(@PathVariable String boardTag, @RequestParam Map<String, String> params) {
         try {
-            TaskColumnResponse taskColumn = taskColumnService.editTaskColumn(taskColumnRequest, principal);
+            TaskColumnResponse taskColumn = taskColumnService.getTaskColumn(params, boardTag);
+            return ResponseEntity.ok(new ApiResponse(true, "Task column fetch successfully", taskColumn));
+        } catch (ResourceNotFoundException | BadRequestException ex) {
+            return ResponseEntity.badRequest().body(new ApiResponse(false, ex.getMessage()));
+        }
+    }
+
+    @PreAuthorize("@boardServiceImpl.hasBoardRole(authentication.principal.email, #boardTag) or hasRole('BOARD_' + #boardTag)")
+    @PutMapping("/{boardTag}")
+    public ResponseEntity<ApiResponse> updateTaskColumn(@PathVariable String boardTag, @RequestBody @Valid TaskColumnRequest taskColumnRequest) {
+        try {
+            TaskColumnResponse taskColumn = taskColumnService.editTaskColumn(taskColumnRequest, boardTag);
             return ResponseEntity.ok(new ApiResponse(true, "Task column is edited successfully", taskColumn));
-        } catch (ResourceNotFoundException | ThulloException | UserException ex) {
+        } catch (BadRequestException | ThulloException | ResourceNotFoundException ex) {
             return ResponseEntity.badRequest().body(new ApiResponse(false, ex.getMessage()));
         }
     }
