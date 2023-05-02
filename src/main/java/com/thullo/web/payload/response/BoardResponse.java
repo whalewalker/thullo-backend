@@ -14,7 +14,9 @@ public class BoardResponse {
     private String name;
     private String imageUrl;
     private String boardVisibility;
+    private String description;
     private String boardTag;
+    private UserResponse createdBy;
     private List<TaskColumnResponse> taskColumn = new ArrayList<>();
     private Set<UserResponse> collaborators = new LinkedHashSet<>();
     private LocalDateTime updatedAt;

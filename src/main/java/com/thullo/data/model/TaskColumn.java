@@ -26,6 +26,9 @@ public class TaskColumn {
     @Column(nullable = false)
     private String name;
 
+    @Column(unique = true)
+    private int position;
+
     @ManyToOne
     @JoinColumn(name = "user_id")
     @JsonBackReference

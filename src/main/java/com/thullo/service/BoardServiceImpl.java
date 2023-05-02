@@ -123,6 +123,8 @@ public class BoardServiceImpl implements BoardService {
                 })
                 .collect(Collectors.toList());
 
+        UserResponse userResponse = mapper.map(board.getCreatedBy(), UserResponse.class);
+        boardResponse.setCreatedBy(userResponse);
         boardResponse.setTaskColumn(taskColumnResponses);
         boardResponse.setCollaborators(getUserResponses(board.getCollaborators()));
         return boardResponse;
