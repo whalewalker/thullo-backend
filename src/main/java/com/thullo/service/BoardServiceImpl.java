@@ -12,6 +12,8 @@ import com.thullo.web.exception.ThulloException;
 import com.thullo.web.exception.UserException;
 import com.thullo.web.payload.request.BoardRequest;
 import com.thullo.web.payload.response.BoardResponse;
+import com.thullo.web.payload.response.TaskColumnResponse;
+import com.thullo.web.payload.response.TaskResponse;
 import com.thullo.web.payload.response.UserResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -20,10 +22,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static com.thullo.data.model.BoardVisibility.getBoardVisibility;
@@ -110,35 +109,35 @@ public class BoardServiceImpl implements BoardService {
     public BoardResponse getBoardResponse(Board board) {
         BoardResponse boardResponse = mapper.map(board, BoardResponse.class);
 
-//        List<TaskColumn> taskColumns = board.getTaskColumns();
-//        List<TaskColumn> sortedColumns = taskColumns.stream()
-//                .sorted(Comparator.comparingInt(column ->
-//                        column.getName().equalsIgnoreCase("no status") ? 0 : 1))
-//                .collect(Collectors.toList());
+        List<TaskColumn> taskColumns = board.getTaskColumns();
+        List<TaskColumn> sortedColumns = taskColumns.stream()
+                .sorted(Comparator.comparingInt(column ->
+                        column.getName().equalsIgnoreCase("no status") ? 0 : 1))
+                .collect(Collectors.toList());
 
-//        List<TaskColumnResponse> taskColumnResponses = sortedColumns.stream()
-//                .map(column -> {
-//                    TaskColumnResponse taskColumnResponse = mapper.map(column, TaskColumnResponse.class);
-//                    taskColumnResponse.setTasks(getTaskResponses(column.getTasks()));
-//                    return taskColumnResponse;
-//                })
-//                .collect(Collectors.toList());
+        List<TaskColumnResponse> taskColumnResponses = sortedColumns.stream()
+                .map(column -> {
+                    TaskColumnResponse taskColumnResponse = mapper.map(column, TaskColumnResponse.class);
+                    taskColumnResponse.setTasks(getTaskResponses(column.getTasks()));
+                    return taskColumnResponse;
+                })
+                .collect(Collectors.toList());
 
         UserResponse userResponse = mapper.map(board.getCreatedBy(), UserResponse.class);
         boardResponse.setCreatedBy(userResponse);
-//        boardResponse.setTaskColumn(taskColumnResponses);
-//        boardResponse.setCollaborators(getUserResponses(board.getCollaborators()));
+        boardResponse.setTaskColumn(taskColumnResponses);
+        boardResponse.setCollaborators(getUserResponses(board.getCollaborators()));
         return boardResponse;
     }
 
 
-//    private List<TaskResponse> getTaskResponses(List<Task> tasks) {
-//        return tasks.stream().map(task -> mapper.map(task, TaskResponse.class)).collect(Collectors.toList());
-//    }
-//
-//    private Set<UserResponse> getUserResponses(Set<User> users) {
-//        return users.stream().map(user -> mapper.map(user, UserResponse.class)).collect(Collectors.toSet());
-//    }
+    private List<TaskResponse> getTaskResponses(List<Task> tasks) {
+        return tasks.stream().map(task -> mapper.map(task, TaskResponse.class)).collect(Collectors.toList());
+    }
+
+    private Set<UserResponse> getUserResponses(Set<User> users) {
+        return users.stream().map(user -> mapper.map(user, UserResponse.class)).collect(Collectors.toSet());
+    }
 
     public List<BoardResponse> getBoards(UserPrincipal userPrincipal, Map<String, String> filterParams) {
         List<Board> filteredBoards = new ArrayList<>();
