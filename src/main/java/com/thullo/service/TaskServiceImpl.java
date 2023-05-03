@@ -9,6 +9,7 @@ import com.thullo.web.exception.BadRequestException;
 import com.thullo.web.exception.ResourceNotFoundException;
 import com.thullo.web.exception.UserException;
 import com.thullo.web.payload.request.TaskRequest;
+import com.thullo.web.payload.response.CommentResponse;
 import com.thullo.web.payload.response.TaskResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -17,6 +18,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -211,6 +213,13 @@ public class TaskServiceImpl implements TaskService {
     }
 
     private TaskResponse getTaskResponse(Task task) {
+        TaskResponse taskResponse = mapper.map(task, TaskResponse.class);
+        List<CommentResponse> commentResponses = new ArrayList<>();
+        for (Comment comment : task.getComments()) {
+            CommentResponse commentResponse = mapper.map(comment, CommentResponse.class);
+            commentResponses.add(commentResponse);
+        }
+        taskResponse.setComments(commentResponses);
         return mapper.map(task, TaskResponse.class);
     }
 }

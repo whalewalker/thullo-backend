@@ -8,8 +8,7 @@ import java.time.LocalDateTime;
 public class CommentResponse {
     private Long id;
     private String message;
-    private String createdBy;
-    private String imageUrl;
+    private UserResponse createdBy;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 }

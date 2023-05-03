@@ -10,6 +10,7 @@ import com.thullo.data.repository.UserRepository;
 import com.thullo.web.exception.ResourceNotFoundException;
 import com.thullo.web.payload.request.CommentRequest;
 import com.thullo.web.payload.response.CommentResponse;
+import com.thullo.web.payload.response.UserResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
@@ -42,17 +43,12 @@ public class CommentServiceImpl implements CommentService {
         comment.setMentionedUsers(mentionedUsers);
         comment.setTask(task);
         comment.setCreatedBy(createdBy);
-        commentRepository.save(comment);
+        Comment savedComment = commentRepository.save(comment);
 
         String title = "You have been mentioned in a comment on task: " + task.getBoardRef();
         String message = "You have been mentioned in a comment on task " + task.getBoardRef() + ": " + request.getMessage();
         notificationService.sendNotificationsToUsers(mentionedUsers, message, title, NotificationType.MENTIONED_IN_COMMENT);
-
-        CommentResponse response = mapper.map(comment, CommentResponse.class);
-        response.setCreatedBy(createdBy.getName());
-        response.setImageUrl(createdBy.getImageUrl());
-
-        return response;
+        return getCommentResponse(savedComment);
     }
 
     @Override
@@ -77,12 +73,7 @@ public class CommentServiceImpl implements CommentService {
             String message = "You have been mentioned in a comment on task " + boardRef + ": " + request.getMessage();
             notificationService.sendNotificationsToUsers(newMentionedUsers, message, title, NotificationType.MENTIONED_IN_COMMENT);
         }
-
-        CommentResponse response = mapper.map(comment, CommentResponse.class);
-        response.setCreatedBy(comment.getCreatedBy().getName());
-        response.setImageUrl(comment.getCreatedBy().getImageUrl());
-
-        return response;
+        return getCommentResponse(comment);
     }
 
     @Override
@@ -105,10 +96,8 @@ public class CommentServiceImpl implements CommentService {
         List<CommentResponse> commentResponses = new ArrayList<>();
         List<Comment> comments = commentRepository.findAllByTask(task);
         comments.forEach(comment -> {
-            CommentResponse response = mapper.map(comment, CommentResponse.class);
-            response.setCreatedBy(comment.getCreatedBy().getName());
-            response.setImageUrl(comment.getCreatedBy().getImageUrl());
-            commentResponses.add(response);
+            CommentResponse commentResponse = getCommentResponse(comment);
+            commentResponses.add(commentResponse);
         });
         return commentResponses;
     }
@@ -133,5 +122,12 @@ public class CommentServiceImpl implements CommentService {
         Comment comment = getCommentInternal(commentId);
         if (comment == null) return false;
         return comment.getCreatedBy().getEmail().equals(email);
+    }
+
+    private CommentResponse getCommentResponse(Comment comment) {
+        CommentResponse commentResponse = mapper.map(comment, CommentResponse.class);
+        UserResponse userResponse = mapper.map(commentResponse.getCreatedBy(), UserResponse.class);
+        commentResponse.setCreatedBy(userResponse);
+        return commentResponse;
     }
 }
