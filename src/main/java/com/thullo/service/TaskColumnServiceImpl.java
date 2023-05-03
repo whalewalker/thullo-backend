@@ -1,7 +1,6 @@
 package com.thullo.service;
 
 import com.thullo.data.model.Board;
-import com.thullo.data.model.Task;
 import com.thullo.data.model.TaskColumn;
 import com.thullo.data.model.User;
 import com.thullo.data.repository.BoardRepository;
@@ -14,18 +13,16 @@ import com.thullo.web.exception.ThulloException;
 import com.thullo.web.exception.UserException;
 import com.thullo.web.payload.request.TaskColumnRequest;
 import com.thullo.web.payload.response.TaskColumnResponse;
-import com.thullo.web.payload.response.TaskResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 import static com.thullo.util.AppConstants.NO_STATUS;
+import static com.thullo.util.Helper.getTaskColumnResponse;
 import static java.lang.String.format;
 
 @Slf4j
@@ -46,7 +43,7 @@ public class TaskColumnServiceImpl implements TaskColumnService {
     public TaskColumnResponse createTaskColumn(TaskColumnRequest taskColumnRequest, String boardTag, UserPrincipal principal) throws UserException, ThulloException, BadRequestException {
         TaskColumn taskColumn = createTaskColumn(taskColumnRequest, boardTag, principal.getEmail());
         TaskColumn savedTaskColumn = saveTaskColumn(taskColumn);
-        return getTaskColumnResponse(savedTaskColumn);
+        return getTaskColumnResponse(savedTaskColumn, mapper);
     }
 
     private TaskColumn createTaskColumn(TaskColumnRequest taskColumnRequest, String boardTag, String email) throws UserException, BadRequestException, ThulloException {
@@ -72,7 +69,7 @@ public class TaskColumnServiceImpl implements TaskColumnService {
         TaskColumn taskColumnToUpdate = findTaskColumnById(taskColumnRequest.getTaskColumnId());
         mapper.map(taskColumnRequest, taskColumnToUpdate);
         TaskColumn savedTaskColumn = saveTaskColumn(taskColumnToUpdate);
-        return getTaskColumnResponse(savedTaskColumn);
+        return getTaskColumnResponse(savedTaskColumn, mapper);
     }
 
 
@@ -83,7 +80,7 @@ public class TaskColumnServiceImpl implements TaskColumnService {
         String name = params.getOrDefault("name", null);
         Optional<TaskColumn> taskColumnOptional = taskColumnRepository.findTaskByParams(taskColumnId, name, board);
         TaskColumn taskColumn = taskColumnOptional.orElse(null);
-        return taskColumn != null ? getTaskColumnResponse(taskColumn) : null;
+        return taskColumn != null ? getTaskColumnResponse(taskColumn, mapper) : null;
     }
 
 
@@ -123,24 +120,10 @@ public class TaskColumnServiceImpl implements TaskColumnService {
         }
     }
 
-
     private void deleteTaskColumn(TaskColumn taskColumnToDelete, Board board) {
         board.getTaskColumns().remove(taskColumnToDelete);
         taskColumnRepository.delete(taskColumnToDelete);
         boardRepository.save(board);
-    }
-
-
-    private TaskColumnResponse getTaskColumnResponse(TaskColumn taskColumn) {
-        TaskColumnResponse taskColumnResponse = mapper.map(taskColumn, TaskColumnResponse.class);
-        List<TaskResponse> taskResponses = getTaskResponses(taskColumn.getTasks());
-        taskColumnResponse.setTasks(taskResponses);
-        return taskColumnResponse;
-    }
-
-    private List<TaskResponse> getTaskResponses(List<Task> tasks) {
-        return tasks.stream().map(task -> mapper.map(task, TaskResponse.class))
-                .collect(Collectors.toList());
     }
 
     private TaskColumn saveTaskColumn(TaskColumn taskColumn) {

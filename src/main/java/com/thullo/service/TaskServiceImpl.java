@@ -9,7 +9,6 @@ import com.thullo.web.exception.BadRequestException;
 import com.thullo.web.exception.ResourceNotFoundException;
 import com.thullo.web.exception.UserException;
 import com.thullo.web.payload.request.TaskRequest;
-import com.thullo.web.payload.response.CommentResponse;
 import com.thullo.web.payload.response.TaskResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -18,13 +17,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static com.thullo.util.Helper.calculateFileSize;
-import static com.thullo.util.Helper.extractFileIdFromUrl;
+import static com.thullo.util.Helper.*;
 import static java.lang.String.format;
 
 @Slf4j
@@ -53,7 +50,7 @@ public class TaskServiceImpl implements TaskService {
         task.setTaskColumn(currentTaskColumn);
         task.setBoardRef(boardRefGenerator.generateBoardRef(currentTaskColumn));
         Task savedTask = saveTask(task);
-        return getTaskResponse(savedTask);
+        return getTaskResponse(savedTask, mapper);
     }
 
     private TaskColumn findTaskColumn(Long columnId) throws ResourceNotFoundException {
@@ -87,7 +84,7 @@ public class TaskServiceImpl implements TaskService {
         task.setPosition(absolutePosition);
         task.setTaskColumn(findTaskColumn(columnId));
         Task savedTask = saveTask(task);
-        return getTaskResponse(savedTask);
+        return getTaskResponse(savedTask, mapper);
 
     }
 
@@ -114,7 +111,7 @@ public class TaskServiceImpl implements TaskService {
 
         task.setImageUrl(newImageUrl);
         Task savedTask = saveTask(task);
-        return getTaskResponse(savedTask);
+        return getTaskResponse(savedTask, mapper);
     }
 
 
@@ -128,7 +125,7 @@ public class TaskServiceImpl implements TaskService {
     public List<TaskResponse> searchTask(String params) {
         List<Task> tasks = taskRepository.findByParams(params);
         return tasks.stream()
-                .map(this::getTaskResponse)
+                .map(task -> getTaskResponse(task, mapper))
                 .collect(Collectors.toList());
     }
 
@@ -204,22 +201,11 @@ public class TaskServiceImpl implements TaskService {
 
     public TaskResponse getTask(String boardRef) throws ResourceNotFoundException {
         Task task = getTaskByBoardRef(boardRef);
-        return getTaskResponse(task);
+        return getTaskResponse(task, mapper);
     }
 
     private Task getTaskByBoardRef(String boardRef) throws ResourceNotFoundException {
         return taskRepository.findByBoardRef(boardRef).orElseThrow(
                 () -> new ResourceNotFoundException(format("Task with board ref '%s' not found", boardRef)));
-    }
-
-    private TaskResponse getTaskResponse(Task task) {
-        TaskResponse taskResponse = mapper.map(task, TaskResponse.class);
-        List<CommentResponse> commentResponses = new ArrayList<>();
-        for (Comment comment : task.getComments()) {
-            CommentResponse commentResponse = mapper.map(comment, CommentResponse.class);
-            commentResponses.add(commentResponse);
-        }
-        taskResponse.setComments(commentResponses);
-        return mapper.map(task, TaskResponse.class);
     }
 }

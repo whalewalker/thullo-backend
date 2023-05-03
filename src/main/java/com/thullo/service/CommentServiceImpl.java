@@ -10,7 +10,6 @@ import com.thullo.data.repository.UserRepository;
 import com.thullo.web.exception.ResourceNotFoundException;
 import com.thullo.web.payload.request.CommentRequest;
 import com.thullo.web.payload.response.CommentResponse;
-import com.thullo.web.payload.response.UserResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
@@ -21,6 +20,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+
+import static com.thullo.util.Helper.getCommentResponseDetails;
 
 @Slf4j
 @Service
@@ -125,9 +126,6 @@ public class CommentServiceImpl implements CommentService {
     }
 
     private CommentResponse getCommentResponse(Comment comment) {
-        CommentResponse commentResponse = mapper.map(comment, CommentResponse.class);
-        UserResponse userResponse = mapper.map(commentResponse.getCreatedBy(), UserResponse.class);
-        commentResponse.setCreatedBy(userResponse);
-        return commentResponse;
+        return getCommentResponseDetails(comment, mapper);
     }
 }
