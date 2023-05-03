@@ -8,6 +8,7 @@ import com.thullo.web.payload.request.LabelRequest;
 import com.thullo.web.payload.response.ApiResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
@@ -21,8 +22,9 @@ public class LabelController {
     private final LabelService labelService;
 
 
-    @PostMapping
-    public ResponseEntity<ApiResponse> createLabel(@RequestParam("boardRef") String boardRef, @RequestBody @Valid LabelRequest request) {
+    @PostMapping("{boardTag}/{boardRef}")
+    @PreAuthorize("@boardServiceImpl.hasBoardRole(authentication.principal.email, #boardTag) or hasRole('BOARD_' + #boardTag)")
+    public ResponseEntity<ApiResponse> createLabel(@PathVariable("boardRef") String boardRef, @PathVariable("boardTag") String boardTag, @RequestBody @Valid LabelRequest request) {
         try {
             Label label = labelService.createLabel(boardRef, request);
             return ResponseEntity.ok(new ApiResponse(true, "Label successfully created", label));
