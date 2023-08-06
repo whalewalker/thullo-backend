@@ -7,7 +7,6 @@ import com.thullo.security.oauth2.OAuth2AuthenticationSuccessHandler;
 import com.thullo.security.oauth2.Oauth2CustomUserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
-import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -66,7 +65,7 @@ public class SecurityConfig {
                 .authorizeRequests()
                 .antMatchers(AUTH_WHITELIST)
                 .permitAll()
-                .antMatchers(HttpMethod.GET, "/api/v1/thullo/users/**", "/api/v1/thullo/files/**")
+                .antMatchers("/api/v1/thullo/users/**", "/api/v1/thullo/files/**", "/api/comments/**")
                 .permitAll()
                 .anyRequest()
                 .authenticated()

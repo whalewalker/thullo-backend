@@ -15,7 +15,8 @@ public class BoardRefGenerator {
 
     public String generateBoardRef(TaskColumn taskColumn) {
         String boardTag = taskColumn.getBoard().getBoardTag();
-        BoardId boardId = boardIdRepository.findByBoardTag(boardTag)
+        BoardId boardId;
+        boardId = boardIdRepository.findByBoardTag(boardTag)
                 .orElseGet(() -> new BoardId(boardTag, 1L));
 
         String boardRef = boardTag + "-" + boardId.getNextId();

@@ -6,6 +6,7 @@ import java.util.Set;
 
 @Data
 public class CommentRequest {
+    private Long id;
     private String message;
     private Set<String> mentionedUsers;
 }
